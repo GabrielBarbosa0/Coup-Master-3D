@@ -1519,6 +1519,7 @@
   <audio id="audio-card-slide" src="audio/card-slide.mp3"></audio>
   <audio id="audio-shuffle" src="audio/shuffle.mp3"></audio>
   <audio id="audio-click" src="audio/click.mp3"></audio>
+  <audio id="audio-ui" src="audio/ui-sound.mp3"></audio>
 
 
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -2266,7 +2267,7 @@
         navigator.clipboard.writeText(roomCode).then(() => {
 
           // Feedback Sonoro
-          playSound('card-slide'); // Ou outro som de confirmação
+          playSound('ui'); // Ou outro som de confirmação
 
           // Feedback Visual (Piscar Verde)
           roomHeader.classList.add('copied');
