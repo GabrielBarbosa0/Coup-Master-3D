@@ -1429,10 +1429,10 @@
           <label for="config-mercenario">Mercenário</label>
           <input type="number" id="config-mercenario" data-card="mercenario" min="0" max="10" value="0">
         </li>
-        <li class="card-config-item">
+        <!-- <li class="card-config-item">
           <label for="config-guardiao_real">Guardião Real</label>
           <input type="number" id="config-guardiao-real" data-card="guardiao-real" min="0" max="10" value="0">
-        </li>
+        </li> -->
         <li class="card-config-item">
           <label for="config-purificador">Purificador</label>
           <input type="number" id="config-purificador" data-card="purificador" min="0" max="10" value="0">
@@ -1450,18 +1450,18 @@
           <label for="config-marionetista">Marionetista</label>
           <input type="number" id="config-marionetista" data-card="marionetista" min="0" max="10" value="0">
         </li>
-        <li class="card-config-item">
+        <!-- <li class="card-config-item">
           <label for="config-contador_real">Contador Real</label>
           <input type="number" id="config-contador_real" data-card="contador_real" min="0" max="10" value="0">
-        </li>
-        <li class="card-config-item">
+        </li> -->
+        <!-- <li class="card-config-item">
           <label for="config-contrabandista">Contrabandista</label>
           <input type="number" id="config-contrabandista" data-card="contrabandista" min="0" max="10" value="0">
-        </li>
-        <li class="card-config-item">
+        </li> -->
+        <!-- <li class="card-config-item">
           <label for="config-camaleao">Camaleão</label>
           <input type="number" id="config-camaleao" data-card="camaleao" min="0" max="10" value="0">
-        </li>
+        </li> -->
       </ul>
       <button id="applyDeckConfigBtn">Aplicar e Resetar Jogo</button>
     </div>
@@ -1519,7 +1519,7 @@
   <audio id="audio-card-slide" src="audio/card-slide.mp3"></audio>
   <audio id="audio-shuffle" src="audio/shuffle.mp3"></audio>
   <audio id="audio-click" src="audio/click.mp3"></audio>
-  <audio id="audio-ui" src="audio/ui-sound.mp3"></audio>
+  <audio id="audio-pop" src="audio/pop.mp3"></audio>
 
 
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -1613,15 +1613,16 @@
       { type: 'burocrata', color: '#A52A2A' },
       { type: 'vigilante', color: '#FFFFFF' },
       { type: 'mercenario', color: '#FFFFFF' },
-      { type: 'guardiao-real', color: '#FFFFFF' },
       { type: 'purificador', color: '#FFFFFF' },
       { type: 'tesoureiro_da_coroa', color: '#FFFFFF' },
       { type: 'diplomata', color: '#FFFFFF' },
-      { type: 'marionetista', color: '#FFFFFF' },
-      { type: 'contador_real', color: '#FFFFFF' },
-      { type: 'contrabandista', color: '#FFFFFF' },
-      { type: 'camaleao', color: '#FFFFFF' }
+      { type: 'marionetista', color: '#FFFFFF' }
+      // { type: 'guardiao-real', color: '#FFFFFF' },
+      // { type: 'contador_real', color: '#FFFFFF' },
+      // { type: 'contrabandista', color: '#FFFFFF' },
+      // { type: 'camaleao', color: '#FFFFFF' }
     ];
+    
 
     let localGameState = {};
     let myPlayerId = null; // Será definido pelo UID
@@ -2054,10 +2055,18 @@
       return {
         'duque': 5, 'capitao': 5, 'assassino': 5, 'embaixador': 5, 'condessa': 5,
         'inquisidor': 5, 'benfeitor': 0, 'bufao': 0, 'burgues': 0, 'burocrata': 0,
-        'vigilante': 0, 'guardiao_real': 0, 'mercenario': 0, 'purificador': 0, 'tesoureiro_da_coroa': 0,
-        'diplomata': 0, 'marionetista': 0, 'contador_real': 0, 'contrabandista': 0, 'camaleao': 0
+        'vigilante': 0, 'mercenario': 0, 'purificador': 0, 'tesoureiro_da_coroa': 0,
+        'diplomata': 0, 'marionetista': 0
       };
     }
+    // function createDefaultDeckConfig() {
+    //   return {
+    //     'duque': 5, 'capitao': 5, 'assassino': 5, 'embaixador': 5, 'condessa': 5,
+    //     'inquisidor': 5, 'benfeitor': 0, 'bufao': 0, 'burgues': 0, 'burocrata': 0,
+    //     'vigilante': 0, 'guardiao_real': 0, 'mercenario': 0, 'purificador': 0, 'tesoureiro_da_coroa': 0,
+    //     'diplomata': 0, 'marionetista': 0, 'contador_real': 0, 'contrabandista': 0, 'camaleao': 0
+    //   };
+    // }
 
     // =======================================================
     // === 6. SETUP DE EVENTOS (DRAG DROP & UI) ===
@@ -2190,8 +2199,17 @@
       const flipCard = document.querySelector('.flip-card');
       const frontImg = flipCard ? flipCard.querySelector('.flip-card-front img') : null;
       const backImg = flipCard ? flipCard.querySelector('.flip-card-back img') : null;
-      const ruleImages = ['img/front-actions.png', 'img/dlc-actions.png', 'img/back-actions.png'];
+
+      // [ALTERAÇÃO] Lista de imagens atualizada na ordem solicitada
+      const ruleImages = [
+          'img/front-actions.png', 
+          'img/dlc-actions.png', 
+          'img/dlc2-actions.png', // Nova imagem inserida
+          'img/back-actions.png'
+      ];
+
       let currentRuleIndex = 0;
+
       if (infoBtn && infoModal) {
         infoBtn.onclick = () => { playSound('click'); infoModal.style.display = 'flex'; if (flipCard) { currentRuleIndex = 0; flipCard.classList.remove('is-flipped'); frontImg.src = ruleImages[0]; backImg.src = ruleImages[1]; } };
         if (closeInfoBtn) closeInfoBtn.onclick = () => { playSound('click'); infoModal.style.display = 'none'; };
@@ -2267,7 +2285,7 @@
         navigator.clipboard.writeText(roomCode).then(() => {
 
           // Feedback Sonoro
-          playSound('ui'); // Ou outro som de confirmação
+          playSound('pop'); // Ou outro som de confirmação
 
           // Feedback Visual (Piscar Verde)
           roomHeader.classList.add('copied');
