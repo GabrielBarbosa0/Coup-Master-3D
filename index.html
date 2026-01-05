@@ -1131,6 +1131,11 @@
       }
     }
 
+        /* Classe auxiliar para ocultar a religião via Configurações */
+    body.hide-religion .religion-status {
+      display: none !important;
+    }
+
     /* === FIM DOS NOVOS ESTILOS === */
 
     /* Estilo padrão do subtítulo */
@@ -1152,6 +1157,9 @@
       color: #14171e !important;
       /* [CORRIGIDO] Força a cor escura exata */
     }
+
+
+
   </style>
 </head>
 
@@ -1492,6 +1500,14 @@
           <button id="toggleCompactBtn" class="icon-btn" title="Ativar/Desativar Modo Compacto">
             <img src="img/grid_view.svg" alt="Compacto" style="width: 24px; height: 24px;">
             <span style="margin-left: 8px;">Desativado</span>
+          </button>
+        </div>
+
+        <div class="setting-row">
+          <label>Religião:</label>
+          <button id="toggleReligionBtn" class="icon-btn" title="Mostrar/Ocultar Religião">
+            <img src="img/visibility.svg" alt="Ver" style="width: 24px; height: 24px;">
+            <span style="margin-left: 8px;">Visível</span>
           </button>
         </div>
 
@@ -2193,30 +2209,104 @@
         }
       }
 
+      // === Lógica do Modal de Regras (Dinâmico) ===
       const infoBtn = document.getElementById('infoBtn');
       const infoModal = document.getElementById('infoModal');
       const closeInfoBtn = document.getElementById('closeModalBtn');
+      
       const flipCard = document.querySelector('.flip-card');
       const frontImg = flipCard ? flipCard.querySelector('.flip-card-front img') : null;
       const backImg = flipCard ? flipCard.querySelector('.flip-card-back img') : null;
 
-      // [ALTERAÇÃO] Lista de imagens atualizada na ordem solicitada
-      const ruleImages = [
-          'img/front-actions.png', 
-          'img/dlc-actions.png', 
-          'img/dlc2-actions.png', // Nova imagem inserida
-          'img/back-actions.png'
-      ];
+      // Definição dos Grupos de Cartas
+      const promoChars = ['bufao', 'benfeitor', 'burgues', 'burocrata'];
+      const revolutionChars = ['marionetista', 'diplomata', 'mercenario', 'purificador', 'tesoureiro_da_coroa', 'vigilante'];
 
+      // Variável para guardar a lista atual de regras
+      let currentRuleImages = [];
       let currentRuleIndex = 0;
 
+      // Função Auxiliar para calcular quais imagens mostrar
+      function calculateRuleImages() {
+          const config = localGameState.deckConfig || {};
+          let images = [];
+          
+          // Verifica se existem cartas dos grupos ativos (quantidade > 0)
+          const hasPromo = promoChars.some(card => (config[card] || 0) > 0);
+          const hasRevolution = revolutionChars.some(card => (config[card] || 0) > 0);
+
+          // 1. Define a CAPA (Frente)
+          // Se tiver Revolução, usa a capa alternativa (Inquisidor muda, etc.)
+          if (hasRevolution) {
+              images.push('img/front-actions-alternative.png'); 
+          } else {
+              images.push('img/front-actions.png'); // Capa Clássica
+          }
+
+          // 2. Define os RECHEIOS (DLCs)
+          if (hasPromo) {
+              images.push('img/dlc-actions.png');
+          }
+          if (hasRevolution) {
+              images.push('img/dlc2-actions.png');
+          }
+
+          // 3. Define o VERSO (Resumo de Turno - Sempre por último)
+          images.push('img/back-actions.png');
+
+          return images;
+      }
+
       if (infoBtn && infoModal) {
-        infoBtn.onclick = () => { playSound('click'); infoModal.style.display = 'flex'; if (flipCard) { currentRuleIndex = 0; flipCard.classList.remove('is-flipped'); frontImg.src = ruleImages[0]; backImg.src = ruleImages[1]; } };
-        if (closeInfoBtn) closeInfoBtn.onclick = () => { playSound('click'); infoModal.style.display = 'none'; };
+        // Ao ABRIR o modal: Recalcula as imagens baseadas no deck atual
+        infoBtn.onclick = () => { 
+            playSound('click'); 
+            
+            // GERA A LISTA DINÂMICA
+            currentRuleImages = calculateRuleImages();
+            
+            infoModal.style.display = 'flex'; 
+            
+            if (flipCard) { 
+                currentRuleIndex = 0; 
+                flipCard.classList.remove('is-flipped'); 
+                
+                // Define a primeira imagem (Frente)
+                frontImg.src = currentRuleImages[0]; 
+                
+                // Prepara a segunda imagem (Verso inicial)
+                // Se só tiver 1 imagem (muito raro), usa ela mesma
+                backImg.src = currentRuleImages.length > 1 ? currentRuleImages[1] : currentRuleImages[0]; 
+            } 
+        };
+
+        // Fechar Modal
+        if(closeInfoBtn) closeInfoBtn.onclick = () => { 
+            playSound('click'); 
+            infoModal.style.display = 'none'; 
+        };
+
+        // Ao CLICAR na carta: Gira e troca a imagem
         if (flipCard) {
           flipCard.onclick = () => {
-            playSound('card-slide'); flipCard.classList.toggle('is-flipped'); currentRuleIndex = (currentRuleIndex + 1) % ruleImages.length;
-            setTimeout(() => { const nextIndex = (currentRuleIndex + 1) % ruleImages.length; if (flipCard.classList.contains('is-flipped')) { frontImg.src = ruleImages[nextIndex]; } else { backImg.src = ruleImages[nextIndex]; } }, 500);
+            playSound('card-slide'); 
+            flipCard.classList.toggle('is-flipped'); 
+            
+            // Avança o índice
+            currentRuleIndex = (currentRuleIndex + 1) % currentRuleImages.length;
+            
+            // Troca a imagem que ficou escondida "nas costas" enquanto gira
+            setTimeout(() => { 
+                const nextIndex = (currentRuleIndex + 1) % currentRuleImages.length; 
+                
+                if (flipCard.classList.contains('is-flipped')) { 
+                    // Se estamos vendo o verso (que agora é a frente visual), troca a imagem de trás (frontImg tag)
+                    frontImg.src = currentRuleImages[nextIndex]; 
+                } else { 
+                    // Se estamos vendo a frente, troca o verso (backImg tag)
+                    backImg.src = currentRuleImages[nextIndex]; 
+                } 
+            }, 500); 
           };
         }
       }
@@ -2321,6 +2411,43 @@
         applyCompactMode(!isCurrentlyCompact);
       };
     }
+
+    // === Lógica para Ocultar/Mostrar Religião ===
+      const toggleReligionBtn = document.getElementById('toggleReligionBtn');
+
+      // Função auxiliar
+      const applyReligionVisibility = (shouldHide) => {
+        const body = document.body;
+        const img = toggleReligionBtn.querySelector('img');
+        const span = toggleReligionBtn.querySelector('span');
+
+        if (shouldHide) {
+          body.classList.add('hide-religion');
+          span.textContent = "Oculto";
+          toggleReligionBtn.style.opacity = '0.6'; // Visual de "desligado"
+          if(img) img.src = 'img/visibility_off.svg'; // Ícone de olho fechado
+        } else {
+          body.classList.remove('hide-religion');
+          span.textContent = "Visível";
+          toggleReligionBtn.style.opacity = '1'; // Visual de "aceso"
+          if(img) img.src = 'img/visibility.svg'; // Ícone de olho aberto
+        }
+        // Salva a preferência
+        localStorage.setItem('hideReligion', shouldHide);
+      };
+
+      if (toggleReligionBtn) {
+        // 1. Inicialização (Recupera do localStorage)
+        const storedReligionSetting = localStorage.getItem('hideReligion') === 'true';
+        applyReligionVisibility(storedReligionSetting);
+
+        // 2. Evento de Clique
+        toggleReligionBtn.onclick = () => {
+          playSound('click');
+          const isCurrentlyHidden = document.body.classList.contains('hide-religion');
+          applyReligionVisibility(!isCurrentlyHidden);
+        };
+      }
 
     // =======================================================
     // === 7. LÓGICA DE CONEXÃO INTELIGENTE (UID) ===
