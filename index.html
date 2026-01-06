@@ -1442,8 +1442,8 @@
           <input type="number" id="config-guardiao-real" data-card="guardiao-real" min="0" max="10" value="0">
         </li> -->
         <li class="card-config-item">
-          <label for="config-purificador">Purificador</label>
-          <input type="number" id="config-purificador" data-card="purificador" min="0" max="10" value="0">
+          <label for="config-bispo">Bispo</label>
+          <input type="number" id="config-bispo" data-card="bispo" min="0" max="10" value="0">
         </li>
         <li class="card-config-item">
           <label for="config-tesoureiro_da_coroa">Tesoureiro da Coroa</label>
@@ -1629,7 +1629,7 @@
       { type: 'burocrata', color: '#A52A2A' },
       { type: 'vigilante', color: '#FFFFFF' },
       { type: 'mercenario', color: '#FFFFFF' },
-      { type: 'purificador', color: '#FFFFFF' },
+      { type: 'bispo', color: '#FFFFFF' },
       { type: 'tesoureiro_da_coroa', color: '#FFFFFF' },
       { type: 'diplomata', color: '#FFFFFF' },
       { type: 'marionetista', color: '#FFFFFF' }
@@ -2071,7 +2071,7 @@
       return {
         'duque': 5, 'capitao': 5, 'assassino': 5, 'embaixador': 5, 'condessa': 5,
         'inquisidor': 5, 'benfeitor': 0, 'bufao': 0, 'burgues': 0, 'burocrata': 0,
-        'vigilante': 0, 'mercenario': 0, 'purificador': 0, 'tesoureiro_da_coroa': 0,
+        'vigilante': 0, 'mercenario': 0, 'bispo': 0, 'tesoureiro_da_coroa': 0,
         'diplomata': 0, 'marionetista': 0
       };
     }
@@ -2220,7 +2220,7 @@
 
       // Definição dos Grupos de Cartas
       const promoChars = ['bufao', 'benfeitor', 'burgues', 'burocrata'];
-      const revolutionChars = ['marionetista', 'diplomata', 'mercenario', 'purificador', 'tesoureiro_da_coroa', 'vigilante'];
+      const revolutionChars = ['marionetista', 'diplomata', 'mercenario', 'bispo', 'tesoureiro_da_coroa', 'vigilante'];
 
       // Variável para guardar a lista atual de regras
       let currentRuleImages = [];
