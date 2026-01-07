@@ -1344,9 +1344,8 @@
             <div class="religion-status" data-pid="8">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
-        </div>
 
-        <div class="player-area" id="player-9" data-player="9">
+          <div class="player-area" id="player-9" data-player="9">
           <button class="remove-player" data-pid="9" title="Remover Jogador"></button>
           <div class="player-title">Jogador 9</div>
           <div class="points">
@@ -1370,6 +1369,9 @@
           <div class="player-stack hand" data-hand></div>
         </div>
 
+        </div>
+
+        
         <div class="bottom-table-container">
 
           <div class="free-area" id="freeArea" data-area="free">
@@ -1547,6 +1549,14 @@
           <button id="toggleReligionBtn" class="icon-btn" title="Mostrar/Ocultar Religião">
             <img src="img/visibility.svg" alt="Ver" style="width: 24px; height: 24px;">
             <span style="margin-left: 8px;">Visível</span>
+          </button>
+        </div>
+
+        <div class="setting-row">
+          <label>Adicionar Bot:</label>
+          <button id="addBotBtn" class="icon-btn" title="Adicionar Jogador Fantasma">
+            <img src="img/robot.svg" alt="Bot" style="width: 24px; height: 24px;">
+            <span style="margin-left: 8px;">Criar Bot</span>
           </button>
         </div>
 
@@ -2229,6 +2239,52 @@ function attachBalatroEffect(element, isDeck = false) {
   });
 }
 
+// =======================================================
+    // === FUNÇÃO PARA ADICIONAR BOT ===
+    // =======================================================
+    function addBot() {
+      // Toca som de clique
+      playSound('click');
+
+      // Procura o primeiro slot vazio (sem UID e sem nome)
+      let botSlot = null;
+      for (let i = 1; i <= 10; i++) {
+        const p = localGameState.players[i];
+        if (!p.uid && !p.online) {
+          botSlot = i;
+          break;
+        }
+      }
+
+      if (botSlot) {
+        // Gera um nome aleatório (BOT 1, BOT 2...)
+        // Conta quantos bots já existem para numerar certo
+        let botCount = 0;
+        for(let i=1; i<=10; i++) {
+            if(localGameState.players[i].name && localGameState.players[i].name.startsWith('BOT')) {
+                botCount++;
+            }
+        }
+        const botName = `BOT ${botCount + 1}`;
+
+        // Cria o Bot no Firebase
+        db.ref(`salas/${roomCode}/gameState/players/${botSlot}`).update({
+          online: true,
+          uid: 'bot-' + Date.now(), // ID falso para ocupar a vaga
+          name: botName,
+          photo: 'img/robot.svg',   // Sua imagem nova
+          hand: [],
+          score: 2,
+          religion: (botSlot % 2 === 1) ? 'catolico' : 'protestante'
+        });
+        
+        // Fecha o modal e avisa (opcional)
+        // alert(`${botName} adicionado no Slot ${botSlot}!`);
+      } else {
+        alert("A sala está cheia! Não é possível adicionar bots.");
+      }
+    }
+
     function setupUI() {
       // (O código da setupUI permanece IDÊNTICO ao anterior)
       // Vou resumir para não estourar o limite, mas a lógica é a mesma
@@ -2255,6 +2311,13 @@ function attachBalatroEffect(element, isDeck = false) {
       const volumeSlider = document.getElementById('volumeSlider');
       const toggleHeaderBtn = document.getElementById('toggleHeaderBtn');
       const openDeckConfigBtn = document.getElementById('openDeckConfigBtn');
+
+      const addBotBtn = document.getElementById('addBotBtn');
+      if (addBotBtn) {
+          addBotBtn.onclick = () => {
+              addBot();
+          };
+      }
 
       if (settingsBtn && settingsModal) {
         settingsBtn.onclick = () => { playSound('click'); settingsModal.style.display = 'flex'; };
