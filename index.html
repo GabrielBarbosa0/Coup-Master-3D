@@ -1173,6 +1173,32 @@
     .deck-area, .card-slot, .card-dropzone, .hand {
         perspective: 600px;
     }
+
+
+    /* =========================================
+       === EFEITO DE ARRASTAR (FLUTUANTE) ===
+       ========================================= */
+
+    /* Estado 1: O momento do "Agarre" (Lifting) 
+       Essa é a aparência que a "foto fantasma" vai ter */
+    .card.lifting {
+        /* Aumenta (Zoom) + Inclina um pouco + Reseta a perspectiva 3D */
+        transform: scale(1.15) rotate(5deg) !important;
+        
+        /* Sombra grande e distante para parecer que subiu muito */
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6) !important;
+        
+        cursor: grabbing !important;
+        z-index: 9999;
+    }
+
+    /* Estado 2: O buraco vazio na mesa (Enquanto arrasta) */
+    .card.is-dragging {
+        opacity: 0.1 !important; /* Deixa quase invisível onde ela estava */
+        border: 2px dashed #ffffff44; /* Borda tracejada para marcar o lugar */
+        transform: scale(0.9) !important; /* Diminui um pouco */
+        box-shadow: none !important;
+    }
   </style>
 </head>
 
@@ -1764,16 +1790,33 @@
         el.style.backgroundImage = `url('${imageUrl}')`;
       }
 
+      // 1. Evento de Arrastar (Início) - Efeito Flutuante
       el.addEventListener('dragstart', (ev) => {
         ev.dataTransfer.setData('text/plain', card.id);
+        ev.dataTransfer.effectAllowed = "move"; 
+
+        // Adiciona classe visual antes da "foto" ser tirada
+        el.classList.add('lifting');
+
+        setTimeout(() => {
+            el.classList.remove('lifting'); 
+            el.classList.add('is-dragging'); 
+        }, 0);
       });
 
+      // 2. Evento de Arrastar (Fim) - Limpeza
+      el.addEventListener('dragend', () => {
+        el.classList.remove('lifting');
+        el.classList.remove('is-dragging');
+      });
+
+      // 3. [CORREÇÃO] Evento de Duplo Clique (Devolver ao Deck)
+      // Este bloco estava faltando no seu código!
       el.addEventListener('dblclick', () => {
         returnCardToDeck(card.id);
       });
 
-      // [NOVO] APLICA O EFEITO BALATRO (SUTIL) AQUI
-      // Isso fará funcionar em todas as cartas da mão e cemitério
+      // 4. Aplica o Efeito Visual 3D (Balatro)
       attachBalatroEffect(el);
 
       return el;
