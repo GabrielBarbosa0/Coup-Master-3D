@@ -1131,7 +1131,7 @@
       }
     }
 
-        /* Classe auxiliar para ocultar a religião via Configurações */
+    /* Classe auxiliar para ocultar a religião via Configurações */
     body.hide-religion .religion-status {
       display: none !important;
     }
@@ -1159,7 +1159,20 @@
     }
 
 
+    /* =========================================
+       === EFEITOS 3D (MAIS FORTE) ===
+       ========================================= */
 
+    /* Classe base */
+    .balatro-effect {
+        transition: transform 0.1s ease, box-shadow 0.1s ease; /* 0.1s fica mais ágil */
+        will-change: transform, box-shadow;
+        transform-style: preserve-3d; 
+    }
+
+    .deck-area, .card-slot, .card-dropzone, .hand {
+        perspective: 600px;
+    }
   </style>
 </head>
 
@@ -1638,7 +1651,7 @@
       // { type: 'contrabandista', color: '#FFFFFF' },
       // { type: 'camaleao', color: '#FFFFFF' }
     ];
-    
+
 
     let localGameState = {};
     let myPlayerId = null; // Será definido pelo UID
@@ -1758,6 +1771,10 @@
       el.addEventListener('dblclick', () => {
         returnCardToDeck(card.id);
       });
+
+      // [NOVO] APLICA O EFEITO BALATRO (SUTIL) AQUI
+      // Isso fará funcionar em todas as cartas da mão e cemitério
+      attachBalatroEffect(el);
 
       return el;
     }
@@ -2124,6 +2141,51 @@
       };
     }
 
+// =============================================================
+// === NOVA FUNÇÃO: Efeito 3D Forte + Sombra Discreta ===
+// =============================================================
+function attachBalatroEffect(element, isDeck = false) {
+  if (!element) return;
+
+  element.classList.add('balatro-effect');
+
+  element.addEventListener('mousemove', (e) => {
+    const rect = element.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    // MANTIDO: Sensibilidade 5 (Movimento Forte)
+    const sensitivity = 5; 
+
+    const rotateX = -(y - centerY) / sensitivity;
+    const rotateY = (x - centerX) / sensitivity;
+
+    // --- AJUSTE DRÁSTICO DE BRILHO ---
+    let shadowColor;
+    if (isDeck) {
+        // Azul muito fraco (0.2)
+        shadowColor = 'rgba(0, 191, 255, 0.2)'; 
+    } else {
+        // Dourado quase invisível (0.15)
+        shadowColor = 'rgba(255, 200, 80, 0.15)'; 
+    }
+
+    // Movimento 3D continua forte
+    element.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.08)`;
+    
+    // SOMBRA: Reduzi o multiplicador para 1.5 (fica perto da carta)
+    // Reduzi o borrão final para 12px (menos espalhado)
+    element.style.boxShadow = `${-rotateY * 1.5}px ${rotateX * 1.5}px 12px ${shadowColor}`;
+  });
+
+  element.addEventListener('mouseleave', () => {
+    element.style.transform = 'perspective(600px) rotateX(0) rotateY(0) scale(1)';
+    element.style.boxShadow = ''; 
+  });
+}
+
     function setupUI() {
       // (O código da setupUI permanece IDÊNTICO ao anterior)
       // Vou resumir para não estourar o limite, mas a lógica é a mesma
@@ -2181,6 +2243,12 @@
           }
         };
       }
+
+      // [NOVO] ATIVA O EFEITO BALATRO NO DECK PRINCIPAL
+      const deckContainer = document.getElementById('deck');
+      // Passamos 'true' no segundo parâmetro para indicar que é o efeito Intenso
+      attachBalatroEffect(deckContainer, true);
+
       const configModal = document.getElementById('configModal');
       const closeConfigModalBtn = document.getElementById('closeConfigModalBtn');
       if (openDeckConfigBtn && configModal) {
@@ -2213,7 +2281,7 @@
       const infoBtn = document.getElementById('infoBtn');
       const infoModal = document.getElementById('infoModal');
       const closeInfoBtn = document.getElementById('closeModalBtn');
-      
+
       const flipCard = document.querySelector('.flip-card');
       const frontImg = flipCard ? flipCard.querySelector('.flip-card-front img') : null;
       const backImg = flipCard ? flipCard.querySelector('.flip-card-back img') : null;
@@ -2228,85 +2296,85 @@
 
       // Função Auxiliar para calcular quais imagens mostrar
       function calculateRuleImages() {
-          const config = localGameState.deckConfig || {};
-          let images = [];
-          
-          // Verifica se existem cartas dos grupos ativos (quantidade > 0)
-          const hasPromo = promoChars.some(card => (config[card] || 0) > 0);
-          const hasRevolution = revolutionChars.some(card => (config[card] || 0) > 0);
+        const config = localGameState.deckConfig || {};
+        let images = [];
 
-          // 1. Define a CAPA (Frente)
-          // Se tiver Revolução, usa a capa alternativa (Inquisidor muda, etc.)
-          if (hasRevolution) {
-              images.push('img/front-actions-alternative.png'); 
-          } else {
-              images.push('img/front-actions.png'); // Capa Clássica
-          }
+        // Verifica se existem cartas dos grupos ativos (quantidade > 0)
+        const hasPromo = promoChars.some(card => (config[card] || 0) > 0);
+        const hasRevolution = revolutionChars.some(card => (config[card] || 0) > 0);
 
-          // 2. Define os RECHEIOS (DLCs)
-          if (hasPromo) {
-              images.push('img/dlc-actions.png');
-          }
-          if (hasRevolution) {
-              images.push('img/dlc2-actions.png');
-          }
+        // 1. Define a CAPA (Frente)
+        // Se tiver Revolução, usa a capa alternativa (Inquisidor muda, etc.)
+        if (hasRevolution) {
+          images.push('img/front-actions-alternative.png');
+        } else {
+          images.push('img/front-actions.png'); // Capa Clássica
+        }
 
-          // 3. Define o VERSO (Resumo de Turno - Sempre por último)
-          images.push('img/back-actions.png');
+        // 2. Define os RECHEIOS (DLCs)
+        if (hasPromo) {
+          images.push('img/dlc-actions.png');
+        }
+        if (hasRevolution) {
+          images.push('img/dlc2-actions.png');
+        }
 
-          return images;
+        // 3. Define o VERSO (Resumo de Turno - Sempre por último)
+        images.push('img/back-actions.png');
+
+        return images;
       }
 
       if (infoBtn && infoModal) {
         // Ao ABRIR o modal: Recalcula as imagens baseadas no deck atual
-        infoBtn.onclick = () => { 
-            playSound('click'); 
-            
-            // GERA A LISTA DINÂMICA
-            currentRuleImages = calculateRuleImages();
-            
-            infoModal.style.display = 'flex'; 
-            
-            if (flipCard) { 
-                currentRuleIndex = 0; 
-                flipCard.classList.remove('is-flipped'); 
-                
-                // Define a primeira imagem (Frente)
-                frontImg.src = currentRuleImages[0]; 
-                
-                // Prepara a segunda imagem (Verso inicial)
-                // Se só tiver 1 imagem (muito raro), usa ela mesma
-                backImg.src = currentRuleImages.length > 1 ? currentRuleImages[1] : currentRuleImages[0]; 
-            } 
+        infoBtn.onclick = () => {
+          playSound('click');
+
+          // GERA A LISTA DINÂMICA
+          currentRuleImages = calculateRuleImages();
+
+          infoModal.style.display = 'flex';
+
+          if (flipCard) {
+            currentRuleIndex = 0;
+            flipCard.classList.remove('is-flipped');
+
+            // Define a primeira imagem (Frente)
+            frontImg.src = currentRuleImages[0];
+
+            // Prepara a segunda imagem (Verso inicial)
+            // Se só tiver 1 imagem (muito raro), usa ela mesma
+            backImg.src = currentRuleImages.length > 1 ? currentRuleImages[1] : currentRuleImages[0];
+          }
         };
 
         // Fechar Modal
-        if(closeInfoBtn) closeInfoBtn.onclick = () => { 
-            playSound('click'); 
-            infoModal.style.display = 'none'; 
+        if (closeInfoBtn) closeInfoBtn.onclick = () => {
+          playSound('click');
+          infoModal.style.display = 'none';
         };
 
         // Ao CLICAR na carta: Gira e troca a imagem
         if (flipCard) {
           flipCard.onclick = () => {
-            playSound('card-slide'); 
-            flipCard.classList.toggle('is-flipped'); 
-            
+            playSound('card-slide');
+            flipCard.classList.toggle('is-flipped');
+
             // Avança o índice
             currentRuleIndex = (currentRuleIndex + 1) % currentRuleImages.length;
-            
+
             // Troca a imagem que ficou escondida "nas costas" enquanto gira
-            setTimeout(() => { 
-                const nextIndex = (currentRuleIndex + 1) % currentRuleImages.length; 
-                
-                if (flipCard.classList.contains('is-flipped')) { 
-                    // Se estamos vendo o verso (que agora é a frente visual), troca a imagem de trás (frontImg tag)
-                    frontImg.src = currentRuleImages[nextIndex]; 
-                } else { 
-                    // Se estamos vendo a frente, troca o verso (backImg tag)
-                    backImg.src = currentRuleImages[nextIndex]; 
-                } 
-            }, 500); 
+            setTimeout(() => {
+              const nextIndex = (currentRuleIndex + 1) % currentRuleImages.length;
+
+              if (flipCard.classList.contains('is-flipped')) {
+                // Se estamos vendo o verso (que agora é a frente visual), troca a imagem de trás (frontImg tag)
+                frontImg.src = currentRuleImages[nextIndex];
+              } else {
+                // Se estamos vendo a frente, troca o verso (backImg tag)
+                backImg.src = currentRuleImages[nextIndex];
+              }
+            }, 500);
           };
         }
       }
@@ -2413,41 +2481,41 @@
     }
 
     // === Lógica para Ocultar/Mostrar Religião ===
-      const toggleReligionBtn = document.getElementById('toggleReligionBtn');
+    const toggleReligionBtn = document.getElementById('toggleReligionBtn');
 
-      // Função auxiliar
-      const applyReligionVisibility = (shouldHide) => {
-        const body = document.body;
-        const img = toggleReligionBtn.querySelector('img');
-        const span = toggleReligionBtn.querySelector('span');
+    // Função auxiliar
+    const applyReligionVisibility = (shouldHide) => {
+      const body = document.body;
+      const img = toggleReligionBtn.querySelector('img');
+      const span = toggleReligionBtn.querySelector('span');
 
-        if (shouldHide) {
-          body.classList.add('hide-religion');
-          span.textContent = "Oculto";
-          toggleReligionBtn.style.opacity = '0.6'; // Visual de "desligado"
-          if(img) img.src = 'img/visibility_off.svg'; // Ícone de olho fechado
-        } else {
-          body.classList.remove('hide-religion');
-          span.textContent = "Visível";
-          toggleReligionBtn.style.opacity = '1'; // Visual de "aceso"
-          if(img) img.src = 'img/visibility.svg'; // Ícone de olho aberto
-        }
-        // Salva a preferência
-        localStorage.setItem('hideReligion', shouldHide);
-      };
-
-      if (toggleReligionBtn) {
-        // 1. Inicialização (Recupera do localStorage)
-        const storedReligionSetting = localStorage.getItem('hideReligion') === 'true';
-        applyReligionVisibility(storedReligionSetting);
-
-        // 2. Evento de Clique
-        toggleReligionBtn.onclick = () => {
-          playSound('click');
-          const isCurrentlyHidden = document.body.classList.contains('hide-religion');
-          applyReligionVisibility(!isCurrentlyHidden);
-        };
+      if (shouldHide) {
+        body.classList.add('hide-religion');
+        span.textContent = "Oculto";
+        toggleReligionBtn.style.opacity = '0.6'; // Visual de "desligado"
+        if (img) img.src = 'img/visibility_off.svg'; // Ícone de olho fechado
+      } else {
+        body.classList.remove('hide-religion');
+        span.textContent = "Visível";
+        toggleReligionBtn.style.opacity = '1'; // Visual de "aceso"
+        if (img) img.src = 'img/visibility.svg'; // Ícone de olho aberto
       }
+      // Salva a preferência
+      localStorage.setItem('hideReligion', shouldHide);
+    };
+
+    if (toggleReligionBtn) {
+      // 1. Inicialização (Recupera do localStorage)
+      const storedReligionSetting = localStorage.getItem('hideReligion') === 'true';
+      applyReligionVisibility(storedReligionSetting);
+
+      // 2. Evento de Clique
+      toggleReligionBtn.onclick = () => {
+        playSound('click');
+        const isCurrentlyHidden = document.body.classList.contains('hide-religion');
+        applyReligionVisibility(!isCurrentlyHidden);
+      };
+    }
 
     // =======================================================
     // === 7. LÓGICA DE CONEXÃO INTELIGENTE (UID) ===
