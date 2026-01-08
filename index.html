@@ -526,275 +526,155 @@
     } */
 
     /* =======================================================
-       === 9. RESPONSIVIDADE POR INTERVALOS ===
+       === 9. RESPONSIVIDADE (ESTILO COMPACTO PADRÃO) ===
        ======================================================= */
 
-    /* --- INTERVALO 1: CELULAR (< 520px) --- */
-    /* Visual Compacto + 1 Coluna */
-    @media (max-width: 519px) {
-      .container {
-        padding: 4px;
-        max-width: 100%;
-      }
+    /* --- INTERVALO 1: TELAS MÍNIMAS (< 270px) --- */
+    /* Aplica o estilo compacto, mas com 1 coluna para caber */
+    @media (max-width: 270px) {
+      .container { padding: 4px; max-width: 100%; }
+      header h1 { font-size: 20px; }
+      
+      /* Grid 1 Coluna (Segurança) */
+      .player-hands-container { grid-template-columns: 1fr; gap: 4px; }
 
-      header h1 {
-        font-size: 22px;
-      }
-
-      /* Grid 1 Coluna */
-      .player-hands-container {
-        grid-template-columns: 1fr;
-        gap: 6px;
-      }
-
-      /* Visual Compacto (Mini Cartas) */
-      .card,
-      .slot,
-      .deck {
-        width: 40px;
-        height: 56px;
-        border-radius: 6px;
-      }
-
-      .slot {
-        border-radius: 4px;
-      }
-
-      .player-area {
-        padding: 4px;
-        min-height: 80px;
-      }
-
-      .player-avatar {
-        width: 20px;
-        height: 20px;
-      }
-
+      /* === REGRAS DO MODO COMPACTO (Originais da Seção 13) === */
+      .player-area { min-height: 80px; padding: 4px; }
+      
       .player-title {
-        font-size: 10px;
+        font-size: 8px !important; line-height: 10px; margin-bottom: 0 !important;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px;
       }
 
-      .religion-status {
-        font-size: 9px;
-        padding: 1px 4px;
+      .card, .slot { width: 40px; height: 56px; }
+      .slot { border-radius: 4px; }
+      
+      /* O antigo modo compacto usava GRID na mão do jogador */
+      .player-stack {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, 40px);
+        justify-content: center; gap: 2px; padding: 2px;
       }
+
+      .remove-player { width: 10px; height: 10px; top: 2px; right: 2px; }
+      .points .plus, .points .minus { width: 16px; height: 16px; font-size: 12px; }
+      
+      /* Elementos pequenos */
+      .player-avatar { width: 16px; height: 16px; border-width: 1px; }
+      .player-header { gap: 4px; margin-bottom: 0; }
+      .religion-status { font-size: 10px; padding: 4px 5px; line-height: 11px; border-radius: 6px; }
 
       /* Rodapé Compacto */
-      .bottom-table-container {
-        grid-template-columns: 1fr;
-        gap: 8px;
-      }
+      .bottom-table-container { grid-template-columns: 1fr; gap: 4px; }
+      .decks-wrapper { gap: 4px; margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+      
+      .asylum-area, .deck-area { padding: 4px; gap: 4px; border-width: 2px; min-height: 80px; justify-content: center; }
+      .asylum-image { width: 36px; height: 36px; border-radius: 6px; }
+      .asylum-points button { width: 16px; height: 16px; font-size: 10px; }
+      .asylum-area .muted, .pile-info { font-size: 8px; margin: 0; line-height: 10px; }
+      
+      .deck { width: 46px; height: 68px; } /* O deck era levemente maior no original */
+      #deck-count { font-size: 10px; }
 
-      .decks-wrapper {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 6px;
-        width: 100%;
-        margin-top: 6px;
+      .free-area { 
+        min-height: 60px; padding: 4px; gap: 2px; justify-content: center; 
       }
-
-      .asylum-area,
-      .deck-area,
-      .free-area {
-        padding: 6px;
-        min-height: 80px;
-      }
-
-      .asylum-image {
-        width: 32px;
-        height: 32px;
-      }
+      .free-area .muted { font-size: 8px; line-height: 10px; margin-bottom: 0; }
     }
 
 
-    /* --- INTERVALO 2: TABLET VERTICAL (520px até 768px) --- */
-    /* Visual Compacto + 2 Colunas */
-    @media (min-width: 520px) and (max-width: 768px) {
-      .container {
-        padding: 8px;
-        max-width: 100%;
-      }
+    /* --- INTERVALO 2: MOBILE/TABLET (271px até 768px) --- */
+    /* Aplica o estilo compacto com 2 colunas (Layout Padrão) */
+    @media (min-width: 271px) and (max-width: 768px) {
+      .container { padding: 6px; max-width: 100%; }
 
-      /* Grid 2 Colunas */
+      /* Grid 2 Colunas (Como no modo compacto original) */
       .player-hands-container {
         grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+        gap: 4px;
       }
 
-      /* === APLICAÇÃO DO VISUAL COMPACTO === */
-      .card,
-      .slot,
-      .deck {
-        width: 40px;
-        height: 56px;
-        border-radius: 6px;
-      }
-
-      .slot {
-        border-radius: 4px;
-      }
-
-      .player-area {
-        padding: 4px;
-        min-height: 80px;
-      }
-
-      .player-avatar {
-        width: 20px;
-        height: 20px;
-      }
-
+      /* === REGRAS DO MODO COMPACTO (Cópia exata das regras acima) === */
+      .player-area { min-height: 80px; padding: 4px; }
+      
       .player-title {
-        font-size: 10px;
-        margin-bottom: 2px;
+        font-size: 8px !important; line-height: 10px; margin-bottom: 0 !important;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px;
       }
 
-      .points {
-        margin: 2px 0;
-        transform: scale(0.9);
-      }
-
-      .religion-status {
-        font-size: 9px;
-        padding: 1px 4px;
-      }
-
-      .remove-player {
-        width: 10px;
-        height: 10px;
-        right: 4px;
-        top: 4px;
-      }
-
+      .card, .slot { width: 40px; height: 56px; }
+      .slot { border-radius: 4px; }
+      
       .player-stack {
         display: grid;
-        grid-template-columns: repeat(4, auto);
-        justify-content: center;
-        gap: 2px;
-        padding: 2px;
+        grid-template-columns: repeat(auto-fit, 40px);
+        justify-content: center; gap: 2px; padding: 2px;
       }
 
-      .bottom-table-container {
-        grid-template-columns: 1fr;
-        gap: 8px;
-      }
+      .remove-player { width: 10px; height: 10px; top: 2px; right: 2px; }
+      .points .plus, .points .minus { width: 16px; height: 16px; font-size: 12px; }
+      
+      .player-avatar { width: 16px; height: 16px; border-width: 1px; }
+      .player-header { gap: 4px; margin-bottom: 0; }
+      .religion-status { font-size: 10px; padding: 4px 5px; line-height: 11px; border-radius: 6px; }
 
-      .decks-wrapper {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        margin-top: 8px;
-        width: 100%;
-      }
+      .bottom-table-container { grid-template-columns: 1fr; gap: 4px; }
+      .decks-wrapper { gap: 4px; margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+      
+      .asylum-area, .deck-area { padding: 4px; gap: 4px; border-width: 2px; min-height: 80px; justify-content: center; }
+      .asylum-image { width: 36px; height: 36px; border-radius: 6px; }
+      .asylum-points button { width: 16px; height: 16px; font-size: 10px; }
+      .asylum-area .muted, .pile-info { font-size: 8px; margin: 0; line-height: 10px; }
+      
+      .deck { width: 46px; height: 68px; }
+      #deck-count { font-size: 10px; }
 
-      .asylum-area,
-      .deck-area,
-      .free-area {
-        padding: 6px;
-        min-height: 90px;
+      .free-area { 
+        min-height: 60px; padding: 4px; gap: 2px; justify-content: center; 
       }
-
-      .asylum-image {
-        width: 36px;
-        height: 36px;
-      }
+      .free-area .muted { font-size: 8px; line-height: 10px; margin-bottom: 0; }
     }
 
 
     /* --- INTERVALO 3: LAPTOP PEQUENO (769px até 1023px) --- */
     /* Visual Normal + 2 Colunas */
     @media (min-width: 769px) and (max-width: 1023px) {
-      .container {
-        padding: 10px;
-        max-width: 98%;
-      }
+      .container { padding: 10px; max-width: 98%; }
 
-      /* Mantém 2 Colunas aqui para não ficar apertado */
+      /* Mantém 2 Colunas (Mas com cartas normais) */
       .player-hands-container {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
       }
 
       /* Tamanho Normal */
-      .card,
-      .slot,
-      .deck {
-        width: 58px;
-        height: 84px;
-        border-radius: 7px;
-      }
-
-      .player-avatar {
-        width: 28px;
-        height: 28px;
-      }
-
-      .bottom-table-container {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-
-      .decks-wrapper {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        width: 100%;
-        gap: 10px;
-      }
-
-      .asylum-area,
-      .deck-area,
-      .free-area {
-        min-height: 100px;
-        padding: 10px;
-      }
+      .card, .slot, .deck { width: 58px; height: 84px; }
+      .player-avatar { width: 28px; height: 28px; }
+      
+      .bottom-table-container { grid-template-columns: 1fr; gap: 10px; }
+      .decks-wrapper { display: grid; grid-template-columns: 1fr 1fr; width: 100%; gap: 10px; }
+      .asylum-area, .deck-area, .free-area { min-height: 100px; padding: 10px; justify-content: center; }
     }
 
 
     /* --- INTERVALO 4: TELAS MÉDIAS (1024px até 1199px) --- */
-    /* [NOVO] Visual Normal + 3 Colunas */
+    /* Visual Normal + 3 Colunas */
     @media (min-width: 1024px) and (max-width: 1199px) {
-      .container {
-        padding: 10px;
-        max-width: 98%;
-      }
+      .container { padding: 10px; max-width: 98%; }
 
-      /* [AQUI ESTÁ A MUDANÇA] 3 Colunas */
+      /* 3 Colunas */
       .player-hands-container {
         grid-template-columns: repeat(3, 1fr);
         gap: 10px;
       }
 
       /* Tamanho Normal */
-      .card,
-      .slot,
-      .deck {
-        width: 58px;
-        height: 84px;
-      }
-
-      .player-avatar {
-        width: 28px;
-        height: 28px;
-      }
-
-      .bottom-table-container {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-
-      .decks-wrapper {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        width: 100%;
-        gap: 10px;
-      }
-
-      .asylum-area,
-      .deck-area,
-      .free-area {
-        min-height: 100px;
-        padding: 10px;
-      }
+      .card, .slot, .deck { width: 58px; height: 84px; }
+      .player-avatar { width: 28px; height: 28px; }
+      
+      .bottom-table-container { grid-template-columns: 1fr; gap: 10px; }
+      .decks-wrapper { display: grid; grid-template-columns: 1fr 1fr; width: 100%; gap: 10px; }
+      .asylum-area, .deck-area, .free-area { min-height: 100px; padding: 10px; justify-content: center; }
     }
 
 
@@ -998,159 +878,7 @@
     }
 
 
-    /* =======================================================
-       === 13. MODO COMPACTO (OVERRIDES PARA MOBILE) ===
-       ======================================================= */
-    @media (max-width: 520px) {
-
-      body.compact-mode .player-hands-container {
-        grid-template-columns: 1fr 1fr !important;
-        gap: 4px;
-      }
-
-      body.compact-mode .player-area {
-        min-height: 80px;
-        padding: 4px;
-      }
-
-      body.compact-mode .player-title {
-        font-size: 8px !important;
-        line-height: 10px;
-        margin-bottom: 0 !important;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 60px;
-      }
-
-      body.compact-mode .card,
-      body.compact-mode .slot {
-        width: 40px !important;
-        height: 56px !important;
-      }
-
-      body.compact-mode .player-stack {
-        display: grid !important;
-        grid-template-columns: repeat(auto-fit, 40px) !important;
-        justify-content: center !important;
-        gap: 2px !important;
-      }
-
-      body.compact-mode .remove-player {
-        width: 10px;
-        height: 10px;
-        top: 2px;
-        right: 2px;
-      }
-
-      body.compact-mode .points .plus,
-      body.compact-mode .points .minus {
-        width: 16px;
-        height: 16px;
-        font-size: 12px;
-      }
-
-      body.compact-mode .asylum-area,
-      body.compact-mode .deck-area,
-      body.compact-mode .free-area {
-        padding: 8px;
-      }
-
-      body.compact-mode .deck {
-        width: 46px;
-        height: 68px;
-      }
-
-      body.compact-mode .player-avatar {
-        width: 16px !important;
-        height: 16px !important;
-        border-width: 1px !important;
-      }
-
-      body.compact-mode .player-header {
-        gap: 4px !important;
-        margin-bottom: 0 !important;
-      }
-
-      body.compact-mode .religion-status {
-        font-size: 10px !important;
-        padding: 4px 5px !important;
-        line-height: 11px;
-        border-radius: 6px;
-      }
-
-      body.compact-mode .player-stack {
-        grid-template-columns: repeat(auto-fit, 40px) !important;
-        justify-content: center !important;
-        gap: 2px !important;
-      }
-
-      body.compact-mode .free-area .muted {
-        font-size: 8px !important;
-        line-height: 10px;
-        margin-bottom: 0 !important;
-      }
-
-      body.compact-mode .decks-wrapper {
-        gap: 4px !important;
-        margin-top: 8px !important;
-      }
-
-      body.compact-mode .asylum-area,
-      body.compact-mode .deck-area {
-        padding: 4px !important;
-        gap: 4px !important;
-        border-width: 2px !important;
-      }
-
-      body.compact-mode .asylum-image {
-        width: 36px !important;
-        height: 36px !important;
-        border-radius: 6px !important;
-      }
-
-      body.compact-mode .asylum-points button {
-        width: 16px !important;
-        height: 16px !important;
-        font-size: 10px !important;
-      }
-
-      body.compact-mode .asylum-area .muted,
-      body.compact-mode .pile-info {
-        font-size: 8px !important;
-        margin: 0 !important;
-        line-height: 10px;
-      }
-
-      body.compact-mode #deck-count {
-        font-size: 10px !important;
-      }
-
-      body.compact-mode .free-area {
-        min-height: 60px !important;
-        padding: 4px !important;
-        gap: 2px !important;
-      }
-    }
-
-    /* Classe auxiliar */
-    body.hide-religion .religion-status {
-      display: none !important;
-    }
-
-    .copy-instruction {
-      font-size: 10px;
-      margin: 0;
-      opacity: 0.6;
-      letter-spacing: 1px;
-      transition: opacity 0.2s, color 0.2s;
-    }
-
-    header.copied .copy-instruction {
-      opacity: 1 !important;
-      font-weight: bold;
-      color: #14171e !important;
-    }
+    
 
 
     /* =======================================================
@@ -1266,6 +994,7 @@
       .free-area {
         min-height: 110px;
         align-content: center;
+        justify-content: center;
       }
 
       .decks-wrapper {
@@ -1630,13 +1359,13 @@
           </button>
         </div>
 
-        <div class="setting-row">
+        <!-- <div class="setting-row">
           <label>Modo Compacto:</label>
           <button id="toggleCompactBtn" class="icon-btn" title="Ativar/Desativar Modo Compacto">
             <img src="img/grid_view.svg" alt="Compacto" style="width: 24px; height: 24px;">
             <span style="margin-left: 8px;">Desativado</span>
           </button>
-        </div>
+        </div> -->
 
         <div class="setting-row">
           <label>Religião:</label>
@@ -2604,28 +2333,28 @@
       });
     }
 
-    // [NOVO] Lógica do Modo Compacto
-    const toggleCompactBtn = document.getElementById('toggleCompactBtn');
+    // // [NOVO] Lógica do Modo Compacto
+    // const toggleCompactBtn = document.getElementById('toggleCompactBtn');
 
-    // Função auxiliar para aplicar o modo
-    const applyCompactMode = (isCompact) => {
-      const body = document.body;
-      const img = toggleCompactBtn.querySelector('img');
-      const span = toggleCompactBtn.querySelector('span');
+    // // Função auxiliar para aplicar o modo
+    // const applyCompactMode = (isCompact) => {
+    //   const body = document.body;
+    //   const img = toggleCompactBtn.querySelector('img');
+    //   const span = toggleCompactBtn.querySelector('span');
 
-      if (isCompact) {
-        body.classList.add('compact-mode');
-        span.textContent = "Ativado";
-        toggleCompactBtn.style.background = "#1e90ff"; // Azul para indicar ativo
-        // Se tiver ícone de grid/lista, pode trocar aqui
-      } else {
-        body.classList.remove('compact-mode');
-        span.textContent = "Desativado";
-        toggleCompactBtn.style.background = "#232a33"; // Cor padrão
-      }
-      // Salva na memória do navegador (localStorage é melhor aqui que session)
-      localStorage.setItem('compactMode', isCompact);
-    };
+    //   if (isCompact) {
+    //     body.classList.add('compact-mode');
+    //     span.textContent = "Ativado";
+    //     toggleCompactBtn.style.background = "#1e90ff"; // Azul para indicar ativo
+    //     // Se tiver ícone de grid/lista, pode trocar aqui
+    //   } else {
+    //     body.classList.remove('compact-mode');
+    //     span.textContent = "Desativado";
+    //     toggleCompactBtn.style.background = "#232a33"; // Cor padrão
+    //   }
+    //   // Salva na memória do navegador (localStorage é melhor aqui que session)
+    //   localStorage.setItem('compactMode', isCompact);
+    // };
 
     // [NOVO] Configuração do Header de Código da Sala
     const roomHeader = document.getElementById('roomHeader');
@@ -2663,22 +2392,22 @@
       };
     }
 
-    if (toggleCompactBtn) {
-      // 1. Ao carregar, verifica se já estava salvo. 
-      // Se for NULO (primeira vez), define como TRUE (Ativado por padrão).
-      // Se não for nulo, respeita o que o usuário escolheu antes ('true' ou 'false').
-      const storageValue = localStorage.getItem('compactMode');
-      const shouldBeCompact = storageValue === null ? true : (storageValue === 'true');
+    // if (toggleCompactBtn) {
+    //   // 1. Ao carregar, verifica se já estava salvo. 
+    //   // Se for NULO (primeira vez), define como TRUE (Ativado por padrão).
+    //   // Se não for nulo, respeita o que o usuário escolheu antes ('true' ou 'false').
+    //   const storageValue = localStorage.getItem('compactMode');
+    //   const shouldBeCompact = storageValue === null ? true : (storageValue === 'true');
 
-      applyCompactMode(shouldBeCompact);
+    //   applyCompactMode(shouldBeCompact);
 
-      // 2. Ao clicar (mantém igual)
-      toggleCompactBtn.onclick = () => {
-        playSound('click');
-        const isCurrentlyCompact = document.body.classList.contains('compact-mode');
-        applyCompactMode(!isCurrentlyCompact);
-      };
-    }
+    //   // 2. Ao clicar (mantém igual)
+    //   toggleCompactBtn.onclick = () => {
+    //     playSound('click');
+    //     const isCurrentlyCompact = document.body.classList.contains('compact-mode');
+    //     applyCompactMode(!isCurrentlyCompact);
+    //   };
+    // }
 
     // === Lógica para Ocultar/Mostrar Religião ===
     const toggleReligionBtn = document.getElementById('toggleReligionBtn');
