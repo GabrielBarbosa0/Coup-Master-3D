@@ -5,6 +5,7 @@
 Uma versão web, multiplayer e **sandbox** do famoso jogo de tabuleiro "Coup" (incluindo a expansão "A Reforma").
 
 Diferente de versões automatizadas, o **Coup Master** foca na liberdade: os jogadores aplicam as regras, movem moedas e trocam cartas manualmente, simulando a experiência real de uma mesa de jogo, mas com a conveniência da sincronização online e organização de salas.
+https://gabrielbarbosa0.github.io/Coup-Master
 
 ![Interface do Lobby](img/image_47cdfb.png)
 *(Tela de Login e Lobby)*
