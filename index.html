@@ -967,13 +967,15 @@
     }
 
 
-    /* 1. IMPORTANTE: Carregar o arquivo da fonte */
-    /* Certifique-se de que o arquivo 'tilda-script-bold.otf' está na mesma pasta do index.html */
-    @font-face {
+   @font-face {
       font-family: 'Tilda Script';
-      src: url('tilda-script-bold.otf');
+      /* Tenta carregar WOFF2 (Leve e Moderno) primeiro, depois o OTF */
+      src: url('tilda-script-bold.woff2') format('woff2'),
+           url('tilda-script-bold.otf') format('opentype');
       font-weight: bold;
       font-style: normal;
+      /* Garante que o texto apareça mesmo se a fonte demorar (evita texto invisível) */
+      font-display: swap; 
     }
 
     /* 2. Aplicar nos Títulos dos Modais (Configurações, Baralho, etc) */
