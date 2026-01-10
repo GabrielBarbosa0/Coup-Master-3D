@@ -87,6 +87,7 @@
       letter-spacing: 1px;
     }
 
+
     header p {
       margin: 6px 0 0;
       color: #444;
@@ -96,6 +97,7 @@
     /* =======================================================
        === 4. BOTÕES DE CONTROLE E SLIDER (UI SUPERIOR) ===
        ======================================================= */
+
     .resetBtn,
     .infoBtn,
     .shuffleBtn,
@@ -302,7 +304,7 @@
     /* =======================================================
        === CORREÇÃO: REGRA DE OCULTAR RELIGIÃO ===
        ======================================================= */
-    
+
     /* Quando o body tiver a classe 'hide-religion', esconde os badges */
     body.hide-religion .religion-status {
       display: none !important;
@@ -440,7 +442,7 @@
     .card {
       /* width: 92px;
       height: 128px; */
-      border-radius: 8px;
+      border-radius: 6px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
       cursor: grab;
       user-select: none;
@@ -488,6 +490,7 @@
       align-items: center;
       padding: 6px;
       width: 100%;
+      gap: 4px;
     }
 
     .points .plus,
@@ -521,8 +524,8 @@
     .slot {
       width: 96px;
       height: 136px;
-      border-radius: 12px;
-      border: 2px dashed rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      border: 3px dashed rgba(255, 255, 255, 0.06);
       display: flex;
       align-items: center;
       justify-content: center
@@ -578,7 +581,7 @@
       }
 
       .slot {
-        border-radius: 4px;
+        border-radius: 7px;
       }
 
       /* O antigo modo compacto usava GRID na mão do jogador */
@@ -727,14 +730,14 @@
       }
 
       .slot {
-        border-radius: 4px;
+        border-radius: 7px;
       }
 
       .player-stack {
         display: grid;
         grid-template-columns: repeat(auto-fit, 40px);
         justify-content: center;
-        gap: 2px;
+        gap: 6px;
         padding: 2px;
       }
 
@@ -930,6 +933,11 @@
         padding: 10px;
         justify-content: center;
       }
+
+      .slot {
+        border-radius: 8px;
+      }
+
     }
 
 
@@ -956,6 +964,27 @@
       padding: 20px;
       background: var(--panel);
       border-radius: 10px;
+    }
+
+
+    /* 1. IMPORTANTE: Carregar o arquivo da fonte */
+    /* Certifique-se de que o arquivo 'tilda-script-bold.otf' está na mesma pasta do index.html */
+    @font-face {
+      font-family: 'Tilda Script';
+      src: url('tilda-script-bold.otf');
+      font-weight: bold;
+      font-style: normal;
+    }
+
+    /* 2. Aplicar nos Títulos dos Modais (Configurações, Baralho, etc) */
+    .modal-content h2 {
+      font-family: 'Tilda Script', cursive !important;
+      font-weight: normal;
+      font-size: 30px;
+      line-height: 0.8;
+      margin-top: 0;
+      margin-bottom: 16px;
+      text-align: center;
     }
 
     .modal-actions-and-rules {
@@ -1133,7 +1162,9 @@
     }
 
 
-
+    /* .loadingOverlay, h2{
+      font-family: 'Tilda Script', cursive !important;
+    } */
 
 
     /* =======================================================
@@ -1235,6 +1266,15 @@
         gap: 3px;
       }
 
+      .slot{
+        border: 3px dashed rgba(255, 255, 255, 0.06);
+      }
+
+      .card{
+        border-radius: 8px;
+      }
+
+
       .center-area {
         gap: 8px;
       }
@@ -1287,7 +1327,7 @@
     <div
       style="width: 40px; height: 40px; border: 4px solid #232a33; border-top: 4px solid #1e90ff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;">
     </div>
-    <h2 style="font-family: 'Cinzel', serif;">Conectando à Sala...</h2>
+    <h2 class="loadingOverlay">Conectando à Sala...</h2>
   </div>
 
   <style>
@@ -1304,7 +1344,7 @@
 
   <div class="container">
     <header id="roomHeader" title="Clique para copiar o código">
-      <h1 style="font-size: 20px;">SALA: <span id="roomCodeDisplay">...</span></h1>
+      <h1 style="font-size: 20px;">Sala: <span id="roomCodeDisplay">...</span></h1>
       <p class="copy-instruction" style="font-size: 10px; margin: 0; opacity: 0.6; letter-spacing: 1px; color: #fff;">
         (CLIQUE PARA COPIAR)</p>
     </header>

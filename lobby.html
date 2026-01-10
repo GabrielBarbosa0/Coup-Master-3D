@@ -37,7 +37,8 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            min-height: 100dvh; /* Mobile fix */
+            min-height: 100dvh;
+            /* Mobile fix */
             margin: 0;
             text-align: center;
             overflow-x: hidden;
@@ -53,36 +54,65 @@
             margin: 0;
             display: flex;
             flex-direction: column;
-            align-items: center; /* Garante que tudo dentro fique centralizado */
+            align-items: center;
+            /* Garante que tudo dentro fique centralizado */
         }
 
+
+        /* 1. Definir a fonte personalizada */
+        @font-face {
+            font-family: 'Tilda Script';
+            src: url('tilda-script-bold.otf');
+            /* Se estiver na pasta fonts, use: url('fonts/tilda-script-bold.otf') */
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        /* 2. Aplicar no Título do Lobby */
+
         h1 {
-            font-size: 1.8rem;
+            font-family: 'Tilda Script', 'Cinzel', cursive !important;
+            font-weight: normal;
+            font-size: 40px;
             color: var(--text);
+            line-height: 1.5;
+            letter-spacing: 0px;
             margin-bottom: 20px;
             margin-top: 0;
             width: 100%;
         }
-
+        
+        h2 {
+            font-family: 'Tilda Script', 'Cinzel', cursive !important;
+            font-weight: normal;
+            font-size: 30px;
+            color: var(--text);
+            line-height: 1.5;
+            letter-spacing: 0px;
+        }
+        
         /* === ESTILO DO BOTÃO GOOGLE (CORRIGIDO) === */
         #google-login-btn {
             background: #4285F4;
             color: white;
             margin-bottom: 26px;
-            
+
             /* Flexbox Mágico para Centralizar */
             display: flex;
-            align-items: center;     /* Centro Vertical */
-            justify-content: center; /* Centro Horizontal */
-            gap: 12px;               /* Espaço entre ícone e texto */
-            
-            height: 50px; 
+            align-items: center;
+            /* Centro Vertical */
+            justify-content: center;
+            /* Centro Horizontal */
+            gap: 12px;
+            /* Espaço entre ícone e texto */
+
+            height: 50px;
             padding: 0 20px;
             text-transform: uppercase;
             font-weight: bold;
             font-size: 14px;
             letter-spacing: 0.5px;
-            
+
             border: none;
             border-radius: 8px;
             cursor: pointer;
@@ -101,14 +131,14 @@
             background: white;
             border-radius: 50%;
             padding: 2px;
-            display: block; 
+            display: block;
             box-sizing: content-box;
         }
 
         /* === ESTILO DO USUÁRIO === */
         #user-info {
             margin-bottom: 20px;
-            display: none; 
+            display: none;
             /* Quando visível via JS, o flex é aplicado na regra abaixo */
             width: 100%;
         }
@@ -138,11 +168,12 @@
             text-transform: uppercase;
             line-height: 1.4;
         }
-        
+
         #user-name {
             color: var(--accent);
             font-weight: bold;
-            display: inline-block; /* Mantém junto */
+            display: inline-block;
+            /* Mantém junto */
         }
 
         /* Botão Sair/Genérico */
@@ -161,9 +192,10 @@
         #room-actions {
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             margin-top: 10px;
-            padding-top: 20px;
+            padding-top: 0px;
             display: none;
             width: 100%;
+            padding-top: 20px;
         }
 
         .room-actions button {
@@ -187,7 +219,8 @@
             color: var(--text);
             font-size: 16px;
             outline: none;
-            text-align: center; /* Código centralizado fica melhor */
+            text-align: center;
+            /* Código centralizado fica melhor */
             text-transform: uppercase;
         }
 
@@ -217,7 +250,7 @@
 
         <div id="user-info">
             <img id="user-photo" src="" alt="Foto">
-            
+
             <div class="welcome-text">
                 BEM-VINDO,<br> <span id="user-name"></span>!
             </div>
@@ -226,7 +259,7 @@
         </div>
 
         <div id="room-actions" class="room-actions">
-            <h2 style="margin-top: 0; font-size: 1.2rem; margin-bottom: 15px;">SALA</h2>
+            <h2 style="margin-top: 0; margin-bottom: 15px;">Sala</h2>
             <input type="text" id="room-code-input" placeholder="CÓDIGO (EX: XJ94)">
             <button id="join-room-btn">ENTRAR NA SALA</button>
             <button id="create-room-btn">CRIAR NOVA SALA</button>
@@ -359,4 +392,5 @@
         }
     </script>
 </body>
+
 </html>
