@@ -967,15 +967,21 @@
     }
 
 
-   @font-face {
+    /* =======================================================
+       === IMPORTAÇÃO DA FONTE (CORRIGIDA) ===
+       ======================================================= */
+    @font-face {
       font-family: 'Tilda Script';
-      /* Tenta carregar WOFF2 (Leve e Moderno) primeiro, depois o OTF */
-      src: url('tilda-script-bold.woff2') format('woff2'),
-           url('tilda-script-bold.otf') format('opentype');
+
+      /* 1. O segredo: apontar para a pasta 'fonts/' */
+      /* 2. Prioridade: WOFF2 primeiro (Melhor para Celular), depois OTF */
+      src: url('fonts/tilda-script-bold.woff2') format('woff2'),
+        url('fonts/tilda-script-bold.otf') format('opentype');
+
       font-weight: bold;
       font-style: normal;
-      /* Garante que o texto apareça mesmo se a fonte demorar (evita texto invisível) */
-      font-display: swap; 
+      font-display: swap;
+      /* Garante que o texto apareça rápido */
     }
 
     /* 2. Aplicar nos Títulos dos Modais (Configurações, Baralho, etc) */
@@ -1163,12 +1169,6 @@
       color: #999;
     }
 
-
-    /* .loadingOverlay, h2{
-      font-family: 'Tilda Script', cursive !important;
-    } */
-
-
     /* =======================================================
        === 14. EFEITOS VISUAIS (3D E BALATRO) ===
        ======================================================= */
@@ -1268,11 +1268,11 @@
         gap: 3px;
       }
 
-      .slot{
+      .slot {
         border: 3px dashed rgba(255, 255, 255, 0.06);
       }
 
-      .card{
+      .card {
         border-radius: 8px;
       }
 
