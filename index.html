@@ -75,10 +75,27 @@
       transform: scale(0.98);
     }
 
+    /* Quando o código é copiado */
     header.copied {
-      background-color: var(--active) !important;
-      color: #14171e !important;
-      border-color: var(--active) !important;
+      /* Em vez de fundo verde sólido, usamos um brilho suave */
+      background-color: rgba(0, 255, 115, 0.05) !important; 
+      border-color: var(--active) !important; /* Borda Verde Neon */
+      color: var(--active) !important;        /* Texto Verde Neon */
+      box-shadow: 0 0 15px rgba(0, 255, 115, 0.2); /* Glow opcional */
+    }
+
+    /* Garante que o H1 (o código) mude para a cor ativa */
+    header.copied h1 {
+      color: var(--active) !important;
+    }
+
+    /* Texto de instrução "CÓDIGO COPIADO!" */
+    header.copied .copy-instruction {
+      opacity: 1 !important;
+      font-weight: bold;
+      /* Aqui garantimos que ele pegue a mesma cor do pai (o código) */
+      color: var(--active) !important; 
+      letter-spacing: 2px; /* Um charme extra */
     }
 
     header h1 {
