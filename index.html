@@ -1647,7 +1647,7 @@
         <div class="setting-row">
           <label>Interface:</label>
           <button id="toggleHeaderBtn" class="icon-btn" title="Mostrar/Ocultar Código da Sala">
-            <img src="img/visibility.svg" alt="Ver" style="width: 24px; height: 24px;">
+            <img src="img/eye.svg" alt="Ver" style="width: 24px; height: 24px;">
             <span style="margin-left: 8px;">Código da Sala</span>
           </button>
         </div>
@@ -1663,7 +1663,7 @@
         <div class="setting-row">
           <label>Religião:</label>
           <button id="toggleReligionBtn" class="icon-btn" title="Mostrar/Ocultar Religião">
-            <img src="img/visibility.svg" alt="Ver" style="width: 24px; height: 24px;">
+            <img src="img/eye.svg" alt="Ver" style="width: 24px; height: 24px;">
             <span style="margin-left: 8px;">Visível</span>
           </button>
         </div>
@@ -2448,7 +2448,7 @@
         const header = document.querySelector('header');
 
         // [ALTERADO] Define o estado inicial para "VISÍVEL"
-        toggleHeaderBtn.querySelector('img').src = 'img/visibility.svg'; // Olho aberto
+        toggleHeaderBtn.querySelector('img').src = 'img/eye.svg'; // Olho aberto
         toggleHeaderBtn.style.opacity = '1'; // Aceso
 
         toggleHeaderBtn.onclick = () => {
@@ -2460,7 +2460,7 @@
             toggleHeaderBtn.style.opacity = '0.6';
           } else {
             header.style.display = 'block';
-            toggleHeaderBtn.querySelector('img').src = 'img/visibility.svg';
+            toggleHeaderBtn.querySelector('img').src = 'img/eye.svg';
             toggleHeaderBtn.style.opacity = '1';
           }
         };
@@ -2720,7 +2720,7 @@
         body.classList.remove('hide-religion');
         span.textContent = "Visível";
         toggleReligionBtn.style.opacity = '1'; // Visual de "aceso"
-        if (img) img.src = 'img/visibility.svg'; // Ícone de olho aberto
+        if (img) img.src = 'img/eye.svg'; // Ícone de olho aberto
       }
       // Salva a preferência
       localStorage.setItem('hideReligion', shouldHide);
