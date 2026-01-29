@@ -78,10 +78,13 @@
     /* Quando o código é copiado */
     header.copied {
       /* Em vez de fundo verde sólido, usamos um brilho suave */
-      background-color: rgba(0, 255, 115, 0.05) !important; 
-      border-color: var(--active) !important; /* Borda Verde Neon */
-      color: var(--active) !important;        /* Texto Verde Neon */
-      box-shadow: 0 0 15px rgba(0, 255, 115, 0.2); /* Glow opcional */
+      background-color: rgba(0, 255, 115, 0.05) !important;
+      border-color: var(--active) !important;
+      /* Borda Verde Neon */
+      color: var(--active) !important;
+      /* Texto Verde Neon */
+      box-shadow: 0 0 15px rgba(0, 255, 115, 0.2);
+      /* Glow opcional */
     }
 
     /* Garante que o H1 (o código) mude para a cor ativa */
@@ -94,8 +97,9 @@
       opacity: 1 !important;
       font-weight: bold;
       /* Aqui garantimos que ele pegue a mesma cor do pai (o código) */
-      color: var(--active) !important; 
-      letter-spacing: 2px; /* Um charme extra */
+      color: var(--active) !important;
+      letter-spacing: 2px;
+      /* Um charme extra */
     }
 
     header h1 {
@@ -115,13 +119,23 @@
        === 4. BOTÕES DE CONTROLE E SLIDER (UI SUPERIOR) ===
        ======================================================= */
 
+
     .resetBtn,
     .infoBtn,
     .shuffleBtn,
     .configBtn,
-    .musicBtn {
+    .musicBtn,
+    .altRulesBtn {
+      /* Adicionado aqui */
       width: 36px;
       height: 36px;
+    }
+
+    /* Adicione também para a imagem interna preencher o botão */
+    .altRulesBtn img {
+      width: 100%;
+      height: 100%;
+      display: block;
     }
 
     .shuffleBtn {
@@ -984,10 +998,10 @@
     }
 
 
-    
+
 
     /* 2. Aplicar nos Títulos dos Modais (Configurações, Baralho, etc) */
-    .modal-content h2 { 
+    .modal-content h2 {
       text-align: center;
     }
 
@@ -1355,6 +1369,10 @@
         <div class="controls">
           <button id="musicBtn" class="musicBtn" title="Música de Fundo"><img src="img/music_note.svg"
               alt="Música"></button>
+
+          <button id="altRulesBtn" class="altRulesBtn" title="Regras Alternativas">
+            <img src="img/playing_cards.svg" alt="Regras Alternativas"></button>
+
           <button id="infoBtn" class="infoBtn" title="Ver Ações"><img src="img/info.svg" alt="Ajuda"></button>
           <button id="settingsBtn" class="configBtn" title="Configurações Gerais"><img src="img/settings.svg"
               alt="Configurações"></button>
@@ -1534,6 +1552,23 @@
           </div>
           <div class="flip-card-back">
             <img src="img/back-actions.jpg" alt="Ações Personagens - Verso">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="altRulesModal" class="modal-overlay" style="display: none;">
+    <div class="modal-actions-and-rules">
+      <button id="closeAltRulesBtn" class="close-btn">&times;</button>
+
+      <div class="flip-card flip-horizontal-left" id="altRulesFlipCard">
+        <div class="flip-card-inner">
+          <div class="flip-card-front">
+            <img src="img/alternative-rules1.jpg" alt="Regras Alt Frente">
+          </div>
+          <div class="flip-card-back">
+            <img src="img/alternative-rules2.jpg" alt="Regras Alt Verso">
           </div>
         </div>
       </div>
@@ -2595,6 +2630,77 @@
               } else {
                 // Se estamos vendo a frente, troca o verso (backImg tag)
                 backImg.src = currentRuleImages[nextIndex];
+              }
+            }, 500);
+          };
+        }
+      }
+
+      // --- Lógica do Modal de Regras Alternativas ---
+      const altRulesBtn = document.getElementById('altRulesBtn');
+      const altRulesModal = document.getElementById('altRulesModal');
+      const closeAltRulesBtn = document.getElementById('closeAltRulesBtn');
+
+      const altFlipCard = document.getElementById('altRulesFlipCard');
+      // Seleciona as imagens dentro do novo card
+      const altFrontImg = altFlipCard ? altFlipCard.querySelector('.flip-card-front img') : null;
+      const altBackImg = altFlipCard ? altFlipCard.querySelector('.flip-card-back img') : null;
+
+      // Lista das 4 imagens (Certifique-se que os arquivos estão na pasta img/)
+      const altRuleImagesList = [
+        'img/alternative-rules1.png', // Pág 1 [cite: 1]
+        'img/alternative-rules2.png', // Pág 2 [cite: 2]
+        'img/alternative-rules3.png', // Pág 3 [cite: 3]
+        'img/alternative-rules4.png'  // Pág 4 [cite: 4]
+      ];
+
+      let currentAltIndex = 0;
+
+      if (altRulesBtn && altRulesModal) {
+        // ABRIR O MODAL
+        altRulesBtn.onclick = () => {
+          playSound('click'); // Seu som de clique existente
+          altRulesModal.style.display = 'flex';
+
+          if (altFlipCard) {
+            // Reseta para o estado inicial
+            currentAltIndex = 0;
+            altFlipCard.classList.remove('is-flipped');
+
+            // Define imagem 1 na frente e imagem 2 no verso
+            altFrontImg.src = altRuleImagesList[0];
+            altBackImg.src = altRuleImagesList[1];
+          }
+        };
+
+        // FECHAR O MODAL
+        if (closeAltRulesBtn) {
+          closeAltRulesBtn.onclick = () => {
+            playSound('click');
+            altRulesModal.style.display = 'none';
+          };
+        }
+
+        // CLICAR NA CARTA (Girar e Trocar Imagem)
+        if (altFlipCard) {
+          altFlipCard.onclick = () => {
+            playSound('card-slide'); // Seu som de carta existente
+            altFlipCard.classList.toggle('is-flipped');
+
+            // Atualiza o índice globalmente
+            currentAltIndex = (currentAltIndex + 1) % altRuleImagesList.length;
+
+            // Aguarda metade da animação (500ms) para trocar a imagem que ficou "nas costas"
+            setTimeout(() => {
+              // Calcula qual será a PRÓXIMA imagem a ser mostrada
+              const nextImageIndex = (currentAltIndex + 1) % altRuleImagesList.length;
+
+              if (altFlipCard.classList.contains('is-flipped')) {
+                // Se estamos vendo o verso (back), trocamos a frente (front) escondida
+                altFrontImg.src = altRuleImagesList[nextImageIndex];
+              } else {
+                // Se estamos vendo a frente (front), trocamos o verso (back) escondido
+                altBackImg.src = altRuleImagesList[nextImageIndex];
               }
             }, 500);
           };
