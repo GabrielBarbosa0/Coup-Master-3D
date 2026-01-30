@@ -16,6 +16,17 @@
 
 
   <style>
+
+     @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
     /* =======================================================
        === 1. VARIÁVEIS GLOBAIS E PALETA DE CORES ===
        ======================================================= */
@@ -549,7 +560,7 @@
 
     .muted {
       color: var(--muted);
-      font-size: 12px
+      font-size: 10px
     }
 
     .slot {
@@ -1342,17 +1353,6 @@
     <h2 class="loadingOverlay">Conectando à Sala...</h2>
   </div>
 
-  <style>
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-  </style>
 
   <div class="container">
     <header id="roomHeader" title="Clique para copiar o código">
@@ -2093,10 +2093,19 @@
       if (asylumScoreEl) asylumScoreEl.textContent = state.asylumScore || 0;
 
       // Config Deck
+      // [CORREÇÃO] Só atualiza os inputs visuais SE O MODAL ESTIVER FECHADO.
+      // Se estiver aberto, respeita o que o Host está digitando e evita resetar.
+      const configModalEl = document.getElementById('configModal'); 
+
       if (state.deckConfig) {
-        for (const cardType in state.deckConfig) {
-          const input = document.getElementById(`config-${cardType}`);
-          if (input) input.value = state.deckConfig[cardType];
+        // Verifica se o modal está invisível/fechado
+        const isClosed = !configModalEl || configModalEl.style.display === 'none';
+
+        if (isClosed) {
+          for (const cardType in state.deckConfig) {
+            const input = document.getElementById(`config-${cardType}`);
+            if (input) input.value = state.deckConfig[cardType];
+          }
         }
       }
     }
