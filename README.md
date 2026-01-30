@@ -12,7 +12,7 @@ https://gabrielbarbosa0.github.io/Coup-Master
 
 ---
 
-## ✨ Novas Funcionalidades (v0.2.0)
+## ✨ Novas Funcionalidades (v0.1)
 
 ### 🔐 Autenticação e Identidade
 * **Login com Google:** Integração segura via Firebase Authentication.
