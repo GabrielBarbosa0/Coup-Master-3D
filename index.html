@@ -2394,23 +2394,44 @@
     //   };
     // }
 
+    // Adicione na Seção 5
+    function burnTopCard() {
+      triggerSound('card-slide');
+      gameStateRef.transaction((currentState) => {
+        if (!currentState || !currentState.deck || currentState.deck.length === 0) return;
+        const card = currentState.deck.pop();
+        card.owner = null;
+        card.location = 'free';
+        card.visible = true; 
+        if (!currentState.freeCards) currentState.freeCards = [];
+        currentState.freeCards.push(card);
+        return currentState;
+      });
+    }
+
     // =======================================================
     // === 6. SETUP DE EVENTOS (DRAG DROP & UI) ===
     // =======================================================
 
     function setupDropzones() {
+      // Configura o DECK para ser arrastável
       deckEl.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('text/plain', 'DECK_DRAW_ACTION');
       });
 
+      // Soltar algo NO DECK (Devolver carta)
       deckEl.ondragover = ev => ev.preventDefault();
       deckEl.ondrop = ev => {
         ev.preventDefault();
         const id = ev.dataTransfer.getData('text/plain');
+        // Se não for "compra", é uma carta voltando (moveCard)
         if (id !== 'DECK_DRAW_ACTION') moveCard(id, 'deck');
       };
+      
+      // Clique simples no deck = Comprar
       deckEl.onclick = () => drawCard();
 
+      // Soltar algo NOS JOGADORES (Dar carta ou roubar)
       document.querySelectorAll('.player-area').forEach(area => {
         area.ondragover = ev => ev.preventDefault();
         area.ondrop = ev => {
@@ -2419,18 +2440,27 @@
           const pid = parseInt(area.dataset.player);
 
           if (data === 'DECK_DRAW_ACTION') {
-            drawCard(pid);
+            drawCard(pid); // Arrastou do deck pro jogador = Compra
           } else {
-            moveCard(data, 'player', pid);
+            moveCard(data, 'player', pid); // Arrastou carta da mão/mesa pro jogador
           }
         };
       });
 
+      // [CORREÇÃO AQUI] Soltar algo NO CEMITÉRIO (Free Area)
       freeArea.ondragover = ev => ev.preventDefault();
       freeArea.ondrop = ev => {
         ev.preventDefault();
-        const id = ev.dataTransfer.getData('text/plain');
-        if (id !== 'DECK_DRAW_ACTION') moveCard(id, 'free');
+        const data = ev.dataTransfer.getData('text/plain');
+        
+        // Se veio do Deck -> QUEIMA A CARTA (Nova função)
+        if (data === 'DECK_DRAW_ACTION') {
+            burnTopCard(); 
+        } 
+        // Se veio da Mão -> Move a carta normalmente
+        else {
+            moveCard(data, 'free');
+        }
       };
     }
 
