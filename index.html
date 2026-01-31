@@ -188,6 +188,7 @@
       width: 36px;
       height: 36px;
     }
+
     .communityBtn img {
       width: 100%;
       height: 100%;
@@ -204,7 +205,7 @@
       transition: transform 0.2s, opacity 0.2s;
       color: white;
       text-align: center;
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .link-btn:hover {
@@ -213,10 +214,11 @@
     }
 
     .link-btn.patreon {
-      background: #ff4e37; /* Cor oficial do Patreon */
+      background: #ff4e37;
+      /* Cor oficial do Patreon */
       box-shadow: 0 4px 0 #c03d2e;
     }
-    
+
     .link-btn.updates {
       background: #232a33;
       border: 1px solid var(--accent);
@@ -403,7 +405,7 @@
 
     /* 2. Ajusta o layout do wrapper para 1 coluna em TODAS as resoluções
           quando o Asilo estiver oculto. O Deck ocupará todo o espaço. */
-    
+
     body.hide-religion .decks-wrapper {
       grid-template-columns: 1fr !important;
     }
@@ -413,7 +415,7 @@
        Aqui garantimos que ele centralize se sobrar espaço. */
     @media (min-width: 1200px) {
       body.hide-religion .deck-area {
-        width: 100%; 
+        width: 100%;
         box-sizing: border-box;
       }
     }
@@ -1102,11 +1104,11 @@
       font-size: 16px;
     }
 
-    .config-title{
+    .config-title {
       margin-bottom: 0px;
     }
 
-    .config-p-title{
+    .config-p-title {
       margin-top: 0px;
       margin-bottom: 20px;
       text-align: center;
@@ -1211,7 +1213,7 @@
       overflow-y: auto;
     }
 
-    .title-dlc-card-config-item{
+    .title-dlc-card-config-item {
       text-align: center;
       font-size: 20px;
       font-weight: bold;
@@ -1676,14 +1678,17 @@
           <label for="config-assassino">Assassino</label>
           <input type="number" id="config-assassino" data-card="assassino" min="0" max="10" value="5">
         </li>
-        <li class="card-config-item">
-          <label for="config-embaixador">Embaixador</label>
-          <input type="number" id="config-embaixador" data-card="embaixador" min="0" max="10" value="5">
-        </li>
+
         <li class="card-config-item">
           <label for="config-condessa">Condessa</label>
           <input type="number" id="config-condessa" data-card="condessa" min="0" max="10" value="5">
         </li>
+
+        <li class="card-config-item">
+          <label for="config-embaixador">Embaixador</label>
+          <input type="number" id="config-embaixador" data-card="embaixador" min="0" max="10" value="5">
+        </li>
+
         <li class="card-config-item">
           <label for="config-inquisidor">Inquisidor</label>
           <input type="number" id="config-inquisidor" data-card="inquisidor" min="0" max="10" value="5">
@@ -1694,23 +1699,25 @@
         </li>
 
         <li class="card-config-item">
-          <label for="config-benfeitor">Benfeitor</label>
-          <input type="number" id="config-benfeitor" data-card="benfeitor" min="0" max="10" value="0">
-        </li>
-        <li class="card-config-item">
           <label for="config-bufao">Bufão</label>
           <input type="number" id="config-bufao" data-card="bufao" min="0" max="10" value="0">
         </li>
-        <li class="card-config-item">
-          <label for="config-burgues">Burguês</label>
-          <input type="number" id="config-burgues" data-card="burgues" min="0" max="10" value="0">
-        </li>
+
         <li class="card-config-item">
           <label for="config-burocrata">Burocrata</label>
           <input type="number" id="config-burocrata" data-card="burocrata" min="0" max="10" value="0">
         </li>
-               
-        
+
+        <li class="card-config-item">
+          <label for="config-benfeitor">Benfeitor</label>
+          <input type="number" id="config-benfeitor" data-card="benfeitor" min="0" max="10" value="0">
+        </li>
+
+        <li class="card-config-item">
+          <label for="config-burgues">Burguês</label>
+          <input type="number" id="config-burgues" data-card="burgues" min="0" max="10" value="0">
+        </li>
+
         <li class="title-dlc-card-config-item">
           <p>"A Revolução"</p>
         </li>
@@ -1734,7 +1741,7 @@
           <label for="config-bispo">Bispo</label>
           <input type="number" id="config-bispo" data-card="bispo" min="0" max="10" value="0">
         </li>
-        
+
         <li class="card-config-item">
           <label for="config-tesoureiro_da_coroa">Tesoureiro</label>
           <input type="number" id="config-tesoureiro_da_coroa" data-card="tesoureiro_da_coroa" min="0" max="10"
@@ -1833,7 +1840,8 @@
 
       <div class="community-links" style="display: flex; flex-direction: column; gap: 10px;">
 
-        <a href="https://patreon.com/gabrielbarbosa0" target="_blank" class="link-btn patreon" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <a href="https://patreon.com/gabrielbarbosa0" target="_blank" class="link-btn patreon"
+          style="display: flex; align-items: center; justify-content: center; gap: 8px;">
           <img src="img/patreon.svg" alt="Patreon" style="width: 20px; height: 20px; filter: brightness(0) invert(1);">
           Apoie no Patreon
         </a>
@@ -2447,7 +2455,7 @@
         const card = currentState.deck.pop();
         card.owner = null;
         card.location = 'free';
-        card.visible = true; 
+        card.visible = true;
         if (!currentState.freeCards) currentState.freeCards = [];
         currentState.freeCards.push(card);
         return currentState;
@@ -2472,7 +2480,7 @@
         // Se não for "compra", é uma carta voltando (moveCard)
         if (id !== 'DECK_DRAW_ACTION') moveCard(id, 'deck');
       };
-      
+
       // Clique simples no deck = Comprar
       deckEl.onclick = () => drawCard();
 
@@ -2497,14 +2505,14 @@
       freeArea.ondrop = ev => {
         ev.preventDefault();
         const data = ev.dataTransfer.getData('text/plain');
-        
+
         // Se veio do Deck -> QUEIMA A CARTA (Nova função)
         if (data === 'DECK_DRAW_ACTION') {
-            burnTopCard(); 
-        } 
+          burnTopCard();
+        }
         // Se veio da Mão -> Move a carta normalmente
         else {
-            moveCard(data, 'free');
+          moveCard(data, 'free');
         }
       };
     }
@@ -2648,13 +2656,13 @@
         const spanText = toggleHeaderBtn.querySelector('span'); // [NOVO] Seleciona o texto
 
         // Define o estado inicial visual
-        toggleHeaderBtn.querySelector('img').src = 'img/eye.svg'; 
-        toggleHeaderBtn.style.opacity = '1'; 
+        toggleHeaderBtn.querySelector('img').src = 'img/eye.svg';
+        toggleHeaderBtn.style.opacity = '1';
         if (spanText) spanText.textContent = "Visível"; // Garante texto inicial
 
         toggleHeaderBtn.onclick = () => {
           playSound('click');
-          
+
           // Verifica se está visível para ocultar
           if (header.style.display !== 'none') {
             // Ação: ESCONDER
