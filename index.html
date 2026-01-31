@@ -2930,28 +2930,6 @@
       });
     }
 
-    // // [NOVO] Lógica do Modo Compacto
-    // const toggleCompactBtn = document.getElementById('toggleCompactBtn');
-
-    // // Função auxiliar para aplicar o modo
-    // const applyCompactMode = (isCompact) => {
-    //   const body = document.body;
-    //   const img = toggleCompactBtn.querySelector('img');
-    //   const span = toggleCompactBtn.querySelector('span');
-
-    //   if (isCompact) {
-    //     body.classList.add('compact-mode');
-    //     span.textContent = "Ativado";
-    //     toggleCompactBtn.style.background = "#1e90ff"; // Azul para indicar ativo
-    //     // Se tiver ícone de grid/lista, pode trocar aqui
-    //   } else {
-    //     body.classList.remove('compact-mode');
-    //     span.textContent = "Desativado";
-    //     toggleCompactBtn.style.background = "#232a33"; // Cor padrão
-    //   }
-    //   // Salva na memória do navegador (localStorage é melhor aqui que session)
-    //   localStorage.setItem('compactMode', isCompact);
-    // };
 
     // [NOVO] Configuração do Header de Código da Sala
     const roomHeader = document.getElementById('roomHeader');
@@ -2988,23 +2966,6 @@
         });
       };
     }
-
-    // if (toggleCompactBtn) {
-    //   // 1. Ao carregar, verifica se já estava salvo. 
-    //   // Se for NULO (primeira vez), define como TRUE (Ativado por padrão).
-    //   // Se não for nulo, respeita o que o usuário escolheu antes ('true' ou 'false').
-    //   const storageValue = localStorage.getItem('compactMode');
-    //   const shouldBeCompact = storageValue === null ? true : (storageValue === 'true');
-
-    //   applyCompactMode(shouldBeCompact);
-
-    //   // 2. Ao clicar (mantém igual)
-    //   toggleCompactBtn.onclick = () => {
-    //     playSound('click');
-    //     const isCurrentlyCompact = document.body.classList.contains('compact-mode');
-    //     applyCompactMode(!isCurrentlyCompact);
-    //   };
-    // }
 
     // === Lógica para Ocultar/Mostrar Religião ===
     const toggleReligionBtn = document.getElementById('toggleReligionBtn');
