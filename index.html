@@ -388,12 +388,34 @@
     }
 
     /* =======================================================
-       === CORREÇÃO: REGRA DE OCULTAR RELIGIÃO ===
+       === REGRAS PARA O MODO: OCULTAR RELIGIÃO E ASILO ===
        ======================================================= */
 
     /* Quando o body tiver a classe 'hide-religion', esconde os badges */
     body.hide-religion .religion-status {
       display: none !important;
+    }
+
+    /* 1. Esconde o Asilo quando a classe estiver ativa no body */
+    body.hide-religion #asylumArea {
+      display: none !important;
+    }
+
+    /* 2. Ajusta o layout do wrapper para 1 coluna em TODAS as resoluções
+          quando o Asilo estiver oculto. O Deck ocupará todo o espaço. */
+    
+    body.hide-religion .decks-wrapper {
+      grid-template-columns: 1fr !important;
+    }
+
+    /* Ajuste específico para garantir que o Deck não fique esticado demais verticalmente no PC
+       se você quiser manter a proporção, ou pode deixar ele preencher tudo.
+       Aqui garantimos que ele centralize se sobrar espaço. */
+    @media (min-width: 1200px) {
+      body.hide-religion .deck-area {
+        width: 100%; 
+        box-sizing: border-box;
+      }
     }
 
     /* =======================================================
@@ -1052,9 +1074,6 @@
       border-radius: 10px;
     }
 
-
-
-
     /* 2. Aplicar nos Títulos dos Modais (Configurações, Baralho, etc) */
     .modal-content h2 {
       text-align: center;
@@ -1081,6 +1100,15 @@
       gap: 10px;
       color: var(--text);
       font-size: 16px;
+    }
+
+    .config-title{
+      margin-bottom: 0px;
+    }
+
+    .config-p-title{
+      margin-top: 0px;
+      text-align: center;
     }
 
     .icon-btn {
@@ -1626,8 +1654,8 @@
   <div id="configModal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
       <button id="closeConfigModalBtn" class="close-btn">&times;</button>
-      <h2>Configurar Baralho</h2>
-      <p class="muted">(Use 0 para remover uma carta)</p>
+      <h2 class="config-title">Configurar Baralho</h2>
+      <p class="muted config-p-title">(Use 0 para remover uma carta)</p>
       <ul class="card-config-list">
         <li class="card-config-item">
           <label for="config-duque">Duque</label>
@@ -1728,10 +1756,10 @@
         </div>
 
         <div class="setting-row">
-          <label>Interface:</label>
+          <label>Código da Sala:</label>
           <button id="toggleHeaderBtn" class="icon-btn" title="Mostrar/Ocultar Código da Sala">
             <img src="img/eye.svg" alt="Ver" style="width: 24px; height: 24px;">
-            <span style="margin-left: 8px;">Código da Sala</span>
+            <span style="margin-left: 8px;">Visível</span>
           </button>
         </div>
 
@@ -1755,7 +1783,7 @@
           <label>Adicionar Bot:</label>
           <button id="addBotBtn" class="icon-btn" title="Adicionar Jogador Fantasma">
             <img src="img/robot.svg" alt="Bot" style="width: 24px; height: 24px;">
-            <span style="margin-left: 8px;">Criar Bot</span>
+            <span style="margin-left: 2px;">+1</span>
           </button>
         </div>
 
@@ -2600,22 +2628,29 @@
       // 3.2 Toggle Header (Olhinho)
       if (toggleHeaderBtn) {
         const header = document.querySelector('header');
+        const spanText = toggleHeaderBtn.querySelector('span'); // [NOVO] Seleciona o texto
 
-        // [ALTERADO] Define o estado inicial para "VISÍVEL"
-        toggleHeaderBtn.querySelector('img').src = 'img/eye.svg'; // Olho aberto
-        toggleHeaderBtn.style.opacity = '1'; // Aceso
+        // Define o estado inicial visual
+        toggleHeaderBtn.querySelector('img').src = 'img/eye.svg'; 
+        toggleHeaderBtn.style.opacity = '1'; 
+        if (spanText) spanText.textContent = "Visível"; // Garante texto inicial
 
         toggleHeaderBtn.onclick = () => {
           playSound('click');
-          // Lógica invertida: Se não tiver display none (está visível), então esconde.
+          
+          // Verifica se está visível para ocultar
           if (header.style.display !== 'none') {
+            // Ação: ESCONDER
             header.style.display = 'none';
-            toggleHeaderBtn.querySelector('img').src = 'img/visibility_off.svg';
+            toggleHeaderBtn.querySelector('img').src = 'img/visibility_off.svg'; // Ícone fechado
             toggleHeaderBtn.style.opacity = '0.6';
+            if (spanText) spanText.textContent = "Oculto"; // [NOVO] Troca texto
           } else {
+            // Ação: MOSTRAR
             header.style.display = 'block';
-            toggleHeaderBtn.querySelector('img').src = 'img/eye.svg';
+            toggleHeaderBtn.querySelector('img').src = 'img/eye.svg'; // Ícone aberto
             toggleHeaderBtn.style.opacity = '1';
+            if (spanText) spanText.textContent = "Visível"; // [NOVO] Troca texto
           }
         };
       }
