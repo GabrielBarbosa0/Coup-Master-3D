@@ -2997,7 +2997,9 @@
 
     if (toggleReligionBtn) {
       // 1. Inicialização (Recupera do localStorage)
-      const storedReligionSetting = localStorage.getItem('hideReligion') === 'true';
+      // Se for nulo (primeira vez), considera 'true' (esconder). Se já existir, usa o valor salvo.
+      const storedValue = localStorage.getItem('hideReligion');
+      const storedReligionSetting = storedValue === null ? true : (storedValue === 'true');
       applyReligionVisibility(storedReligionSetting);
 
       // 2. Evento de Clique
