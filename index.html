@@ -1873,6 +1873,7 @@
   <audio id="audio-shuffle" src="audio/shuffle.mp3"></audio>
   <audio id="audio-click" src="audio/click.mp3"></audio>
   <audio id="audio-pop" src="audio/pop.mp3"></audio>
+  <audio id="audio-player-online" src="audio/player-online.mp3"></audio>
 
 
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -3122,16 +3123,35 @@
     // =======================================================
 
     function initializeGame() {
-      // (Seu código initializeGame continua igual, não precisa mexer nele)
       // Listener do Estado do Jogo
       gameStateRef.on('value', (snapshot) => {
-        const state = snapshot.val();
-        if (state) {
-          if (state.lastSFX && state.lastSFX.timestamp > lastSoundTimestamp) {
-            lastSoundTimestamp = state.lastSFX.timestamp;
-            playSound(state.lastSFX.id);
+        const newState = snapshot.val();
+        
+        if (newState) {
+          // === [NOVO] DETECTA JOGADOR ENTRANDO ===
+          // Verifica se já temos um estado anterior carregado para comparar
+          if (localGameState && localGameState.players) {
+            for (let i = 1; i <= 10; i++) {
+              const oldP = localGameState.players[i];
+              const newP = newState.players[i];
+
+              // Se o jogador NÃO estava online antes... E AGORA ESTÁ online
+              if ((!oldP || !oldP.online) && (newP && newP.online)) {
+                // Toca o som localmente para avisar que alguém chegou
+                playSound('player-online');
+              }
+            }
           }
-          localGameState = state;
+          // =======================================
+
+          // Lógica de SFX Global (existente)
+          if (newState.lastSFX && newState.lastSFX.timestamp > lastSoundTimestamp) {
+            lastSoundTimestamp = newState.lastSFX.timestamp;
+            playSound(newState.lastSFX.id);
+          }
+
+          // Atualiza o estado local e renderiza
+          localGameState = newState;
           renderAll();
         }
       });
