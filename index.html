@@ -1873,7 +1873,6 @@
   <audio id="audio-shuffle" src="audio/shuffle.mp3"></audio>
   <audio id="audio-click" src="audio/click.mp3"></audio>
   <audio id="audio-pop" src="audio/pop.mp3"></audio>
-  <audio id="audio-player-online" src="audio/player-online.mp3"></audio>
 
 
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -2621,49 +2620,16 @@
       const resetBtn = document.getElementById('resetBtn');
       if (resetBtn) resetBtn.onclick = () => { if (confirm("Resetar mesa?")) resetTable(); };
 
-
-
-
-      // --- Lógica de Música de Fundo (Autoplay Inteligente) ---
       const musicBtn = document.getElementById('musicBtn');
       const bgmAudio = document.getElementById('bgmAudio');
+      if (bgmAudio) bgmAudio.volume = 0.1;
 
-      if (bgmAudio) {
-        bgmAudio.volume = 0.1; // Volume baixo agradável
-
-        // Tenta tocar automaticamente
-        const playPromise = bgmAudio.play();
-
-        if (playPromise !== undefined) {
-          playPromise.then(() => {
-            // Sucesso: Autoplay funcionou
-            if (musicBtn) musicBtn.classList.remove('muted');
-          }).catch(error => {
-            // Bloqueio: Autoplay falhou (comum em Chrome/Mobile)
-            if (musicBtn) musicBtn.classList.add('muted');
-
-            // [TRUQUE] Adiciona um ouvinte de clique ÚNICO na página inteira
-            // Assim que o usuário clicar em qualquer lugar, a música começa.
-            document.addEventListener('click', () => {
-              if (bgmAudio.paused) {
-                bgmAudio.play();
-                if (musicBtn) musicBtn.classList.remove('muted');
-              }
-            }, { once: true }); // 'once: true' garante que só roda no primeiro clique
-          });
-        }
-
-        // Configuração do Botão de Mute/Unmute
-        if (musicBtn) {
-          musicBtn.onclick = () => {
-            if (bgmAudio.paused) {
-              bgmAudio.play().then(() => musicBtn.classList.remove('muted'));
-            } else {
-              bgmAudio.pause();
-              musicBtn.classList.add('muted');
-            }
-          };
-        }
+      if (musicBtn && bgmAudio) {
+        bgmAudio.play().then(() => musicBtn.classList.remove('muted')).catch(() => musicBtn.classList.add('muted'));
+        musicBtn.onclick = () => {
+          if (bgmAudio.paused) { bgmAudio.play().then(() => musicBtn.classList.remove('muted')); }
+          else { bgmAudio.pause(); musicBtn.classList.add('muted'); }
+        };
       }
 
       const settingsBtn = document.getElementById('settingsBtn');
@@ -3152,59 +3118,20 @@
     }
 
     // =======================================================
-    // === 8. INICIALIZAÇÃO SEGURA (CORRIGIDO) ===
+    // === 8. INICIALIZAÇÃO SEGURA (Fix Permission Denied) ===
     // =======================================================
 
-    // Variável de controle para primeira carga
-    let isFirstSnapshot = true;
-
     function initializeGame() {
+      // (Seu código initializeGame continua igual, não precisa mexer nele)
+      // Listener do Estado do Jogo
       gameStateRef.on('value', (snapshot) => {
-        const newState = snapshot.val();
-
-        if (newState) {
-
-          // === 1. PRIMEIRA CARGA (BLINDAGEM) ===
-          if (isFirstSnapshot) {
-            localGameState = newState;
-
-            // [CORREÇÃO] Sincroniza o timestamp do último som, mas NÃO toca.
-            // Isso evita ouvir sons velhos de moedas ou expulsão ao entrar.
-            if (newState.lastSFX) {
-              lastSoundTimestamp = newState.lastSFX.timestamp;
-            } else {
-              lastSoundTimestamp = Date.now();
-            }
-
-            isFirstSnapshot = false;
-            renderAll();
-            return; // Para tudo aqui.
+        const state = snapshot.val();
+        if (state) {
+          if (state.lastSFX && state.lastSFX.timestamp > lastSoundTimestamp) {
+            lastSoundTimestamp = state.lastSFX.timestamp;
+            playSound(state.lastSFX.id);
           }
-
-          // === 2. SOM DE JOGADOR NOVO (Somente se não for a primeira carga) ===
-          if (localGameState && localGameState.players) {
-            for (let i = 1; i <= 10; i++) {
-              const oldP = localGameState.players[i];
-              const newP = newState.players[i];
-
-              // Verifica se a vaga estava vazia e agora tem alguém (UID)
-              const wasEmpty = !oldP || !oldP.uid;
-              const isOccupied = newP && newP.uid;
-
-              if (wasEmpty && isOccupied) {
-                playSound('player-online');
-              }
-            }
-          }
-
-          // === 3. EFEITOS GLOBAIS (Moedas, Impacto, etc) ===
-          // Só toca se o timestamp for MAIOR que o último registrado
-          if (newState.lastSFX && newState.lastSFX.timestamp > lastSoundTimestamp) {
-            lastSoundTimestamp = newState.lastSFX.timestamp;
-            playSound(newState.lastSFX.id);
-          }
-
-          localGameState = newState;
+          localGameState = state;
           renderAll();
         }
       });
