@@ -1,0 +1,98 @@
+// =======================================================
+// === REGRAS E LÓGICA DE BARALHO (rules.js) ===
+// =======================================================
+
+const CARD_TYPES = [
+  { type: 'duque', color: '#ff66c4' },
+  { type: 'capitao', color: '#004aad' },
+  { type: 'assassino', color: '#545454' },
+  { type: 'embaixador', color: '#00bf63' },
+  { type: 'condessa', color: '#0097b2' },
+  { type: 'inquisidor', color: '#ff5757' },
+  { type: 'benfeitor', color: '#00bf63' },
+  { type: 'bufao', color: '#00bf63' },
+  { type: 'burgues', color: '#ff66c4' },
+  { type: 'burocrata', color: '#ff66c4' },
+  { type: 'vigilante', color: '#f00262' },
+  { type: 'mercenario', color: '#ff0000' },
+  { type: 'bispo', color: '#0db4c3' },
+  { type: 'tesoureiro_da_coroa', color: '#f9c700' },
+  { type: 'diplomata', color: '#001aff' },
+  { type: 'marionetista', color: '#4d047e' }
+];
+
+function createDefaultDeckConfig() {
+  return {
+    'duque': 5, 'capitao': 5, 'assassino': 5, 'embaixador': 5, 'condessa': 5,
+    'inquisidor': 5, 'benfeitor': 0, 'bufao': 0, 'burgues': 0, 'burocrata': 0,
+    'vigilante': 0, 'mercenario': 0, 'bispo': 0, 'tesoureiro_da_coroa': 0,
+    'diplomata': 0, 'marionetista': 0
+  };
+}
+
+function createDeck(config) {
+  let newDeck = [];
+  let id = 1;
+
+  if (!config) {
+    config = createDefaultDeckConfig();
+  }
+
+  for (const cardType in config) {
+    const quantity = config[cardType];
+    const cardInfo = CARD_TYPES.find(c => c.type === cardType);
+
+    if (cardInfo && quantity > 0) {
+      for (let i = 0; i < quantity; i++) {
+        newDeck.push({
+          id: 'c' + (id++),
+          type: cardInfo.type,
+          color: cardInfo.color,
+          owner: null,
+          visible: false,
+          location: 'deck'
+        });
+      }
+    }
+  }
+  shuffle(newDeck);
+  return newDeck;
+}
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+function findCardById(state, id) {
+  if (!state || !id) return null;
+  let card = state.deck?.find(c => c.id === id);
+  if (card) return card;
+  card = state.freeCards?.find(c => c.id === id);
+  if (card) return card;
+  card = state.grave?.find(c => c.id === id);
+  if (card) return card;
+
+  for (let p = 1; p <= 10; p++) {
+    card = state.players?.[p]?.hand?.find(c => c.id === id);
+    if (card) return card;
+  }
+  return null;
+}
+
+function removeCardFromLocation(state, cardId) {
+  if (!state || !cardId) return;
+  if (state.deck) state.deck = state.deck.filter(c => c.id !== cardId);
+  if (state.freeCards) state.freeCards = state.freeCards.filter(c => c.id !== cardId);
+  if (state.grave) state.grave = state.grave.filter(c => c.id !== cardId);
+
+  if (state.players) {
+    for (let p = 1; p <= 10; p++) {
+      if (state.players[p]?.hand) {
+        state.players[p].hand = state.players[p].hand.filter(c => c.id !== cardId);
+      }
+    }
+  }
+}

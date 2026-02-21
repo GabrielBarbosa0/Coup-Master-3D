@@ -1,0 +1,308 @@
+:root {
+    --bg: #14171e;
+    --panel: #232a33;
+    --accent: #1e90ff;
+    --text: #e6eef6;
+}
+
+/* =======================================================
+       === TELA DE CARREGAMENTO (LOADER) ===
+       ======================================================= */
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #14171e;
+    /* Mesma cor do fundo do site */
+    z-index: 9999;
+    /* Fica acima de tudo */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.loader-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.loader-content {
+    text-align: center;
+    color: #e6eef6;
+}
+
+/* Animação do texto enquanto carrega */
+.loader-content h1 {
+    font-family: 'Cinzel', serif;
+    /* Usa a fonte padrão enquanto a outra carrega */
+    font-size: 32px;
+    margin-bottom: 10px;
+    animation: pulse 1.5s infinite;
+}
+
+.loader-content p {
+    font-family: sans-serif;
+    font-size: 12px;
+    opacity: 0.5;
+    margin-bottom: 20px;
+}
+
+/* Spinner simples */
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-left-color: #1e90ff;
+    border-radius: 50%;
+    margin: 0 auto;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.6;
+        transform: scale(0.98);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 0.6;
+        transform: scale(0.98);
+    }
+}
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* 1. Reset Global */
+* {
+    font-family: "Cinzel", serif;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    /* Mobile fix */
+    margin: 0;
+    text-align: center;
+    overflow-x: hidden;
+}
+
+.lobby-box {
+    background: var(--panel);
+    padding: 26px 30px 26px 30px;
+    border-radius: 18px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+    width: 90%;
+    max-width: 400px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Garante que tudo dentro fique centralizado */
+}
+
+
+
+/* =======================================================
+       === IMPORTAÇÃO DA FONTE (CORRIGIDA) ===
+       ======================================================= */
+@font-face {
+    font-family: 'Tilda Script';
+
+    /* 1. O segredo: apontar para a pasta 'fonts/' */
+    /* 2. Prioridade: WOFF2 primeiro (Melhor para Celular), depois OTF */
+    src: url('fonts/tilda-script-bold.woff2') format('woff2'),
+        url('fonts/tilda-script-bold.otf') format('opentype');
+
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+    /* Garante que o texto apareça rápido */
+}
+
+/* 2. Aplicar no Título do Lobby */
+
+h1 {
+    font-family: 'Tilda Script', 'Cinzel', cursive !important;
+    font-weight: normal;
+    font-size: 40px;
+    color: var(--text);
+    line-height: 1.5;
+    letter-spacing: 0px;
+    margin-bottom: 20px;
+    margin-top: 0;
+    width: 100%;
+}
+
+h2 {
+    font-family: 'Tilda Script', 'Cinzel', cursive !important;
+    font-weight: normal;
+    font-size: 30px;
+    color: var(--text);
+    line-height: 1.5;
+    letter-spacing: 0px;
+}
+
+/* === ESTILO DO BOTÃO GOOGLE (CORRIGIDO) === */
+#google-login-btn {
+    background: #4285F4;
+    color: white;
+    margin-bottom: 26px;
+
+    /* Flexbox Mágico para Centralizar */
+    display: flex;
+    align-items: center;
+    /* Centro Vertical */
+    justify-content: center;
+    /* Centro Horizontal */
+    gap: 12px;
+    /* Espaço entre ícone e texto */
+
+    height: 50px;
+    padding: 0 20px;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+}
+
+#google-login-btn:hover {
+    background: #357ae8;
+}
+
+/* Classe para o ícone do Google */
+.google-icon {
+    width: 24px;
+    height: 24px;
+    background: white;
+    border-radius: 50%;
+    padding: 2px;
+    display: block;
+    box-sizing: content-box;
+}
+
+/* === ESTILO DO USUÁRIO === */
+#user-info {
+    margin-bottom: 20px;
+    display: none;
+    /* Quando visível via JS, o flex é aplicado na regra abaixo */
+    width: 100%;
+}
+
+/* Força Flex quando estiver visível */
+#user-info[style*="display: block"] {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#user-info img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent);
+    margin-bottom: 10px;
+}
+
+.welcome-text {
+    display: block;
+    margin: 5px 0 15px 0;
+    font-size: 16px;
+    color: var(--text);
+    text-transform: uppercase;
+    line-height: 1.4;
+}
+
+#user-name {
+    color: var(--accent);
+    font-weight: bold;
+    display: inline-block;
+    /* Mantém junto */
+}
+
+/* Botão Sair/Genérico */
+button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 5px;
+    transition: background 0.2s;
+    width: 100%;
+}
+
+/* === AÇÕES DE SALA === */
+#room-actions {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 10px;
+    padding-top: 0px;
+    display: none;
+    width: 100%;
+    padding-top: 20px;
+}
+
+.room-actions button {
+    background: #00ff73;
+    color: #111;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.room-actions button:hover {
+    background: #00e668;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--accent);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 16px;
+    outline: none;
+    text-align: center;
+    /* Código centralizado fica melhor */
+    text-transform: uppercase;
+}
+
+input:focus {
+    border-color: #fff;
+}
+
+.muted {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 10px;
+    margin-top: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
