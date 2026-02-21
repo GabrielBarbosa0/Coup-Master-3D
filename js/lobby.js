@@ -129,3 +129,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setTimeout(hideLoader, 3000);
 });
+
+
+// =======================================================
+// === MODAL DE COMUNIDADE (TUTORIAIS E APOIO) ===
+// =======================================================
+document.addEventListener("DOMContentLoaded", () => {
+    const communityBtn = document.getElementById('communityBtn');
+    const communityModal = document.getElementById('communityModal');
+    const closeCommunityBtn = document.getElementById('closeCommunityBtn');
+
+    if (communityBtn && communityModal) {
+        // Abre o modal
+        communityBtn.onclick = () => {
+            communityModal.style.display = 'flex';
+            // Removido o display: none daqui!
+        };
+
+        // Fecha o modal pelo botão X
+        if (closeCommunityBtn) {
+            closeCommunityBtn.onclick = () => {
+                communityModal.style.display = 'none';
+                // Removido o display: block daqui!
+            };
+        }
+
+        // Fecha o modal clicando fora dele
+        window.addEventListener('click', (e) => {
+            if (e.target === communityModal) {
+                communityModal.style.display = 'none';
+                // Removido o display: block daqui!
+            }
+        });
+    }
+});

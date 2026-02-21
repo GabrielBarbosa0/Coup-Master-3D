@@ -162,6 +162,125 @@ h2 {
     letter-spacing: 0px;
 }
 
+
+/* =======================================================
+   === MODAIS, OVERLAYS E MENUS (Padronizado com o Jogo) ===
+   ======================================================= */
+
+/* Caso o lobby.css ainda não tenha essa variável de cor */
+:root {
+    --panel: #232a33;
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    position: relative;
+    padding: 20px;
+    background: var(--panel);
+    border-radius: 10px;
+    color: white; /* Garante que o texto fique branco */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); /* Dá um leve destaque da tela de fundo */
+}
+
+.modal-content h2 {
+    text-align: center;
+    margin-top: 0;
+}
+
+
+
+/* --- Estilo do botão de Fechar (X) Padronizado --- */
+.close-btn {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    z-index: 1001;
+    color: #fff;
+    background: #ff3b3b;
+    border: 2px solid white;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 30px;
+    text-align: center;
+    padding: 0; /* Garante que o texto fique bem centralizado */
+    transition: background 0.2s; /* Adiciona uma transição suave pro hover */
+}
+
+.close-btn:hover {
+    background: #ff5555;
+}
+
+
+
+/* Garante que o botão absoluto fique preso dentro da caixa */
+.lobby-box {
+    position: relative;
+    /* ... mantenha as outras propriedades que já existem aqui ... */
+}
+
+/* Estilo do botão flutuante */
+.communityBtn-lobby {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    z-index: 999;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none !important;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.communityBtn-lobby img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    /* Se quiser deixar o ícone branco ou com a cor padrão, ajuste o filter abaixo caso necessário */
+    /* filter: brightness(0) invert(1); */
+}
+
+/* --- Estilo do Botão do Patreon (Laranja --accent2) --- */
+.link-btn {
+    display: block;
+    padding: 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: transform 0.2s, filter 0.2s;
+    color: white;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.link-btn.patreon {
+    background: #ff4e37; /* Cor exata da sua variável --accent2 */
+}
+
+.link-btn.patreon:hover {
+    transform: translateY(-2px);
+}
+
+
+
+
 /* === ESTILO DO BOTÃO GOOGLE (CORRIGIDO) === */
 #google-login-btn {
     background: #4285F4;

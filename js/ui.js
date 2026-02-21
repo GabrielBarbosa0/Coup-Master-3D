@@ -332,22 +332,6 @@ function setupUI() {
     };
   }
 
-  const communityBtn = document.getElementById('communityBtn');
-  const communityModal = document.getElementById('communityModal');
-  const closeCommunityBtn = document.getElementById('closeCommunityBtn');
-
-  if (communityBtn && communityModal) {
-    communityBtn.onclick = () => {
-      playSound('click');
-      communityModal.style.display = 'flex';
-    };
-    if (closeCommunityBtn) {
-      closeCommunityBtn.onclick = () => {
-        playSound('click');
-        communityModal.style.display = 'none';
-      };
-    }
-  }
 
   const deckContainer = document.getElementById('deck');
   attachBalatroEffect(deckContainer, true);
