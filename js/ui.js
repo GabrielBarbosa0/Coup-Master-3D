@@ -221,7 +221,7 @@ function renderAll() {
     const playerEl = document.getElementById(`player-${pid}`);
 
     if (playerEl && player?.spectators && player.spectators[myPlayerId]) {
-      playerEl.style.boxShadow = "0 0 15px #1e90ff"; // Brilho azul de espectador
+      playerEl.style.boxShadow = "0 0 8px #1e90ff"; // Brilho azul de espectador
       playerEl.style.border = "2px solid #1e90ff";
     } else if (playerEl) {
       playerEl.style.boxShadow = "";
