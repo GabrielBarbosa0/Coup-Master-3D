@@ -135,9 +135,16 @@ header p {
 
 /* Adicione também para a imagem interna preencher o botão */
 .altRulesBtn img {
-    width: 100%;
-    height: 100%;
+    width: 20px;   /* Tamanho padrão dos seus ícones de controle */
+    height: 20px;
     display: block;
+    /* Mágica para deixar qualquer ícone preto em branco puro */
+    filter: brightness(0) invert(1); 
+    transition: transform 0.2s ease;
+}
+
+.altRulesBtn:hover img {
+    transform: scale(1.2); /* Efeito de zoom suave ao passar o mouse */
 }
 
 .shuffleBtn {
@@ -286,6 +293,18 @@ header p {
     background: #ff5555;
 }
 
+/* Estilo para os ícones de religião */
+.religion-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 0px;
+    vertical-align: middle;
+    filter: brightness(0) invert(1); /* Deixa o SVG branco */
+    display: inline-block;
+}
+
+
+
 /* Badge de Religião */
 .religion-status {
     padding: 4px 8px;
@@ -303,8 +322,11 @@ header p {
 }
 
 .religion-status.protestante {
-    background-color: #e6750b;
+    background-color: #f01f4f;
 }
+
+
+
 
 /* Nome e Foto */
 .player-title {

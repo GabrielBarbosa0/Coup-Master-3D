@@ -121,12 +121,17 @@ function renderAll() {
 
     const religionEl = playerEl.querySelector('.religion-status');
     if (religionEl) {
+      // Define qual ícone e texto usar com base no estado do Firebase
+      let iconFile = player.religion === 'protestante' ? 'shield-sword.svg' : 'shield-cross.svg';
+      let religionText = player.religion === 'protestante' ? 'Protestante' : 'Católico';
+      
+      // Injeta o HTML com o ícone branco e o texto
+      religionEl.innerHTML = `<img src="img/${iconFile}" class="religion-icon"> ${religionText}`;
+
       if (player.religion === 'protestante') {
-        religionEl.textContent = 'Protestante';
         religionEl.classList.remove('catolico');
         religionEl.classList.add('protestante');
       } else {
-        religionEl.textContent = 'Católico';
         religionEl.classList.remove('protestante');
         religionEl.classList.add('catolico');
       }
