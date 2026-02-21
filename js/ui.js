@@ -94,8 +94,16 @@ function renderAll() {
   const closeSpectatorModalBtn = document.getElementById('closeSpectatorModalBtn');
 
   if (spectatorBtn && spectatorModal) {
-    // Agora o botão fica sempre visível para permitir espectar a qualquer momento
-    spectatorBtn.style.display = 'block';
+    const myHand = state.players[myPlayerId]?.hand || [];
+
+    // O ícone SÓ aparece se a mão estiver vazia
+    if (myHand.length === 0) {
+      spectatorBtn.style.display = 'block';
+    } else {
+      spectatorBtn.style.display = 'none';
+      // Caso o modal esteja aberto e o jogador receba uma carta, fecha o modal
+      spectatorModal.style.display = 'none';
+    }
 
     spectatorBtn.onclick = () => {
       playSound('click');
