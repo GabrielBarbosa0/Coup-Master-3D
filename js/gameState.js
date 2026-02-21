@@ -118,16 +118,6 @@ function drawCard(targetPid = null) {
   const playerToReceive = targetPid || myPlayerId;
   if (!playerToReceive) return;
 
-  // --- BLOQUEIO PARA ESPECTADOR ---
-  const myHand = localGameState.players[myPlayerId]?.hand || [];
-
-  // Bloqueia se a mão estiver vazia (espectador), sem checar o deck
-  if (myHand.length === 0) {
-    console.log("Ação bloqueada: Espectadores não podem interagir com o deck.");
-    return;
-  }
-  // --------------------------------
-
   if (isDrawingCard) return;
   isDrawingCard = true;
   triggerSound('card-slide');

@@ -87,29 +87,22 @@ function renderAll() {
   const state = localGameState;
   if (!state || !state.players) return;
 
-  // --- LÓGICA DO BOTÃO FANTASMA (ESPECTADOR) ---
+// --- LÓGICA DO BOTÃO FANTASMA (ESPECTADOR) ---
   const spectatorBtn = document.getElementById('spectatorBtn');
   const spectatorModal = document.getElementById('spectatorModal');
   const spectatorList = document.getElementById('spectator-list');
   const closeSpectatorModalBtn = document.getElementById('closeSpectatorModalBtn');
 
   if (spectatorBtn && spectatorModal) {
-    const myHand = state.players[myPlayerId]?.hand || [];
-
-    // O botão aparece apenas se a mão estiver vazia (jogador eliminado)
-    if (myHand.length === 0) {
-      spectatorBtn.style.display = 'block';
-    } else {
-      spectatorBtn.style.display = 'none';
-    }
+    // Agora o botão fica sempre visível para permitir espectar a qualquer momento
+    spectatorBtn.style.display = 'block';
 
     spectatorBtn.onclick = () => {
       playSound('click');
-      spectatorList.innerHTML = ''; // Limpa a lista anterior
+      spectatorList.innerHTML = ''; 
 
       for (let i = 1; i <= 10; i++) {
         const p = state.players[i];
-        // Mostra jogadores online/reais que não sejam você mesmo
         if (p && p.uid && i !== myPlayerId) {
           const btn = document.createElement('div');
           btn.className = 'spectator-target-btn';
@@ -129,7 +122,6 @@ function renderAll() {
       if (spectatorList.innerHTML === '') {
         spectatorList.innerHTML = '<p class="muted">Nenhum outro jogador disponível.</p>';
       }
-
       spectatorModal.style.display = 'flex';
     };
 
