@@ -21,9 +21,41 @@ if (!roomCode || !currentUser.uid) {
 const gameStateRef = db.ref(`salas/${roomCode}/gameState`);
 
 let localGameState = {};
-let myPlayerId = null; 
+let myPlayerId = null;
 let isDrawingCard = false;
 let lastSoundTimestamp = 0;
+
+
+// Solicitar para espectar
+function requestSpectate(targetPid) {
+  const targetPlayer = localGameState.players[targetPid];
+  if (!targetPlayer || !targetPlayer.uid) return;
+
+  // Envia uma notificação/solicitação via Firebase
+  db.ref(`salas/${roomCode}/notifications/${targetPlayer.uid}`).set({
+    fromName: currentUser.name,
+    fromPid: myPlayerId,
+    type: 'SPECTATE_REQUEST',
+    timestamp: Date.now()
+  });
+  alert("Solicitação enviada! Aguardando aprovação...");
+}
+
+// Ouvinte de notificações (Colocar dentro do initializeGame)
+function setupNotificationListener() {
+  db.ref(`salas/${roomCode}/notifications/${currentUser.uid}`).on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data && data.type === 'SPECTATE_REQUEST') {
+      const accept = confirm(`${data.fromName} deseja te espectar. Aceitar?`);
+      if (accept) {
+        // Adiciona o espectador na lista do jogador
+        db.ref(`salas/${roomCode}/gameState/players/${myPlayerId}/spectators/${data.fromPid}`).set(data.fromName);
+      }
+      // Limpa a notificação
+      snapshot.ref.remove();
+    }
+  });
+}
 
 // =======================================================
 // === UTILITÁRIOS GLOBAIS DE SOM E ESTADO ===
@@ -49,42 +81,52 @@ function triggerSound(soundId) {
 // =======================================================
 
 function resetTable(newConfig = null) {
-    console.log("Resetando a mesa...");
-    triggerSound('8-bit-start');
-  
-    const configToUse = newConfig || localGameState.deckConfig || createDefaultDeckConfig();
-    let newDeck = createDeck(configToUse);
-    let currentPlayers = localGameState.players || {};
-  
-    let newPlayersState = {};
-  
-    for (let i = 1; i <= 10; i++) {
-      newPlayersState[i] = {
-        online: currentPlayers[i]?.online || false,
-        uid: currentPlayers[i]?.uid || null,
-        name: currentPlayers[i]?.name || null,
-        photo: currentPlayers[i]?.photo || null,
-        hand: [],
-        score: 2,
-        religion: (i % 2 === 1) ? 'catolico' : 'protestante'
-      };
-    }
-  
-    let initialState = {
-      deck: newDeck,
-      grave: [],
-      freeCards: [],
-      asylumScore: 0,
-      deckConfig: configToUse,
-      players: newPlayersState
+  console.log("Resetando a mesa...");
+  triggerSound('8-bit-start');
+
+  const configToUse = newConfig || localGameState.deckConfig || createDefaultDeckConfig();
+  let newDeck = createDeck(configToUse);
+  let currentPlayers = localGameState.players || {};
+
+  let newPlayersState = {};
+
+  for (let i = 1; i <= 10; i++) {
+    newPlayersState[i] = {
+      online: currentPlayers[i]?.online || false,
+      uid: currentPlayers[i]?.uid || null,
+      name: currentPlayers[i]?.name || null,
+      photo: currentPlayers[i]?.photo || null,
+      hand: [],
+      score: 2,
+      religion: (i % 2 === 1) ? 'catolico' : 'protestante'
     };
-  
-    gameStateRef.set(initialState);
+  }
+
+  let initialState = {
+    deck: newDeck,
+    grave: [],
+    freeCards: [],
+    asylumScore: 0,
+    deckConfig: configToUse,
+    players: newPlayersState
+  };
+
+  gameStateRef.set(initialState);
 }
 
 function drawCard(targetPid = null) {
   const playerToReceive = targetPid || myPlayerId;
   if (!playerToReceive) return;
+
+  // --- BLOQUEIO PARA ESPECTADOR ---
+  const myHand = localGameState.players[myPlayerId]?.hand || [];
+
+  // Bloqueia se a mão estiver vazia (espectador), sem checar o deck
+  if (myHand.length === 0) {
+    console.log("Ação bloqueada: Espectadores não podem interagir com o deck.");
+    return;
+  }
+  // --------------------------------
 
   if (isDrawingCard) return;
   isDrawingCard = true;
@@ -108,7 +150,7 @@ function drawCard(targetPid = null) {
 
     return currentState;
   }, (error, committed) => {
-      isDrawingCard = false;
+    isDrawingCard = false;
   });
 }
 
@@ -170,17 +212,17 @@ function moveCard(cardId, targetLocation, targetPlayerId = null) {
 }
 
 function burnTopCard() {
-    triggerSound('card-slide');
-    gameStateRef.transaction((currentState) => {
-      if (!currentState || !currentState.deck || currentState.deck.length === 0) return;
-      const card = currentState.deck.pop();
-      card.owner = null;
-      card.location = 'free';
-      card.visible = true;
-      if (!currentState.freeCards) currentState.freeCards = [];
-      currentState.freeCards.push(card);
-      return currentState;
-    });
+  triggerSound('card-slide');
+  gameStateRef.transaction((currentState) => {
+    if (!currentState || !currentState.deck || currentState.deck.length === 0) return;
+    const card = currentState.deck.pop();
+    card.owner = null;
+    card.location = 'free';
+    card.visible = true;
+    if (!currentState.freeCards) currentState.freeCards = [];
+    currentState.freeCards.push(card);
+    return currentState;
+  });
 }
 
 // =======================================================
@@ -197,7 +239,7 @@ function kickPlayer(pid) {
 
   db.ref(`salas/${roomCode}/gameState/players/${pid}`).update({
     online: false,
-    uid: null,   
+    uid: null,
     name: null,
     photo: null,
     hand: [],
@@ -234,37 +276,37 @@ function toggleReligion(pid) {
 }
 
 function addBot() {
-    playSound('click');
-    let botSlot = null;
+  playSound('click');
+  let botSlot = null;
+  for (let i = 1; i <= 10; i++) {
+    const p = localGameState.players[i];
+    if (!p.uid && !p.online) {
+      botSlot = i;
+      break;
+    }
+  }
+
+  if (botSlot) {
+    let botCount = 0;
     for (let i = 1; i <= 10; i++) {
-      const p = localGameState.players[i];
-      if (!p.uid && !p.online) {
-        botSlot = i;
-        break;
+      if (localGameState.players[i].name && localGameState.players[i].name.startsWith('BOT')) {
+        botCount++;
       }
     }
-  
-    if (botSlot) {
-      let botCount = 0;
-      for (let i = 1; i <= 10; i++) {
-        if (localGameState.players[i].name && localGameState.players[i].name.startsWith('BOT')) {
-          botCount++;
-        }
-      }
-      const botName = `BOT ${botCount + 1}`;
-  
-      db.ref(`salas/${roomCode}/gameState/players/${botSlot}`).update({
-        online: true,
-        uid: 'bot-' + Date.now(), 
-        name: botName,
-        photo: 'img/robot.svg',   
-        hand: [],
-        score: 2,
-        religion: (botSlot % 2 === 1) ? 'catolico' : 'protestante'
-      });
-    } else {
-      alert("A sala está cheia! Não é possível adicionar bots.");
-    }
+    const botName = `BOT ${botCount + 1}`;
+
+    db.ref(`salas/${roomCode}/gameState/players/${botSlot}`).update({
+      online: true,
+      uid: 'bot-' + Date.now(),
+      name: botName,
+      photo: 'img/robot.svg',
+      hand: [],
+      score: 2,
+      religion: (botSlot % 2 === 1) ? 'catolico' : 'protestante'
+    });
+  } else {
+    alert("A sala está cheia! Não é possível adicionar bots.");
+  }
 }
 
 // =======================================================
@@ -272,7 +314,7 @@ function addBot() {
 // =======================================================
 
 function setupDisconnectHandler(pid) {
-    db.ref(`salas/${roomCode}/gameState/players/${pid}/online`).onDisconnect().set(false);
+  db.ref(`salas/${roomCode}/gameState/players/${pid}/online`).onDisconnect().set(false);
 }
 
 function joinGame() {
@@ -325,7 +367,7 @@ function joinGame() {
     }
 
     for (let i = 1; i <= 10; i++) {
-      if (!currentState.players[i].uid) { 
+      if (!currentState.players[i].uid) {
         currentState.players[i].uid = currentUser.uid;
         currentState.players[i].name = currentUser.name;
         currentState.players[i].photo = currentUser.photo;
@@ -347,7 +389,7 @@ function joinGame() {
     } else if (error) {
       console.error("Erro na transação:", error);
       alert("Erro de conexão. Tentando novamente...");
-      window.location.reload(); 
+      window.location.reload();
     } else {
       alert("Sala cheia! Todos os slots têm donos.");
       window.location.href = 'lobby.html';
@@ -366,13 +408,14 @@ function initializeGame() {
       localGameState = state;
       // renderAll() é chamada aqui, ela ficará no ui.js
       if (typeof renderAll === "function") {
-         renderAll();
+        renderAll();
       }
     }
   });
 
   joinGame();
-  
+  setupNotificationListener(); // [ADICIONE ESTA LINHA AQUI]
+
   // As funções de UI ficarão no ui.js
   if (typeof setupUI === "function") setupUI();
   if (typeof setupDropzones === "function") setupDropzones();

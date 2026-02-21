@@ -1,7 +1,7 @@
 @font-face {
     font-family: 'Tilda Script';
     src: url('../fonts/tilda-script-bold.woff2') format('woff2'),
-         url('../fonts/tilda-script-bold.woff') format('woff');
+        url('../fonts/tilda-script-bold.woff') format('woff');
     font-weight: bold;
     font-style: normal;
     font-display: swap;
@@ -135,16 +135,18 @@ header p {
 
 /* Adicione também para a imagem interna preencher o botão */
 .altRulesBtn img {
-    width: 20px;   /* Tamanho padrão dos seus ícones de controle */
+    width: 20px;
+    /* Tamanho padrão dos seus ícones de controle */
     height: 20px;
     display: block;
     /* Mágica para deixar qualquer ícone preto em branco puro */
-    filter: brightness(0) invert(1); 
+    filter: brightness(0) invert(1);
     transition: transform 0.2s ease;
 }
 
 .altRulesBtn:hover img {
-    transform: scale(1.2); /* Efeito de zoom suave ao passar o mouse */
+    transform: scale(1.2);
+    /* Efeito de zoom suave ao passar o mouse */
 }
 
 .shuffleBtn {
@@ -180,6 +182,59 @@ header p {
 
 #volumeSlider:hover {
     opacity: 1;
+}
+
+.spectatorBtn {
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.spectatorBtn img {
+    width: 100%;
+    height: 100%;
+    filter: brightness(0) invert(1);
+    /* Deixa o fantasma branco */
+    transition: transform 0.2s;
+}
+
+.spectatorBtn:hover img {
+    transform: scale(1.2) translateY(-2px);
+}
+
+.spectator-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.spectator-target-btn {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  transition: background 0.2s;
+}
+
+.spectator-target-btn:hover {
+  background: rgba(30, 144, 255, 0.2);
+  border-color: #1e90ff;
+}
+
+.spectator-target-btn img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 /* =======================================================
@@ -245,6 +300,8 @@ header p {
 }
 
 
+
+
 /* =======================================================
        === 6. ÁREA DO JOGADOR (AVATAR, PONTOS, RELIGIÃO) ===
        ======================================================= */
@@ -299,7 +356,8 @@ header p {
     height: 16px;
     margin-right: 0px;
     vertical-align: middle;
-    filter: brightness(0) invert(1); /* Deixa o SVG branco */
+    filter: brightness(0) invert(1);
+    /* Deixa o SVG branco */
     display: inline-block;
 }
 

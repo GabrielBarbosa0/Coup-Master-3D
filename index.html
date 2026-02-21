@@ -48,6 +48,10 @@
           <button id="altRulesBtn" class="altRulesBtn" title="Regras Alternativas">
             <img src="img/parchment.svg" alt="Regras Alternativas"></button>
 
+          <button id="spectatorBtn" class="spectatorBtn" title="Modo Espectador" style="display: none;">
+            <img src="img/ghost.svg" alt="Espectar">
+          </button>
+
           <button id="infoBtn" class="infoBtn" title="Ver Ações"><img src="img/info.svg" alt="Ajuda"></button>
           <button id="settingsBtn" class="configBtn" title="Configurações Gerais"><img src="img/settings.svg"
               alt="Configurações"></button>
@@ -395,7 +399,30 @@
   </div>
 
 
- <audio id="bgmAudio" loop autoplay><source src="audio/bgm.mp3" type="audio/mpeg"></audio>
+  <div id="spectatorModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 400px;">
+      <button id="closeSpectatorModalBtn" class="close-btn">&times;</button>
+      <h2 style="margin-bottom: 15px;">Quem deseja assistir?</h2>
+      <div id="spectator-list" class="spectator-list">
+        </div>
+    </div>
+  </div>
+
+
+  <div id="spectatorModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+      <button id="closeSpectatorModalBtn" class="close-btn">&times;</button>
+      <h2 style="margin-bottom: 10px;">Modo Espectador</h2>
+      <p class="muted" style="margin-bottom: 20px;">Escolha um jogador para assistir:</p>
+      <div id="spectator-list" class="spectator-list" style="display: flex; flex-direction: column; gap: 10px;">
+        </div>
+    </div>
+  </div>
+
+
+  <audio id="bgmAudio" loop autoplay>
+    <source src="audio/bgm.mp3" type="audio/mpeg">
+  </audio>
 
   <audio id="audio-coin" src="audio/coin.mp3"></audio>
   <audio id="audio-paper" src="audio/paper.mp3"></audio>
@@ -416,6 +443,8 @@
   <script src="js/rules.js" defer></script>
   <script src="js/gameState.js" defer></script>
   <script src="js/ui.js" defer></script>
+
+  
 
 </body>
 

@@ -28,11 +28,23 @@ function clearDOM() {
 function shouldShowBack(card) {
   if (card.location === 'deck') return true;
   if (card.location === 'free') return false;
+
   if (card.location?.startsWith('player-')) {
-    return card.owner !== myPlayerId;
+    const ownerId = card.owner;
+    const owner = localGameState.players ? localGameState.players[ownerId] : null;
+
+    // Verifica se o dono da carta permitiu que VOCÊ (myPlayerId) o espectasse
+    const isSpectatingThisOwner = owner && owner.spectators && owner.spectators[myPlayerId];
+
+    if (ownerId === myPlayerId || isSpectatingThisOwner) {
+      return false; // Vejo a frente
+    }
+    return true; // Vejo o verso
   }
   return false;
 }
+
+
 
 function createCardElement(card) {
   const el = document.createElement('div');
@@ -75,10 +87,63 @@ function renderAll() {
   const state = localGameState;
   if (!state || !state.players) return;
 
+  // --- LÓGICA DO BOTÃO FANTASMA (ESPECTADOR) ---
+  const spectatorBtn = document.getElementById('spectatorBtn');
+  const spectatorModal = document.getElementById('spectatorModal');
+  const spectatorList = document.getElementById('spectator-list');
+  const closeSpectatorModalBtn = document.getElementById('closeSpectatorModalBtn');
+
+  if (spectatorBtn && spectatorModal) {
+    const myHand = state.players[myPlayerId]?.hand || [];
+
+    // O botão aparece apenas se a mão estiver vazia (jogador eliminado)
+    if (myHand.length === 0) {
+      spectatorBtn.style.display = 'block';
+    } else {
+      spectatorBtn.style.display = 'none';
+    }
+
+    spectatorBtn.onclick = () => {
+      playSound('click');
+      spectatorList.innerHTML = ''; // Limpa a lista anterior
+
+      for (let i = 1; i <= 10; i++) {
+        const p = state.players[i];
+        // Mostra jogadores online/reais que não sejam você mesmo
+        if (p && p.uid && i !== myPlayerId) {
+          const btn = document.createElement('div');
+          btn.className = 'spectator-target-btn';
+          btn.innerHTML = `
+            <img src="${p.photo || 'img/coup.png'}" alt="">
+            <span>${p.name || 'Jogador ' + i}</span>
+          `;
+          btn.onclick = () => {
+            playSound('pop');
+            requestSpectate(i);
+            spectatorModal.style.display = 'none';
+          };
+          spectatorList.appendChild(btn);
+        }
+      }
+
+      if (spectatorList.innerHTML === '') {
+        spectatorList.innerHTML = '<p class="muted">Nenhum outro jogador disponível.</p>';
+      }
+
+      spectatorModal.style.display = 'flex';
+    };
+
+    if (closeSpectatorModalBtn) {
+      closeSpectatorModalBtn.onclick = () => {
+        playSound('click');
+        spectatorModal.style.display = 'none';
+      };
+    }
+  }
+
   clearDOM();
 
   for (let pid = 1; pid <= 10; pid++) {
-
     const playerEl = document.getElementById(`player-${pid}`);
     if (!playerEl) continue;
 
@@ -102,10 +167,8 @@ function renderAll() {
       const titleDiv = playerEl.querySelector('.player-title');
       headerEl = document.createElement('div');
       headerEl.className = 'player-header';
-
       const img = document.createElement('img');
       img.className = 'player-avatar';
-
       playerEl.insertBefore(headerEl, titleDiv);
       headerEl.appendChild(img);
       headerEl.appendChild(titleDiv);
@@ -116,16 +179,12 @@ function renderAll() {
 
     avatarImg.src = player.photo || 'img/coup.png';
     nameTxt.textContent = player.name || `Jogador ${pid}`;
-
     playerEl.style.opacity = player.online ? '1' : '0.5';
 
     const religionEl = playerEl.querySelector('.religion-status');
     if (religionEl) {
-      // Define qual ícone e texto usar com base no estado do Firebase
       let iconFile = player.religion === 'protestante' ? 'shield-sword.svg' : 'shield-cross.svg';
       let religionText = player.religion === 'protestante' ? 'Protestante' : 'Católico';
-      
-      // Injeta o HTML com o ícone branco e o texto
       religionEl.innerHTML = `<img src="img/${iconFile}" class="religion-icon"> ${religionText}`;
 
       if (player.religion === 'protestante') {
@@ -156,6 +215,20 @@ function renderAll() {
     scoreEl.textContent = player.score || 0;
   }
 
+  // --- [ADICIONE O INDICADOR AQUI] ---
+  for (let pid = 1; pid <= 10; pid++) {
+    const player = state.players[pid];
+    const playerEl = document.getElementById(`player-${pid}`);
+
+    if (playerEl && player?.spectators && player.spectators[myPlayerId]) {
+      playerEl.style.boxShadow = "0 0 15px #1e90ff"; // Brilho azul de espectador
+      playerEl.style.border = "2px solid #1e90ff";
+    } else if (playerEl) {
+      playerEl.style.boxShadow = "";
+      playerEl.style.border = "";
+    }
+  }
+
   state.freeCards?.forEach(card => {
     const el = createCardElement(card);
     el.classList.add('small');
@@ -164,19 +237,6 @@ function renderAll() {
 
   deckCountEl.textContent = state.deck?.length || 0;
   if (asylumScoreEl) asylumScoreEl.textContent = state.asylumScore || 0;
-
-  const configModalEl = document.getElementById('configModal');
-
-  if (state.deckConfig) {
-    const isClosed = !configModalEl || configModalEl.style.display === 'none';
-
-    if (isClosed) {
-      for (const cardType in state.deckConfig) {
-        const input = document.getElementById(`config-${cardType}`);
-        if (input) input.value = state.deckConfig[cardType];
-      }
-    }
-  }
 }
 
 // =======================================================
@@ -315,24 +375,24 @@ function setupUI() {
 
   if (toggleHeaderBtn) {
     const header = document.querySelector('header');
-    const spanText = toggleHeaderBtn.querySelector('span'); 
+    const spanText = toggleHeaderBtn.querySelector('span');
 
     toggleHeaderBtn.querySelector('img').src = 'img/eye.svg';
     toggleHeaderBtn.style.opacity = '1';
-    if (spanText) spanText.textContent = "Visível"; 
+    if (spanText) spanText.textContent = "Visível";
 
     toggleHeaderBtn.onclick = () => {
       playSound('click');
       if (header.style.display !== 'none') {
         header.style.display = 'none';
-        toggleHeaderBtn.querySelector('img').src = 'img/visibility_off.svg'; 
+        toggleHeaderBtn.querySelector('img').src = 'img/visibility_off.svg';
         toggleHeaderBtn.style.opacity = '0.6';
-        if (spanText) spanText.textContent = "Oculto"; 
+        if (spanText) spanText.textContent = "Oculto";
       } else {
         header.style.display = 'block';
-        toggleHeaderBtn.querySelector('img').src = 'img/eye.svg'; 
+        toggleHeaderBtn.querySelector('img').src = 'img/eye.svg';
         toggleHeaderBtn.style.opacity = '1';
-        if (spanText) spanText.textContent = "Visível"; 
+        if (spanText) spanText.textContent = "Visível";
       }
     };
   }
@@ -391,7 +451,7 @@ function setupUI() {
     if (hasRevolution) {
       images.push('img/front-actions-alternative.png');
     } else {
-      images.push('img/front-actions.png'); 
+      images.push('img/front-actions.png');
     }
 
     if (hasPromo) {
@@ -449,17 +509,17 @@ function setupUI() {
   const altBackImg = altFlipCard ? altFlipCard.querySelector('.flip-card-back img') : null;
 
   const altRuleImagesList = [
-    'img/alternative-rules1.png', 
-    'img/alternative-rules2.png', 
-    'img/alternative-rules3.png', 
-    'img/alternative-rules4.png'  
+    'img/alternative-rules1.png',
+    'img/alternative-rules2.png',
+    'img/alternative-rules3.png',
+    'img/alternative-rules4.png'
   ];
 
   let currentAltIndex = 0;
 
   if (altRulesBtn && altRulesModal) {
     altRulesBtn.onclick = () => {
-      playSound('click'); 
+      playSound('click');
       altRulesModal.style.display = 'flex';
 
       if (altFlipCard) {
@@ -479,7 +539,7 @@ function setupUI() {
 
     if (altFlipCard) {
       altFlipCard.onclick = () => {
-        playSound('card-slide'); 
+        playSound('card-slide');
         altFlipCard.classList.toggle('is-flipped');
         currentAltIndex = (currentAltIndex + 1) % altRuleImagesList.length;
         setTimeout(() => {
@@ -504,6 +564,7 @@ function setupUI() {
     area.querySelector('.minus').addEventListener('click', () => updateScore(pid, -1));
   });
 
+
   if (document.getElementById('asylum-plus')) {
     document.getElementById('asylum-plus').onclick = () => updateAsylumScore(1);
     document.getElementById('asylum-minus').onclick = () => updateAsylumScore(-1);
@@ -524,7 +585,7 @@ if (roomCodeDisplay && typeof roomCode !== 'undefined' && roomCode) {
 if (roomHeader) {
   roomHeader.onclick = () => {
     navigator.clipboard.writeText(roomCode).then(() => {
-      playSound('pop'); 
+      playSound('pop');
       roomHeader.classList.add('copied');
       const originalText = roomHeader.querySelector('p').textContent;
       roomHeader.querySelector('p').textContent = "CÓDIGO COPIADO!";
@@ -534,7 +595,7 @@ if (roomHeader) {
       }, 1200);
     }).catch(err => {
       console.error('Erro ao copiar:', err);
-      alert("Código da sala: " + roomCode); 
+      alert("Código da sala: " + roomCode);
     });
   };
 }
@@ -543,26 +604,26 @@ const toggleReligionBtn = document.getElementById('toggleReligionBtn');
 
 const applyReligionVisibility = (shouldHide) => {
   const body = document.body;
-  
-  if(toggleReligionBtn) {
-      const img = toggleReligionBtn.querySelector('img');
-      const span = toggleReligionBtn.querySelector('span');
-      
-      if (shouldHide) {
-        body.classList.add('hide-religion');
-        span.textContent = "Oculto";
-        toggleReligionBtn.style.opacity = '0.6'; 
-        if (img) img.src = 'img/visibility_off.svg'; 
-      } else {
-        body.classList.remove('hide-religion');
-        span.textContent = "Visível";
-        toggleReligionBtn.style.opacity = '1'; 
-        if (img) img.src = 'img/eye.svg'; 
-      }
+
+  if (toggleReligionBtn) {
+    const img = toggleReligionBtn.querySelector('img');
+    const span = toggleReligionBtn.querySelector('span');
+
+    if (shouldHide) {
+      body.classList.add('hide-religion');
+      span.textContent = "Oculto";
+      toggleReligionBtn.style.opacity = '0.6';
+      if (img) img.src = 'img/visibility_off.svg';
+    } else {
+      body.classList.remove('hide-religion');
+      span.textContent = "Visível";
+      toggleReligionBtn.style.opacity = '1';
+      if (img) img.src = 'img/eye.svg';
+    }
   } else if (shouldHide) {
-        body.classList.add('hide-religion');
+    body.classList.add('hide-religion');
   } else {
-        body.classList.remove('hide-religion');
+    body.classList.remove('hide-religion');
   }
   localStorage.setItem('hideReligion', shouldHide);
 };
