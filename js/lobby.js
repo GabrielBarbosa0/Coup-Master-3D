@@ -96,10 +96,18 @@ if (createRoomBtn) {
                 createRoomBtn.onclick(); // Tenta de novo se colidir (raro)
                 return;
             }
-            db.ref(`salas/${newCode}/gameState`).set({
-                status: 'waiting',
-                createdAt: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => {
+
+            // Cria o estado inicial do jogo
+            const initialData = {
+                gameState: {
+                    status: 'waiting',
+                    createdAt: firebase.database.ServerValue.TIMESTAMP
+                },
+                // Define a atividade inicial para evitar autodestruição precoce
+                lastActivity: Date.now()
+            };
+
+            db.ref(`salas/${newCode}`).set(initialData).then(() => {
                 window.location.href = `index.html?room=${newCode}`;
             }).catch(error => {
                 alert("Erro ao criar sala: " + error.message);
@@ -163,3 +171,36 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+
+
+/**
+ * SISTEMA DE AUTODESTRUIÇÃO (Beta v0.4)
+ * Varre todas as salas do banco de dados e remove aquelas
+ * que não tiveram atividade nas últimas 24 horas.
+ */
+function cleanupOldRooms() {
+  const roomsRef = db.ref('salas');
+  
+  roomsRef.once('value', (snapshot) => {
+    if (!snapshot.exists()) return;
+
+    const now = Date.now();
+    const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000; 
+
+    snapshot.forEach((roomSnap) => {
+      const data = roomSnap.val();
+      // O lastActivity é atualizado pelo gameState.js em cada ação
+      const lastActivity = data.lastActivity || 0;
+
+      if (now - lastActivity > TWENTY_FOUR_HOURS) {
+        console.log(`🧹 Limpeza: Removendo sala inativa ${roomSnap.key}`);
+        roomSnap.ref.remove()
+          .catch(err => console.error("Erro ao deletar sala:", err));
+      }
+    });
+  });
+}
+
+// Executa a limpeza sempre que alguém abrir o Lobby
+cleanupOldRooms();

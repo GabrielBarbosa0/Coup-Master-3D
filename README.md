@@ -1,6 +1,6 @@
-# Coup Master - Multiplayer Online Beta v0.3
+# Coup Master - Multiplayer Online Beta v0.4
 
-![Status](https://img.shields.io/badge/Status-Beta_v0.3-blue) ![Firebase](https://img.shields.io/badge/Firebase-Auth_%26_Database-orange)
+![Status](https://img.shields.io/badge/Status-Beta_v0.4-blue) ![Firebase](https://img.shields.io/badge/Firebase-Auth_%26_Database-orange)
 
 ## 📖 Sobre o Projeto
 
@@ -28,6 +28,20 @@ com foco em escalabilidade e consistência de estado.
 - Banco de Dados: Firebase Realtime Database
 - Autenticação: Google OAuth 2.0
 - Sincronização: Event-driven via listeners em tempo real
+
+---
+
+
+## ✨ Novidades da Versão Beta (v0.4)
+
+### 🧹 Manutenção e Autodestruição de Salas
+* **Limpeza Automática:** Implementação de um sistema de varredura que deleta automaticamente salas sem atividade por mais de 24 horas.
+* **Registro de Atividade:** Cada ação realizada na mesa — como mover cartas, alterar moedas ou mudar religião — agora atualiza o carimbo de tempo (`lastActivity`) da sala.
+* **Otimização de Banco de Dados:** A rotina de limpeza é executada de forma silenciosa sempre que um novo jogador acessa o lobby, garantindo que o Realtime Database permaneça leve e organizado.
+
+### 🛠️ Estabilidade e Persistência
+* **Sincronização de Estado:** Melhoria nos gatilhos de atualização para garantir que o status da sala reflita sempre a última interação válida de forma consistente.
+* **Segurança de Remoção:** Configuração de novas regras no Firebase para permitir a exclusão segura de nós de salas órfãs por usuários autenticados.
 
 ---
 
@@ -137,17 +151,23 @@ Para que o login e a reserva de slots funcionem:
 
 ### 4️⃣ Configure o Realtime Database
 
-1. Vá em **Build > Realtime Database**
-2. Crie uma nova instância
-3. Na aba **Regras**, use:
+1. Vá em **Build** > **Realtime Database** e crie uma instância.
+2. Na aba **Regras**, utilize a configuração abaixo para permitir a manutenção automática:
 
 ```json
 {
   "rules": {
     "salas": {
+      // Permite listar salas para o cleanup do lobby e leitura geral
+      ".read": "auth != null",
+      ".write": "auth != null",
       "$roomCode": {
-        ".read": "auth != null",
-        ".write": "auth != null"
+        // Garante que sub-itens como lastActivity e gameState sejam acessíveis
+        ".write": "auth != null",
+        "lastActivity": {
+          // Proteção extra: só permite deletar se realmente for antigo (opcional)
+          ".validate": "newData.isNumber()"
+        }
       }
     }
   }

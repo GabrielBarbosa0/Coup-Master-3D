@@ -81,6 +81,7 @@ function triggerSound(soundId) {
 // =======================================================
 
 function resetTable(newConfig = null) {
+  updateRoomActivity();
   console.log("Resetando a mesa...");
   triggerSound('8-bit-start');
 
@@ -121,6 +122,8 @@ function drawCard(targetPid = null) {
   if (isDrawingCard) return;
   isDrawingCard = true;
   triggerSound('card-slide');
+
+  updateRoomActivity();
 
   gameStateRef.transaction((currentState) => {
     if (!currentState || !currentState.deck || currentState.deck.length === 0) {
@@ -163,6 +166,7 @@ function returnCardToDeck(cardId) {
 }
 
 function moveCard(cardId, targetLocation, targetPlayerId = null) {
+  updateRoomActivity();
   if (targetLocation === 'player') triggerSound('card-slide');
   if (targetLocation === 'free') triggerSound('knife');
   if (targetLocation === 'deck') triggerSound('shuffle');
@@ -239,6 +243,7 @@ function kickPlayer(pid) {
 
 function updateScore(pid, amount) {
   triggerSound('coin');
+  updateRoomActivity();
   const scoreRef = db.ref(`salas/${roomCode}/gameState/players/${pid}/score`);
   scoreRef.once('value', (snapshot) => {
     let newScore = (snapshot.val() || 0) + amount;
@@ -249,6 +254,7 @@ function updateScore(pid, amount) {
 
 function updateAsylumScore(amount) {
   triggerSound('coin');
+    updateRoomActivity();
   const scoreRef = db.ref(`salas/${roomCode}/gameState/asylumScore`);
   scoreRef.once('value', (snapshot) => {
     let newScore = (snapshot.val() || 0) + amount;
@@ -422,3 +428,11 @@ auth.onAuthStateChanged((user) => {
     window.location.href = 'lobby.html';
   }
 });
+
+
+// Sistema de Autodestruição: Registra a última interação na sala
+function updateRoomActivity() {
+  if (roomCode) {
+    db.ref(`salas/${roomCode}/lastActivity`).set(Date.now());
+  }
+}
