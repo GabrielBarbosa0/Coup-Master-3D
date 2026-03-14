@@ -218,11 +218,15 @@ Durante o desenvolvimento deste projeto, foram aplicados conceitos como:
 
 ## 🚀 Próximas Atualizações (Roadmap)
 
-- [ ] Sistema de estatísticas e histórico de partidas
-- [ ] Sistema opcional de ranking competitivo
-- [ ] Sistema de DLCs expansíveis
-- [ ] Logs de ações da partida
-- [ ] Melhorias de performance mobile
+- [ ] **Custom Deck Engine:** Sistema de importação de baralhos via JSON personalizado, permitindo temas e regras totalmente customizáveis.
+- [ ] **Card Previewer:** Visualização de cartas em alta definição ao clicar e segurar, facilitando a leitura de artes e habilidades.
+- [ ] **Visual Stack:** Nova renderização de cartas em formato de leque ou pilha, otimizando o espaço da mesa para grandes grupos.
+- [ ] **Coup Workshop:** Web app integrado para criação, edição e exportação de cartas personalizadas para a comunidade.
+- [ ] **Logs de Ações:** Histórico detalhado da partida em tempo real para auditoria de jogadas e transparência no modo sandbox.
+- [ ] **Estatísticas e Histórico:** Painel de perfil com registro de vitórias, derrotas e histórico de partidas passadas.
+- [ ] **Ranking Competitivo:** Sistema opcional de classificação por níveis baseado no desempenho nas salas.
+- [ ] **Expansões de Conteúdo:** Adição de novos sistemas de DLCs para integrar mecânicas complexas de forma modular.
+- [ ] **Performance Mobile:** Otimização de renderização e controles touch para garantir fluidez em dispositivos de entrada.
 
 
 ---
