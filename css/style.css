@@ -1845,8 +1845,8 @@ body.hide-religion .decks-wrapper {
     .slot,
     .card.small,
     .slot.small {
-        width: 58px;
-        height: 82px;
+        width: 48px;
+        height: 72px;
     }
 
     .player-area {
@@ -1931,7 +1931,7 @@ body.hide-religion .decks-wrapper {
     }
 
     .deck {
-        width: 68px;
+        width: 64px;
         height: 94px;
     }
 
