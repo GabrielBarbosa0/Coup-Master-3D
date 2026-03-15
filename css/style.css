@@ -106,7 +106,7 @@ header.copied .copy-instruction {
 
 header h1 {
     margin: 0;
-    font-size: 34px;
+    font-size: 18px;
     letter-spacing: 1px;
 }
 
@@ -205,37 +205,37 @@ header p {
 }
 
 .spectator-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-height: 300px;
-    overflow-y: auto;
-    text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  text-align: center;
 }
 
 .spectator-target-btn {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    color: white;
-    transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  transition: background 0.2s;
 }
 
 .spectator-target-btn:hover {
-    background: rgba(30, 144, 255, 0.2);
-    border-color: #1e90ff;
+  background: rgba(30, 144, 255, 0.2);
+  border-color: #1e90ff;
 }
 
 .spectator-target-btn img {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    object-fit: cover;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 /* =======================================================
@@ -309,18 +309,12 @@ header p {
 .player-area {
     border-radius: 10px;
     border: 3px dashed #ffffff0f;
-    padding: 8px;
-    min-height: 140px;
-    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
     position: relative;
 }
 
-.player-hands-container>.player-area {
-    display: none;
-}
 
 /* Botão Kickar/Remover */
 .points {
@@ -366,11 +360,8 @@ header p {
 
 /* Badge de Religião */
 .religion-status {
-    padding: 4px 8px;
     border-radius: 6px;
-    font-size: 12px;
     color: white;
-    margin-bottom: 8px;
     cursor: pointer;
     user-select: none;
     border: 1px solid #ffffff4d;
@@ -666,6 +657,858 @@ body.hide-religion .decks-wrapper {
     justify-content: center
 }
 
+/* .slot.small {
+      width: 76px;
+      height: 110px
+    } */
+
+/* =======================================================
+       === 9. RESPONSIVIDADE (ESTILO COMPACTO PADRÃO) ===
+       ======================================================= */
+
+/* --- INTERVALO 1: TELAS MÍNIMAS (< 270px) --- */
+/* Aplica o estilo compacto, mas com 1 coluna para caber */
+@media (max-width: 270px) {
+    .container {
+        padding: 4px;
+        max-width: 100%;
+    }
+
+    header h1 {
+        font-size: 20px;
+    }
+
+    /* Grid 1 Coluna (Segurança) */
+    .player-hands-container {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    /* === REGRAS DO MODO COMPACTO (Originais da Seção 13) === */
+    .player-area {
+        min-height: 80px;
+        padding: 4px;
+    }
+
+    .player-title {
+        font-size: 8px !important;
+        line-height: 10px;
+        margin-bottom: 0 !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 60px;
+    }
+
+    .card,
+    .slot {
+        width: 40px;
+        height: 56px;
+    }
+
+    .slot {
+        border-radius: 7px;
+    }
+
+    /* O antigo modo compacto usava GRID na mão do jogador */
+    .player-stack {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, 40px);
+        justify-content: center;
+        gap: 2px;
+        padding: 2px;
+    }
+
+    .remove-player {
+        width: 10px;
+        height: 10px;
+        top: 2px;
+        right: 2px;
+    }
+
+    .points .plus,
+    .points .minus {
+        width: 16px;
+        height: 16px;
+        font-size: 12px;
+    }
+
+    /* Elementos pequenos */
+    .player-avatar {
+        width: 16px;
+        height: 16px;
+        border-width: 1px;
+    }
+
+    .player-header {
+        gap: 4px;
+        margin-bottom: 0;
+    }
+
+    .religion-status {
+        font-size: 10px;
+        padding: 4px 5px;
+        line-height: 11px;
+        border-radius: 6px;
+        max-width: 60px !important;
+        min-width: 60px !important;
+    }
+
+    /* Rodapé Compacto */
+    .bottom-table-container {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .decks-wrapper {
+        gap: 4px;
+        margin-top: 8px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+
+    .asylum-area,
+    .deck-area {
+        padding: 4px;
+        gap: 4px;
+        border-width: 2px;
+        min-height: 80px;
+        justify-content: center;
+    }
+
+    .asylum-image {
+        width: 36px;
+        height: 36px;
+        border-radius: 6px;
+    }
+
+    .asylum-points button {
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+    }
+
+    .asylum-area .muted,
+    .pile-info {
+        font-size: 8px;
+        margin: 0;
+        line-height: 10px;
+    }
+
+    .deck {
+        width: 46px;
+        height: 68px;
+    }
+
+    /* O deck era levemente maior no original */
+    #deck-count {
+        font-size: 10px;
+    }
+
+    .free-area {
+        min-height: 60px;
+        padding: 4px;
+        gap: 2px;
+        justify-content: center;
+    }
+
+    .free-area .muted {
+        font-size: 8px;
+        line-height: 10px;
+        margin-bottom: 0;
+    }
+}
+
+
+/* --- INTERVALO 2: MOBILE (271px até 479px) --- */
+/* Aplica o estilo compacto com 2 colunas (Layout Padrão) */
+@media (min-width: 271px) and (max-width: 479px) {
+    .container {
+        padding: 6px;
+        max-width: 100%;
+    }
+
+    /* Grid 2 Colunas (Como no modo compacto original) */
+    .player-hands-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 4px;
+    }
+
+    .player-area {
+        min-height: 80px;
+        padding: 4px;
+    }
+
+    .player-title {
+        font-size: 8px !important;
+        line-height: 10px;
+        margin-bottom: 0 !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 60px;
+    }
+
+    .card,
+    .slot {
+        width: 40px;
+        height: 56px;
+    }
+
+    .slot {
+        border-radius: 7px;
+    }
+
+    .player-stack {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, 40px);
+        justify-content: center;
+        gap: 6px;
+        padding: 2px;
+    }
+
+    .remove-player {
+        width: 10px;
+        height: 10px;
+        top: 2px;
+        right: 2px;
+    }
+    /* Garante que o container de moedas não fique colado */
+    .points {
+        margin-top: 4px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .points .plus,
+    .points .minus {
+        width: 16px;
+        height: 16px;
+        font-size: 12px;
+    }
+
+    .player-avatar {
+        width: 16px;
+        height: 16px;
+        border-width: 1px;
+    }
+
+    .player-header {
+        gap: 4px;
+        margin-bottom: 0;
+    }
+
+    .religion-status {
+        font-size: 10px;
+        padding: 4px 5px;
+        line-height: 11px;
+        border-radius: 6px;
+    }
+
+    .religion-status {
+        font-size: 8px !important;    /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
+        padding: 2px 5px !important;  /* Reduz o preenchimento da caixa */
+        margin-bottom: 4px !important; /* Aproxima os elementos */
+        line-height: 10px;
+        border-radius: 4px;
+        display: flex;                /* Alinha ícone e texto */
+        align-items: center;
+        justify-content: center;
+        gap: 2px;                     /* Espaço entre ícone e texto */
+        max-width: 60px !important;
+        min-width: 60px !important;
+    }
+
+    .religion-icon {
+        width: 10px !important;       /* Diminui o ícone em ~20-30% */
+        height: 10px !important;
+    }
+    
+    
+
+    .bottom-table-container {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .decks-wrapper {
+        gap: 4px;
+        margin-top: 8px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+
+    .asylum-area,
+    .deck-area {
+        padding: 4px;
+        gap: 4px;
+        border-width: 2px;
+        min-height: 80px;
+        justify-content: center;
+    }
+
+    .asylum-image {
+        width: 36px;
+        height: 36px;
+        border-radius: 6px;
+    }
+
+    .asylum-points button {
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+    }
+
+    .asylum-area .muted,
+    .pile-info {
+        font-size: 8px;
+        margin: 0;
+        line-height: 10px;
+    }
+
+    .deck {
+        width: 46px;
+        height: 68px;
+    }
+
+    #deck-count {
+        font-size: 10px;
+    }
+
+    .free-area {
+        min-height: 60px;
+        padding: 4px;
+        gap: 2px;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .free-area .muted {
+        font-size: 8px;
+        line-height: 10px;
+        margin-bottom: 0;
+        align-items: center;
+    }
+}
+
+/* --- INTERVALO 2: TABLETS / CELULARES GRANDES (480px até 768px) --- */
+@media (min-width: 480px) and (max-width: 768px) {
+    .container {
+        padding: 6px;
+        max-width: 100%;
+    }
+
+    /* Grid 2 Colunas (Como no modo compacto original) */
+    .player-hands-container {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+    }
+
+    .player-area {
+        min-height: 80px;
+        padding: 4px;
+    }
+
+    .player-title {
+        font-size: 8px !important;
+        line-height: 10px;
+        margin-bottom: 0 !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 60px;
+    }
+
+    .card,
+    .slot {
+        width: 40px;
+        height: 56px;
+    }
+
+    .slot {
+        border-radius: 7px;
+    }
+
+    .player-stack {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, 40px);
+        justify-content: center;
+        gap: 6px;
+        padding: 2px;
+    }
+
+    .remove-player {
+        width: 10px;
+        height: 10px;
+        top: 2px;
+        right: 2px;
+    }
+    /* Garante que o container de moedas não fique colado */
+    .points {
+        margin-top: 4px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .points .plus,
+    .points .minus {
+        width: 16px;
+        height: 16px;
+        font-size: 12px;
+    }
+
+    .player-avatar {
+        width: 16px;
+        height: 16px;
+        border-width: 1px;
+    }
+
+    .player-header {
+        gap: 4px;
+        margin-bottom: 0;
+    }
+
+    .religion-status {
+        font-size: 10px;
+        padding: 4px 5px;
+        line-height: 11px;
+        border-radius: 6px;
+    }
+
+    .religion-status {
+        font-size: 8px !important;    /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
+        padding: 2px 5px !important;  /* Reduz o preenchimento da caixa */
+        margin-bottom: 4px !important; /* Aproxima os elementos */
+        line-height: 10px;
+        border-radius: 4px;
+        display: flex;                /* Alinha ícone e texto */
+        align-items: center;
+        justify-content: center;
+        gap: 2px;                     /* Espaço entre ícone e texto */
+        max-width: 60px !important;
+        min-width: 60px !important;
+    }
+
+    .religion-icon {
+        width: 10px !important;       /* Diminui o ícone em ~20-30% */
+        height: 10px !important;
+    }
+    
+    
+
+    .bottom-table-container {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .decks-wrapper {
+        gap: 4px;
+        margin-top: 8px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+
+    .asylum-area,
+    .deck-area {
+        padding: 4px;
+        gap: 4px;
+        border-width: 2px;
+        min-height: 80px;
+        justify-content: center;
+    }
+
+    .asylum-image {
+        width: 36px;
+        height: 36px;
+        border-radius: 6px;
+    }
+
+    .asylum-points button {
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+    }
+
+    .asylum-area .muted,
+    .pile-info {
+        font-size: 8px;
+        margin: 0;
+        line-height: 10px;
+    }
+
+    .deck {
+        width: 46px;
+        height: 68px;
+    }
+
+    #deck-count {
+        font-size: 10px;
+    }
+
+    .free-area {
+        min-height: 60px;
+        padding: 4px;
+        gap: 2px;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .free-area .muted {
+        font-size: 8px;
+        line-height: 10px;
+        margin-bottom: 0;
+        align-items: center;
+    }
+}
+
+
+/* --- INTERVALO 3: LAPTOP PEQUENO (769px até 1023px) --- */
+/* Visual Normal + 2 Colunas */
+@media (min-width: 769px) and (max-width: 1023px) {
+    .container {
+        padding: 6px;
+        max-width: 100%;
+    }
+
+    /* Grid 2 Colunas (Como no modo compacto original) */
+    .player-hands-container {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 4px;
+    }
+
+    .player-area {
+        min-height: 80px;
+        padding: 4px;
+    }
+
+    .player-title {
+        font-size: 8px !important;
+        line-height: 10px;
+        margin-bottom: 0 !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 60px;
+    }
+
+    .card,
+    .slot {
+        width: 40px;
+        height: 56px;
+    }
+
+    .slot {
+        border-radius: 7px;
+    }
+
+    .player-stack {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, 40px);
+        justify-content: center;
+        gap: 6px;
+        padding: 2px;
+    }
+
+    .remove-player {
+        width: 10px;
+        height: 10px;
+        top: 2px;
+        right: 2px;
+    }
+    /* Garante que o container de moedas não fique colado */
+    .points {
+        margin-top: 4px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .points .plus,
+    .points .minus {
+        width: 16px;
+        height: 16px;
+        font-size: 12px;
+    }
+
+    .player-avatar {
+        width: 16px;
+        height: 16px;
+        border-width: 1px;
+    }
+
+    .player-header {
+        gap: 4px;
+        margin-bottom: 0;
+    }
+
+    .religion-status {
+        font-size: 10px;
+        padding: 4px 5px;
+        line-height: 11px;
+        border-radius: 6px;
+    }
+
+    .religion-status {
+        font-size: 8px !important;    /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
+        padding: 2px 5px !important;  /* Reduz o preenchimento da caixa */
+        margin-bottom: 4px !important; /* Aproxima os elementos */
+        line-height: 10px;
+        border-radius: 4px;
+        display: flex;                /* Alinha ícone e texto */
+        align-items: center;
+        justify-content: center;
+        gap: 2px;                     /* Espaço entre ícone e texto */
+        max-width: 60px !important;
+        min-width: 60px !important;
+    }
+
+    .religion-icon {
+        width: 10px !important;       /* Diminui o ícone em ~20-30% */
+        height: 10px !important;
+    }
+    
+    
+
+    .bottom-table-container {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .decks-wrapper {
+        gap: 4px;
+        margin-top: 8px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+
+    .asylum-area,
+    .deck-area {
+        padding: 4px;
+        gap: 4px;
+        border-width: 2px;
+        min-height: 80px;
+        justify-content: center;
+    }
+
+    .asylum-image {
+        width: 36px;
+        height: 36px;
+        border-radius: 6px;
+    }
+
+    .asylum-points button {
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+    }
+
+    .asylum-area .muted,
+    .pile-info {
+        font-size: 8px;
+        margin: 0;
+        line-height: 10px;
+    }
+
+    .deck {
+        width: 46px;
+        height: 68px;
+    }
+
+    #deck-count {
+        font-size: 10px;
+    }
+
+    .free-area {
+        min-height: 60px;
+        padding: 4px;
+        gap: 2px;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .free-area .muted {
+        font-size: 8px;
+        line-height: 10px;
+        margin-bottom: 0;
+        align-items: center;
+    }
+}
+
+
+/* --- INTERVALO 4: TELAS MÉDIAS (1024px até 1199px) --- */
+/* Visual Normal + 3 Colunas */
+@media (min-width: 1024px) and (max-width: 1199px) {
+    .container {
+        padding: 6px;
+        max-width: 100%;
+    }
+
+    /* Grid 2 Colunas (Como no modo compacto original) */
+    .player-hands-container {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 4px;
+    }
+
+    .player-area {
+        min-height: 80px;
+        padding: 4px;
+    }
+
+    .player-title {
+        font-size: 8px !important;
+        line-height: 10px;
+        margin-bottom: 0 !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 60px;
+    }
+
+    .card,
+    .slot {
+        width: 40px;
+        height: 56px;
+    }
+
+    .slot {
+        border-radius: 7px;
+    }
+
+    .player-stack {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, 40px);
+        justify-content: center;
+        gap: 6px;
+        padding: 2px;
+    }
+
+    .remove-player {
+        width: 10px;
+        height: 10px;
+        top: 2px;
+        right: 2px;
+    }
+    /* Garante que o container de moedas não fique colado */
+    .points {
+        margin-top: 4px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .points .plus,
+    .points .minus {
+        width: 16px;
+        height: 16px;
+        font-size: 12px;
+    }
+
+    .player-avatar {
+        width: 16px;
+        height: 16px;
+        border-width: 1px;
+    }
+
+    .player-header {
+        gap: 4px;
+        margin-bottom: 0;
+    }
+
+    .religion-status {
+        font-size: 10px;
+        padding: 4px 5px;
+        line-height: 11px;
+        border-radius: 6px;
+    }
+
+    .religion-status {
+        font-size: 8px !important;    /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
+        padding: 2px 5px !important;  /* Reduz o preenchimento da caixa */
+        margin-bottom: 4px !important; /* Aproxima os elementos */
+        line-height: 10px;
+        border-radius: 4px;
+        display: flex;                /* Alinha ícone e texto */
+        align-items: center;
+        justify-content: center;
+        gap: 2px;                     /* Espaço entre ícone e texto */
+        max-width: 60px !important;
+        min-width: 60px !important;
+    }
+
+    .religion-icon {
+        width: 10px !important;       /* Diminui o ícone em ~20-30% */
+        height: 10px !important;
+    }
+    
+    
+
+    .bottom-table-container {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .decks-wrapper {
+        gap: 4px;
+        margin-top: 8px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+
+    .asylum-area,
+    .deck-area {
+        padding: 4px;
+        gap: 4px;
+        border-width: 2px;
+        min-height: 80px;
+        justify-content: center;
+    }
+
+    .asylum-image {
+        width: 36px;
+        height: 36px;
+        border-radius: 6px;
+    }
+
+    .asylum-points button {
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+    }
+
+    .asylum-area .muted,
+    .pile-info {
+        font-size: 8px;
+        margin: 0;
+        line-height: 10px;
+    }
+
+    .deck {
+        width: 46px;
+        height: 68px;
+    }
+
+    #deck-count {
+        font-size: 10px;
+    }
+
+    .free-area {
+        min-height: 60px;
+        padding: 4px;
+        gap: 2px;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .free-area .muted {
+        font-size: 8px;
+        line-height: 10px;
+        margin-bottom: 0;
+        align-items: center;
+    }
+
+
+}
+
+
 
 /* =======================================================
        === 10. MODAIS, OVERLAYS E MENUS ===
@@ -921,926 +1764,6 @@ body.hide-religion .decks-wrapper {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* =======================================================
-       === 9. RESPONSIVIDADE (ESTILO COMPACTO PADRÃO) ===
-       ======================================================= */
-
-/* --- INTERVALO 1: TELAS MÍNIMAS (< 270px) --- */
-/* Aplica o estilo compacto, mas com 1 coluna para caber */
-@media (max-width: 270px) {
-    .container {
-        padding: 6px;
-        max-width: 100%;
-    }
-
-    /* Grid 2 Colunas (Como no modo compacto original) */
-    .player-hands-container {
-        grid-template-columns: repeat(1, 1fr);
-        gap: 4px;
-    }
-
-    .player-area {
-        min-height: 80px;
-        padding: 4px;
-    }
-
-    .player-title {
-        font-size: 8px !important;
-        line-height: 10px;
-        margin-bottom: 0 !important;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 60px;
-    }
-
-    .card,
-    .slot {
-        width: 40px;
-        height: 56px;
-    }
-
-    .slot {
-        border-radius: 7px;
-    }
-
-    .player-stack {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, 40px);
-        justify-content: center;
-        gap: 6px;
-        padding: 2px;
-    }
-
-    .remove-player {
-        width: 10px;
-        height: 10px;
-        top: 2px;
-        right: 2px;
-    }
-
-    /* Garante que o container de moedas não fique colado */
-    .points {
-        margin-top: 4px !important;
-        margin-bottom: 4px !important;
-    }
-
-    .points .plus,
-    .points .minus {
-        width: 16px;
-        height: 16px;
-        font-size: 12px;
-    }
-
-    .player-avatar {
-        width: 16px;
-        height: 16px;
-        border-width: 1px;
-    }
-
-    .player-header {
-        gap: 4px;
-        margin-bottom: 0;
-    }
-
-    .religion-status {
-        font-size: 10px;
-        padding: 4px 5px;
-        line-height: 11px;
-        border-radius: 6px;
-    }
-
-    .religion-status {
-        font-size: 8px !important;
-        /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
-        padding: 2px 5px !important;
-        /* Reduz o preenchimento da caixa */
-        margin-bottom: 4px !important;
-        /* Aproxima os elementos */
-        line-height: 10px;
-        border-radius: 4px;
-        display: flex;
-        /* Alinha ícone e texto */
-        align-items: center;
-        justify-content: center;
-        gap: 2px;
-        /* Espaço entre ícone e texto */
-        max-width: 60px !important;
-        min-width: 60px !important;
-    }
-
-    .religion-icon {
-        width: 10px !important;
-        /* Diminui o ícone em ~20-30% */
-        height: 10px !important;
-    }
-
-
-
-    .bottom-table-container {
-        grid-template-columns: 1fr;
-        gap: 4px;
-    }
-
-    .decks-wrapper {
-        gap: 4px;
-        margin-top: 8px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        width: 100%;
-    }
-
-    .asylum-area,
-    .deck-area {
-        padding: 4px;
-        gap: 4px;
-        border-width: 2px;
-        min-height: 80px;
-        justify-content: center;
-    }
-
-    .asylum-image {
-        width: 36px;
-        height: 36px;
-        border-radius: 6px;
-    }
-
-    .asylum-points button {
-        width: 16px;
-        height: 16px;
-        font-size: 10px;
-    }
-
-    .asylum-area .muted,
-    .pile-info {
-        font-size: 8px;
-        margin: 0;
-        line-height: 10px;
-    }
-
-    .deck {
-        width: 46px;
-        height: 68px;
-    }
-
-    #deck-count {
-        font-size: 10px;
-    }
-
-    .free-area {
-        min-height: 60px;
-        padding: 4px;
-        gap: 2px;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .free-area .muted {
-        font-size: 8px;
-        line-height: 10px;
-        margin-bottom: 0;
-        align-items: center;
-    }
-}
-
-
-/* --- INTERVALO 2: MOBILE (271px até 479px) --- */
-/* Aplica o estilo compacto com 2 colunas (Layout Padrão) */
-@media (min-width: 271px) and (max-width: 479px) {
-    .container {
-        padding: 6px;
-        max-width: 100%;
-    }
-
-    /* Grid 2 Colunas (Como no modo compacto original) */
-    .player-hands-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 4px;
-    }
-
-    .player-area {
-        min-height: 80px;
-        padding: 4px;
-    }
-
-    .player-title {
-        font-size: 8px !important;
-        line-height: 10px;
-        margin-bottom: 0 !important;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 60px;
-    }
-
-    .card,
-    .slot {
-        width: 40px;
-        height: 56px;
-    }
-
-    .slot {
-        border-radius: 7px;
-    }
-
-    .player-stack {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, 40px);
-        justify-content: center;
-        gap: 6px;
-        padding: 2px;
-    }
-
-    .remove-player {
-        width: 10px;
-        height: 10px;
-        top: 2px;
-        right: 2px;
-    }
-
-    /* Garante que o container de moedas não fique colado */
-    .points {
-        margin-top: 4px !important;
-        margin-bottom: 4px !important;
-    }
-
-    .points .plus,
-    .points .minus {
-        width: 16px;
-        height: 16px;
-        font-size: 12px;
-    }
-
-    .player-avatar {
-        width: 16px;
-        height: 16px;
-        border-width: 1px;
-    }
-
-    .player-header {
-        gap: 4px;
-        margin-bottom: 0;
-    }
-
-    .religion-status {
-        font-size: 10px;
-        padding: 4px 5px;
-        line-height: 11px;
-        border-radius: 6px;
-    }
-
-    .religion-status {
-        font-size: 8px !important;
-        /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
-        padding: 2px 5px !important;
-        /* Reduz o preenchimento da caixa */
-        margin-bottom: 4px !important;
-        /* Aproxima os elementos */
-        line-height: 10px;
-        border-radius: 4px;
-        display: flex;
-        /* Alinha ícone e texto */
-        align-items: center;
-        justify-content: center;
-        gap: 2px;
-        /* Espaço entre ícone e texto */
-        max-width: 60px !important;
-        min-width: 60px !important;
-    }
-
-    .religion-icon {
-        width: 10px !important;
-        /* Diminui o ícone em ~20-30% */
-        height: 10px !important;
-    }
-
-
-
-    .bottom-table-container {
-        grid-template-columns: 1fr;
-        gap: 4px;
-    }
-
-    .decks-wrapper {
-        gap: 4px;
-        margin-top: 8px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        width: 100%;
-    }
-
-    .asylum-area,
-    .deck-area {
-        padding: 4px;
-        gap: 4px;
-        border-width: 2px;
-        min-height: 80px;
-        justify-content: center;
-    }
-
-    .asylum-image {
-        width: 36px;
-        height: 36px;
-        border-radius: 6px;
-    }
-
-    .asylum-points button {
-        width: 16px;
-        height: 16px;
-        font-size: 10px;
-    }
-
-    .asylum-area .muted,
-    .pile-info {
-        font-size: 8px;
-        margin: 0;
-        line-height: 10px;
-    }
-
-    .deck {
-        width: 46px;
-        height: 68px;
-    }
-
-    #deck-count {
-        font-size: 10px;
-    }
-
-    .free-area {
-        min-height: 60px;
-        padding: 4px;
-        gap: 2px;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .free-area .muted {
-        font-size: 8px;
-        line-height: 10px;
-        margin-bottom: 0;
-        align-items: center;
-    }
-}
-
-/* --- INTERVALO 2: TABLETS / CELULARES GRANDES (480px até 768px) --- */
-@media (min-width: 480px) and (max-width: 768px) {
-    .container {
-        padding: 6px;
-        max-width: 100%;
-    }
-
-    /* Grid 2 Colunas (Como no modo compacto original) */
-    .player-hands-container {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 4px;
-    }
-
-    .player-area {
-        min-height: 80px;
-        padding: 4px;
-    }
-
-    .player-title {
-        font-size: 8px !important;
-        line-height: 10px;
-        margin-bottom: 0 !important;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 60px;
-    }
-
-    .card,
-    .slot {
-        width: 40px;
-        height: 56px;
-    }
-
-    .slot {
-        border-radius: 7px;
-    }
-
-    .player-stack {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, 40px);
-        justify-content: center;
-        gap: 6px;
-        padding: 2px;
-    }
-
-    .remove-player {
-        width: 10px;
-        height: 10px;
-        top: 2px;
-        right: 2px;
-    }
-
-    /* Garante que o container de moedas não fique colado */
-    .points {
-        margin-top: 4px !important;
-        margin-bottom: 4px !important;
-    }
-
-    .points .plus,
-    .points .minus {
-        width: 16px;
-        height: 16px;
-        font-size: 12px;
-    }
-
-    .player-avatar {
-        width: 16px;
-        height: 16px;
-        border-width: 1px;
-    }
-
-    .player-header {
-        gap: 4px;
-        margin-bottom: 0;
-    }
-
-    .religion-status {
-        font-size: 10px;
-        padding: 4px 5px;
-        line-height: 11px;
-        border-radius: 6px;
-    }
-
-    .religion-status {
-        font-size: 8px !important;
-        /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
-        padding: 2px 5px !important;
-        /* Reduz o preenchimento da caixa */
-        margin-bottom: 4px !important;
-        /* Aproxima os elementos */
-        line-height: 10px;
-        border-radius: 4px;
-        display: flex;
-        /* Alinha ícone e texto */
-        align-items: center;
-        justify-content: center;
-        gap: 2px;
-        /* Espaço entre ícone e texto */
-        max-width: 60px !important;
-        min-width: 60px !important;
-    }
-
-    .religion-icon {
-        width: 10px !important;
-        /* Diminui o ícone em ~20-30% */
-        height: 10px !important;
-    }
-
-
-
-    .bottom-table-container {
-        grid-template-columns: 1fr;
-        gap: 4px;
-    }
-
-    .decks-wrapper {
-        gap: 4px;
-        margin-top: 8px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        width: 100%;
-    }
-
-    .asylum-area,
-    .deck-area {
-        padding: 4px;
-        gap: 4px;
-        border-width: 2px;
-        min-height: 80px;
-        justify-content: center;
-    }
-
-    .asylum-image {
-        width: 36px;
-        height: 36px;
-        border-radius: 6px;
-    }
-
-    .asylum-points button {
-        width: 16px;
-        height: 16px;
-        font-size: 10px;
-    }
-
-    .asylum-area .muted,
-    .pile-info {
-        font-size: 8px;
-        margin: 0;
-        line-height: 10px;
-    }
-
-    .deck {
-        width: 46px;
-        height: 68px;
-    }
-
-    #deck-count {
-        font-size: 10px;
-    }
-
-    .free-area {
-        min-height: 60px;
-        padding: 4px;
-        gap: 2px;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .free-area .muted {
-        font-size: 8px;
-        line-height: 10px;
-        margin-bottom: 0;
-        align-items: center;
-    }
-}
-
-
-/* --- INTERVALO 3: LAPTOP PEQUENO (769px até 1023px) --- */
-/* Visual Normal + 2 Colunas */
-@media (min-width: 769px) and (max-width: 1023px) {
-    .container {
-        padding: 6px;
-        max-width: 100%;
-    }
-
-    /* Grid 2 Colunas (Como no modo compacto original) */
-    .player-hands-container {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 4px;
-    }
-
-    .player-area {
-        min-height: 80px;
-        padding: 4px;
-    }
-
-    .player-title {
-        font-size: 8px !important;
-        line-height: 10px;
-        margin-bottom: 0 !important;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 60px;
-    }
-
-    .card,
-    .slot {
-        width: 40px;
-        height: 56px;
-    }
-
-    .slot {
-        border-radius: 7px;
-    }
-
-    .player-stack {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, 40px);
-        justify-content: center;
-        gap: 6px;
-        padding: 2px;
-    }
-
-    .remove-player {
-        width: 10px;
-        height: 10px;
-        top: 2px;
-        right: 2px;
-    }
-
-    /* Garante que o container de moedas não fique colado */
-    .points {
-        margin-top: 4px !important;
-        margin-bottom: 4px !important;
-    }
-
-    .points .plus,
-    .points .minus {
-        width: 16px;
-        height: 16px;
-        font-size: 12px;
-    }
-
-    .player-avatar {
-        width: 16px;
-        height: 16px;
-        border-width: 1px;
-    }
-
-    .player-header {
-        gap: 4px;
-        margin-bottom: 0;
-    }
-
-    .religion-status {
-        font-size: 10px;
-        padding: 4px 5px;
-        line-height: 11px;
-        border-radius: 6px;
-    }
-
-    .religion-status {
-        font-size: 8px !important;
-        /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
-        padding: 2px 5px !important;
-        /* Reduz o preenchimento da caixa */
-        margin-bottom: 4px !important;
-        /* Aproxima os elementos */
-        line-height: 10px;
-        border-radius: 4px;
-        display: flex;
-        /* Alinha ícone e texto */
-        align-items: center;
-        justify-content: center;
-        gap: 2px;
-        /* Espaço entre ícone e texto */
-        max-width: 60px !important;
-        min-width: 60px !important;
-    }
-
-    .religion-icon {
-        width: 10px !important;
-        /* Diminui o ícone em ~20-30% */
-        height: 10px !important;
-    }
-
-
-
-    .bottom-table-container {
-        grid-template-columns: 1fr;
-        gap: 4px;
-    }
-
-    .decks-wrapper {
-        gap: 4px;
-        margin-top: 8px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        width: 100%;
-    }
-
-    .asylum-area,
-    .deck-area {
-        padding: 4px;
-        gap: 4px;
-        border-width: 2px;
-        min-height: 80px;
-        justify-content: center;
-    }
-
-    .asylum-image {
-        width: 36px;
-        height: 36px;
-        border-radius: 6px;
-    }
-
-    .asylum-points button {
-        width: 16px;
-        height: 16px;
-        font-size: 10px;
-    }
-
-    .asylum-area .muted,
-    .pile-info {
-        font-size: 8px;
-        margin: 0;
-        line-height: 10px;
-    }
-
-    .deck {
-        width: 46px;
-        height: 68px;
-    }
-
-    #deck-count {
-        font-size: 10px;
-    }
-
-    .free-area {
-        min-height: 60px;
-        padding: 4px;
-        gap: 2px;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .free-area .muted {
-        font-size: 8px;
-        line-height: 10px;
-        margin-bottom: 0;
-        align-items: center;
-    }
-}
-
-
-/* --- INTERVALO 4: TELAS MÉDIAS (1024px até 1199px) --- */
-/* Visual Normal + 3 Colunas */
-@media (min-width: 1024px) and (max-width: 1199px) {
-    .container {
-        padding: 6px;
-        max-width: 100%;
-    }
-
-    /* Grid 2 Colunas (Como no modo compacto original) */
-    .player-hands-container {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 4px;
-    }
-
-    .player-area {
-        min-height: 80px;
-        padding: 4px;
-    }
-
-    .player-title {
-        font-size: 8px !important;
-        line-height: 10px;
-        margin-bottom: 0 !important;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 60px;
-    }
-
-    .card,
-    .slot {
-        width: 40px;
-        height: 56px;
-    }
-
-    .slot {
-        border-radius: 7px;
-    }
-
-    .player-stack {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, 40px);
-        justify-content: center;
-        gap: 6px;
-        padding: 2px;
-    }
-
-    .remove-player {
-        width: 10px;
-        height: 10px;
-        top: 2px;
-        right: 2px;
-    }
-
-    /* Garante que o container de moedas não fique colado */
-    .points {
-        margin-top: 4px !important;
-        margin-bottom: 4px !important;
-    }
-
-    .points .plus,
-    .points .minus {
-        width: 16px;
-        height: 16px;
-        font-size: 12px;
-    }
-
-    .player-avatar {
-        width: 16px;
-        height: 16px;
-        border-width: 1px;
-    }
-
-    .player-header {
-        gap: 4px;
-        margin-bottom: 0;
-    }
-
-    .religion-status {
-        font-size: 10px;
-        padding: 4px 5px;
-        line-height: 11px;
-        border-radius: 6px;
-    }
-
-    .religion-status {
-        font-size: 8px !important;
-        /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
-        padding: 2px 5px !important;
-        /* Reduz o preenchimento da caixa */
-        margin-bottom: 4px !important;
-        /* Aproxima os elementos */
-        line-height: 10px;
-        border-radius: 4px;
-        display: flex;
-        /* Alinha ícone e texto */
-        align-items: center;
-        justify-content: center;
-        gap: 2px;
-        /* Espaço entre ícone e texto */
-        max-width: 60px !important;
-        min-width: 60px !important;
-    }
-
-    .religion-icon {
-        width: 10px !important;
-        /* Diminui o ícone em ~20-30% */
-        height: 10px !important;
-    }
-
-
-
-    .bottom-table-container {
-        grid-template-columns: 1fr;
-        gap: 4px;
-    }
-
-    .decks-wrapper {
-        gap: 4px;
-        margin-top: 8px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        width: 100%;
-    }
-
-    .asylum-area,
-    .deck-area {
-        padding: 4px;
-        gap: 4px;
-        border-width: 2px;
-        min-height: 80px;
-        justify-content: center;
-    }
-
-    .asylum-image {
-        width: 36px;
-        height: 36px;
-        border-radius: 6px;
-    }
-
-    .asylum-points button {
-        width: 16px;
-        height: 16px;
-        font-size: 10px;
-    }
-
-    .asylum-area .muted,
-    .pile-info {
-        font-size: 8px;
-        margin: 0;
-        line-height: 10px;
-    }
-
-    .deck {
-        width: 46px;
-        height: 68px;
-    }
-
-    #deck-count {
-        font-size: 10px;
-    }
-
-    .free-area {
-        min-height: 60px;
-        padding: 4px;
-        gap: 2px;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .free-area .muted {
-        font-size: 8px;
-        line-height: 10px;
-        margin-bottom: 0;
-        align-items: center;
-    }
-
-
-}
-
-
-
-
-
-
-
-
-
-
 /* =======================================================
        === 16. VERSÃO PC OTIMIZADA (TELAS GRANDES) ===
        ======================================================= */
@@ -1869,7 +1792,6 @@ body.hide-religion .decks-wrapper {
         height: 82px;
     }
 
-
     .player-area {
         min-height: 110px;
         padding: 5px;
@@ -1894,6 +1816,10 @@ body.hide-religion .decks-wrapper {
         padding: 2px 6px;
         margin-top: 4px;
         margin-bottom: 4px;
+        max-width: 86px !important;
+        min-width: 66px !important;
+        align-items: center;
+        text-align: center;
     }
 
     .player-stack {
@@ -1955,5 +1881,33 @@ body.hide-religion .decks-wrapper {
     .asylum-image {
         width: 45px;
         height: 45px;
+    }
+
+}
+
+
+@media (min-width: 1200px) {
+    /* 1. Quando o header estiver oculto (display: none) */
+    header[style*="display: none"] + .board .container,
+    header.hidden + .board .container,
+    header[style*="display: none"] ~ .center-area .player-hands-container {
+        margin-top: 20px !important;
+    }
+
+    /* 2. Solução Garantida: Ajuste direto no Header Oculto */
+    header {
+        /* Se você estiver usando uma função para esconder o header, 
+           garantimos que ele não deixe "rastros" de margem */
+        margin-bottom: 8px; 
+    }
+
+    /* Esta é a regra "mágica" que você precisa: */
+    header[style*="display: none"] {
+        margin-bottom: 0 !important;
+    }
+
+    /* 3. Aplica a margem no próximo elemento visível */
+    header[style*="display: none"] ~ .board {
+        margin-top: 20px !important;
     }
 }
