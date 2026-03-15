@@ -222,15 +222,9 @@ Durante o desenvolvimento deste projeto, foram aplicados conceitos como:
 - [ ] **Card Previewer:** Visualização de cartas em alta definição ao clicar e segurar, facilitando a leitura de artes e habilidades.
 - [ ] **Visual Stack:** Nova renderização de cartas em formato de leque ou pilha, otimizando o espaço da mesa para grandes grupos.
 - [ ] **Coup Workshop:** Web app integrado para criação, edição e exportação de cartas personalizadas para a comunidade.
-- [ ] **Logs de Ações:** Histórico detalhado da partida em tempo real para auditoria de jogadas e transparência no modo sandbox.
-- [ ] **Estatísticas e Histórico:** Painel de perfil com registro de vitórias, derrotas e histórico de partidas passadas.
-- [ ] **Ranking Competitivo:** Sistema opcional de classificação por níveis baseado no desempenho nas salas.
 - [ ] **Expansões de Conteúdo:** Adição de novos sistemas de DLCs para integrar mecânicas complexas de forma modular.
-- [ ] **Performance Mobile:** Otimização de renderização e controles touch para garantir fluidez em dispositivos de entrada.
-- [ ] **Theming Engine (Beta):** Suporte para troca dinâmica de nomes de cartas, nomes de áreas e estilos visuais.
-- [ ] **Lobby Universe Selector:** Permite ao Host definir o tema visual da sala antes do início da partida.
-- [ ] **Soundpack Integration:** Sons de interface e moedas que se adaptam ao tema escolhido.
-- [ ] **Achievements Store:** Sistema de desbloqueio de temas baseado no desempenho do jogador nas partidas.
+- [ ] **Theming Engine (Beta):** Suporte para troca dinâmica de nomes de cartas, nomes de áreas, estilos visuais e efeitos sonoros.
+
 
 
 ---
