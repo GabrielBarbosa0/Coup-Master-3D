@@ -80,18 +80,18 @@ header:active {
 /* Quando o código é copiado */
 header.copied {
     /* Em vez de fundo verde sólido, usamos um brilho suave */
-    background-color: rgba(0, 255, 115, 0.05) !important;
-    border-color: var(--active) !important;
+    background-color: rgba(30, 144, 255, 0.05) !important;
+    border-color: var(--accent) !important;
     /* Borda Verde Neon */
-    color: var(--active) !important;
+    color: var(--accent) !important;
     /* Texto Verde Neon */
-    box-shadow: 0 0 15px rgba(0, 255, 115, 0.2);
+    box-shadow: 0 0 15px rgba(30, 144, 255, 0.3);
     /* Glow opcional */
 }
 
 /* Garante que o H1 (o código) mude para a cor ativa */
 header.copied h1 {
-    color: var(--active) !important;
+    color: var(--accent) !important;
 }
 
 /* Texto de instrução "CÓDIGO COPIADO!" */
@@ -99,7 +99,7 @@ header.copied .copy-instruction {
     opacity: 1 !important;
     font-weight: bold;
     /* Aqui garantimos que ele pegue a mesma cor do pai (o código) */
-    color: var(--active) !important;
+    color: var(--accent) !important;
     letter-spacing: 2px;
     /* Um charme extra */
 }
@@ -144,10 +144,11 @@ header p {
     transition: transform 0.2s ease;
 }
 
-.altRulesBtn:hover img {
+/* Efeito de zoom suave ao passar o mouse */
+/* .altRulesBtn:hover img {
     transform: scale(1.2);
-    /* Efeito de zoom suave ao passar o mouse */
-}
+
+} */
 
 .shuffleBtn {
     display: none !important;
@@ -200,43 +201,43 @@ header p {
     transition: transform 0.2s;
 }
 
-.spectatorBtn:hover img {
-    transform: scale(1.2) translateY(-2px);
-}
 
 .spectator-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: 300px;
-  overflow-y: auto;
-  text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    text-align: center;
 }
 
 .spectator-target-btn {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  color: white;
-  transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: white;
+    transition: background 0.2s;
 }
 
 .spectator-target-btn:hover {
-  background: rgba(30, 144, 255, 0.2);
-  border-color: #1e90ff;
+    background: rgba(30, 144, 255, 0.2);
+    border-color: #1e90ff;
 }
 
 .spectator-target-btn img {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  object-fit: cover;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
 }
+
+
+
 
 /* =======================================================
        === 5. ESTRUTURA DO TABULEIRO (BOARD LAYOUT) ===
@@ -278,6 +279,34 @@ header p {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* Seleciona todos os botões dentro de .controls e o botão Reset */
+.controls button,
+.resetBtn {
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    /* Transição suave para escala e cor */
+}
+
+/* Aplica o efeito de hover e foco (acessibilidade) a todos os botões do cabeçalho */
+.controls button:hover,
+.resetBtn:hover {
+    transform: scale(1.15) translateY(-2px);
+    /* Efeito de zoom e leve subida */
+    background-color: #2c3540;
+    /* Destaque sutil no fundo do botão */
+}
+
+/* Garante que as imagens dentro dos botões sigam o estilo branco */
+.controls button img,
+.resetBtn img {
+    width: 20px;
+    /* Padronização de tamanho */
+    height: 20px;
+    filter: brightness(0) invert(1);
+    /* Mantém ícones brancos */
+    pointer-events: none;
+    /* Evita que o ícone interfira no clique do botão */
 }
 
 /* Layout Central */
@@ -874,6 +903,7 @@ body.hide-religion .decks-wrapper {
         top: 2px;
         right: 2px;
     }
+
     /* Garante que o container de moedas não fique colado */
     .points {
         margin-top: 4px !important;
@@ -906,25 +936,31 @@ body.hide-religion .decks-wrapper {
     }
 
     .religion-status {
-        font-size: 8px !important;    /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
-        padding: 2px 5px !important;  /* Reduz o preenchimento da caixa */
-        margin-bottom: 4px !important; /* Aproxima os elementos */
+        font-size: 8px !important;
+        /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
+        padding: 2px 5px !important;
+        /* Reduz o preenchimento da caixa */
+        margin-bottom: 4px !important;
+        /* Aproxima os elementos */
         line-height: 10px;
         border-radius: 4px;
-        display: flex;                /* Alinha ícone e texto */
+        display: flex;
+        /* Alinha ícone e texto */
         align-items: center;
         justify-content: center;
-        gap: 2px;                     /* Espaço entre ícone e texto */
+        gap: 2px;
+        /* Espaço entre ícone e texto */
         max-width: 60px !important;
         min-width: 60px !important;
     }
 
     .religion-icon {
-        width: 10px !important;       /* Diminui o ícone em ~20-30% */
+        width: 10px !important;
+        /* Diminui o ícone em ~20-30% */
         height: 10px !important;
     }
-    
-    
+
+
 
     .bottom-table-container {
         grid-template-columns: 1fr;
@@ -1044,6 +1080,7 @@ body.hide-religion .decks-wrapper {
         top: 2px;
         right: 2px;
     }
+
     /* Garante que o container de moedas não fique colado */
     .points {
         margin-top: 4px !important;
@@ -1076,25 +1113,31 @@ body.hide-religion .decks-wrapper {
     }
 
     .religion-status {
-        font-size: 8px !important;    /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
-        padding: 2px 5px !important;  /* Reduz o preenchimento da caixa */
-        margin-bottom: 4px !important; /* Aproxima os elementos */
+        font-size: 8px !important;
+        /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
+        padding: 2px 5px !important;
+        /* Reduz o preenchimento da caixa */
+        margin-bottom: 4px !important;
+        /* Aproxima os elementos */
         line-height: 10px;
         border-radius: 4px;
-        display: flex;                /* Alinha ícone e texto */
+        display: flex;
+        /* Alinha ícone e texto */
         align-items: center;
         justify-content: center;
-        gap: 2px;                     /* Espaço entre ícone e texto */
+        gap: 2px;
+        /* Espaço entre ícone e texto */
         max-width: 60px !important;
         min-width: 60px !important;
     }
 
     .religion-icon {
-        width: 10px !important;       /* Diminui o ícone em ~20-30% */
+        width: 10px !important;
+        /* Diminui o ícone em ~20-30% */
         height: 10px !important;
     }
-    
-    
+
+
 
     .bottom-table-container {
         grid-template-columns: 1fr;
@@ -1216,6 +1259,7 @@ body.hide-religion .decks-wrapper {
         top: 2px;
         right: 2px;
     }
+
     /* Garante que o container de moedas não fique colado */
     .points {
         margin-top: 4px !important;
@@ -1248,25 +1292,31 @@ body.hide-religion .decks-wrapper {
     }
 
     .religion-status {
-        font-size: 8px !important;    /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
-        padding: 2px 5px !important;  /* Reduz o preenchimento da caixa */
-        margin-bottom: 4px !important; /* Aproxima os elementos */
+        font-size: 8px !important;
+        /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
+        padding: 2px 5px !important;
+        /* Reduz o preenchimento da caixa */
+        margin-bottom: 4px !important;
+        /* Aproxima os elementos */
         line-height: 10px;
         border-radius: 4px;
-        display: flex;                /* Alinha ícone e texto */
+        display: flex;
+        /* Alinha ícone e texto */
         align-items: center;
         justify-content: center;
-        gap: 2px;                     /* Espaço entre ícone e texto */
+        gap: 2px;
+        /* Espaço entre ícone e texto */
         max-width: 60px !important;
         min-width: 60px !important;
     }
 
     .religion-icon {
-        width: 10px !important;       /* Diminui o ícone em ~20-30% */
+        width: 10px !important;
+        /* Diminui o ícone em ~20-30% */
         height: 10px !important;
     }
-    
-    
+
+
 
     .bottom-table-container {
         grid-template-columns: 1fr;
@@ -1388,6 +1438,7 @@ body.hide-religion .decks-wrapper {
         top: 2px;
         right: 2px;
     }
+
     /* Garante que o container de moedas não fique colado */
     .points {
         margin-top: 4px !important;
@@ -1420,25 +1471,31 @@ body.hide-religion .decks-wrapper {
     }
 
     .religion-status {
-        font-size: 8px !important;    /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
-        padding: 2px 5px !important;  /* Reduz o preenchimento da caixa */
-        margin-bottom: 4px !important; /* Aproxima os elementos */
+        font-size: 8px !important;
+        /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
+        padding: 2px 5px !important;
+        /* Reduz o preenchimento da caixa */
+        margin-bottom: 4px !important;
+        /* Aproxima os elementos */
         line-height: 10px;
         border-radius: 4px;
-        display: flex;                /* Alinha ícone e texto */
+        display: flex;
+        /* Alinha ícone e texto */
         align-items: center;
         justify-content: center;
-        gap: 2px;                     /* Espaço entre ícone e texto */
+        gap: 2px;
+        /* Espaço entre ícone e texto */
         max-width: 60px !important;
         min-width: 60px !important;
     }
 
     .religion-icon {
-        width: 10px !important;       /* Diminui o ícone em ~20-30% */
+        width: 10px !important;
+        /* Diminui o ícone em ~20-30% */
         height: 10px !important;
     }
-    
-    
+
+
 
     .bottom-table-container {
         grid-template-columns: 1fr;
@@ -1887,10 +1944,11 @@ body.hide-religion .decks-wrapper {
 
 
 @media (min-width: 1200px) {
+
     /* 1. Quando o header estiver oculto (display: none) */
-    header[style*="display: none"] + .board .container,
-    header.hidden + .board .container,
-    header[style*="display: none"] ~ .center-area .player-hands-container {
+    header[style*="display: none"]+.board .container,
+    header.hidden+.board .container,
+    header[style*="display: none"]~.center-area .player-hands-container {
         margin-top: 20px !important;
     }
 
@@ -1898,7 +1956,7 @@ body.hide-religion .decks-wrapper {
     header {
         /* Se você estiver usando uma função para esconder o header, 
            garantimos que ele não deixe "rastros" de margem */
-        margin-bottom: 8px; 
+        margin-bottom: 8px;
     }
 
     /* Esta é a regra "mágica" que você precisa: */
@@ -1907,7 +1965,7 @@ body.hide-religion .decks-wrapper {
     }
 
     /* 3. Aplica a margem no próximo elemento visível */
-    header[style*="display: none"] ~ .board {
+    header[style*="display: none"]~.board {
         margin-top: 20px !important;
     }
 }

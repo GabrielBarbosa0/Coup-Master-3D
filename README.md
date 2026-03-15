@@ -227,6 +227,10 @@ Durante o desenvolvimento deste projeto, foram aplicados conceitos como:
 - [ ] **Ranking Competitivo:** Sistema opcional de classificação por níveis baseado no desempenho nas salas.
 - [ ] **Expansões de Conteúdo:** Adição de novos sistemas de DLCs para integrar mecânicas complexas de forma modular.
 - [ ] **Performance Mobile:** Otimização de renderização e controles touch para garantir fluidez em dispositivos de entrada.
+- [ ] **Theming Engine (Beta):** Suporte para troca dinâmica de nomes de cartas, nomes de áreas e estilos visuais.
+- [ ] **Lobby Universe Selector:** Permite ao Host definir o tema visual da sala antes do início da partida.
+- [ ] **Soundpack Integration:** Sons de interface e moedas que se adaptam ao tema escolhido.
+- [ ] **Achievements Store:** Sistema de desbloqueio de temas baseado no desempenho do jogador nas partidas.
 
 
 ---
