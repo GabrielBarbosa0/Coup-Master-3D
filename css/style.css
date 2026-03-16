@@ -1793,12 +1793,9 @@ body.hide-religion .decks-wrapper {
 
 .card.is-dragging {
     opacity: 0.1 !important;
-    border: 2px dashed #ffffff44;
     transform: scale(0.9) !important;
     box-shadow: none !important;
 }
-
-
 
 
 
@@ -1857,15 +1854,11 @@ body.hide-religion .decks-wrapper {
         width: 84px;
         height: 22px;
         display: flex;
-        /* ATIVA o flexbox para alinhar conteúdo */
         align-items: center;
-        /* Centraliza verticalmente */
         justify-content: center;
-        /* Centraliza horizontalmente */
         gap: 1px;
-        /* Espaço exato entre o ícone e o texto */
         box-sizing: border-box;
-        /* Garante que o padding não aumente a largura */
+
     }
 
     .religion-icon {
@@ -1971,4 +1964,195 @@ body.hide-religion .decks-wrapper {
 
 
 
+/* Foco em telas horizontais baixas (ex: Celular em Paisagem) */
+@media (max-width: 1200px) and (max-height: 500px) {
 
+    .container {
+        max-width: 96vw;
+        padding: 5px;
+    }
+
+    #roomHeader {
+        margin-top: 4px;
+        padding: 6px 18px 6px 18px;
+    }
+
+    .player-hands-container {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+    }
+
+    .card,
+    .slot,
+    .card.small,
+    .slot.small {
+        width: 47px;
+        height: 62px;
+    }
+
+    .top-row {
+        margin-bottom: 6px;
+    }
+
+    .resetBtn,
+    .infoBtn,
+    .shuffleBtn,
+    .configBtn,
+    .musicBtn,
+    .altRulesBtn {
+        width: 24px;
+        height: 24px;
+    }
+
+    .controls button,
+    .resetBtn {
+        padding: 8px;
+        border-radius: 4px;
+    }
+
+
+
+    .player-area {
+        min-height: 110px;
+        padding: 5px;
+    }
+
+    .player-avatar {
+        width: 10px !important;
+        height: 10px !important;
+    }
+
+    .player-title {
+        font-size: 8px;
+        margin-bottom: 2px;
+    }
+
+    .player-header {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        justify-content: center;
+    }
+
+    .points {
+        margin: 2px 0;
+    }
+
+    .points .plus,
+    .points .minus {
+        width: 16px;
+        height: 16px;
+        font-size: 20px;
+    }
+
+    .religion-status {
+        font-size: 10px;
+        padding: 2px 6px;
+        margin-top: 4px;
+        margin-bottom: 4px;
+        width: 80px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1px;
+        box-sizing: border-box;
+    }
+
+    .religion-icon {
+        width: 12px;
+        height: 12px;
+    }
+
+
+
+    .player-stack {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        padding: 6px;
+        width: 100%;
+        gap: 7px;
+    }
+
+    .card {
+        border-radius: 8px;
+        /* border: 2px solid #4a8d82; */
+        border: 2px solid #3b5898;
+    }
+
+    .center-area {
+        gap: 8px;
+    }
+
+    .bottom-table-container {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: stretch;
+    }
+
+    .free-area {
+        min-height: 110px;
+        align-content: center;
+        justify-content: center;
+        padding: 0px;
+    }
+
+    .free-area::before {
+        background-size: 14%;
+    }
+
+    .asylum-area .muted {
+        font-size: 10px;
+        font-weight: bold;
+    }
+
+    .decks-wrapper {
+        margin-top: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        width: 280px;
+    }
+
+    .asylum-area,
+    .deck-area {
+        min-height: 110px;
+        padding: 8px;
+        justify-content: center;
+    }
+
+    .deck {
+        width: 47px;
+        height: 62px;
+        border-radius: 10px;
+        border: 3px solid #3b5998;
+    }
+
+    .asylum-image {
+        width: 45px;
+        height: 45px;
+    }
+
+    .board {
+        border-radius: 8px;
+    }
+
+    header h1 {
+        font-size: 10px;
+    }
+
+    .copy-instruction{
+        font-size: 8px;
+
+    }
+
+        #roomHeader {
+        margin-top: 2px;
+    }
+
+
+
+}
