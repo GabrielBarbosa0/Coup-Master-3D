@@ -485,7 +485,8 @@ body.hide-religion .decks-wrapper {
 .deck {
     width: 72px;
     height: 107px;
-    border-radius: 10px;
+    border-radius: 7px;
+    border: 3px solid #3b5998;
     cursor: pointer;
     background-image: url('../img/back.png');
     background-size: cover;
@@ -563,7 +564,7 @@ body.hide-religion .decks-wrapper {
     padding: 18px;
     min-height: 140px;
     display: flex;
-    gap: 12px;
+    gap: 7px;
     flex-wrap: wrap;
     align-items: flex-start;
     justify-content: flex-start;
@@ -598,6 +599,7 @@ body.hide-religion .decks-wrapper {
     /* width: 92px;
       height: 128px; */
     border-radius: 6px;
+    border: 1px solid #3b5898;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
     cursor: grab;
     user-select: none;
@@ -680,16 +682,12 @@ body.hide-religion .decks-wrapper {
     width: 96px;
     height: 136px;
     border-radius: 10px;
-    border: 3px dashed rgba(255, 255, 255, 0.06);
+    /* border: 3px dashed rgba(255, 255, 255, 0.06); */
     display: flex;
     align-items: center;
     justify-content: center
 }
 
-/* .slot.small {
-      width: 76px;
-      height: 110px
-    } */
 
 /* =======================================================
        === 9. RESPONSIVIDADE (ESTILO COMPACTO PADRÃO) ===
@@ -781,6 +779,7 @@ body.hide-religion .decks-wrapper {
         border-radius: 6px;
         max-width: 60px !important;
         min-width: 60px !important;
+
     }
 
     /* Rodapé Compacto */
@@ -828,6 +827,7 @@ body.hide-religion .decks-wrapper {
     .deck {
         width: 46px;
         height: 68px;
+        border: 2px solid #3b5998;
     }
 
     /* O deck era levemente maior no original */
@@ -929,29 +929,18 @@ body.hide-religion .decks-wrapper {
     }
 
     .religion-status {
-        font-size: 10px;
-        padding: 4px 5px;
-        line-height: 11px;
-        border-radius: 6px;
-    }
-
-    .religion-status {
         font-size: 8px !important;
-        /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
         padding: 2px 5px !important;
-        /* Reduz o preenchimento da caixa */
         margin-bottom: 4px !important;
-        /* Aproxima os elementos */
         line-height: 10px;
         border-radius: 4px;
         display: flex;
-        /* Alinha ícone e texto */
         align-items: center;
         justify-content: center;
         gap: 2px;
-        /* Espaço entre ícone e texto */
         max-width: 60px !important;
         min-width: 60px !important;
+        height: 15px;
     }
 
     .religion-icon {
@@ -1006,6 +995,7 @@ body.hide-religion .decks-wrapper {
     .deck {
         width: 46px;
         height: 68px;
+        border: 2px solid #3b5998;
     }
 
     #deck-count {
@@ -1114,21 +1104,17 @@ body.hide-religion .decks-wrapper {
 
     .religion-status {
         font-size: 8px !important;
-        /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
         padding: 2px 5px !important;
-        /* Reduz o preenchimento da caixa */
         margin-bottom: 4px !important;
-        /* Aproxima os elementos */
         line-height: 10px;
         border-radius: 4px;
         display: flex;
-        /* Alinha ícone e texto */
         align-items: center;
         justify-content: center;
         gap: 2px;
-        /* Espaço entre ícone e texto */
         max-width: 60px !important;
         min-width: 60px !important;
+        height: 15px;
     }
 
     .religion-icon {
@@ -1183,6 +1169,7 @@ body.hide-religion .decks-wrapper {
     .deck {
         width: 46px;
         height: 68px;
+        border: 2px solid #3b5998;
     }
 
     #deck-count {
@@ -1293,21 +1280,17 @@ body.hide-religion .decks-wrapper {
 
     .religion-status {
         font-size: 8px !important;
-        /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
         padding: 2px 5px !important;
-        /* Reduz o preenchimento da caixa */
         margin-bottom: 4px !important;
-        /* Aproxima os elementos */
         line-height: 10px;
         border-radius: 4px;
         display: flex;
-        /* Alinha ícone e texto */
         align-items: center;
         justify-content: center;
         gap: 2px;
-        /* Espaço entre ícone e texto */
         max-width: 60px !important;
         min-width: 60px !important;
+        height: 15px;
     }
 
     .religion-icon {
@@ -1362,6 +1345,7 @@ body.hide-religion .decks-wrapper {
     .deck {
         width: 46px;
         height: 68px;
+        border: 2px solid #3b5998;
     }
 
     #deck-count {
@@ -1472,21 +1456,17 @@ body.hide-religion .decks-wrapper {
 
     .religion-status {
         font-size: 8px !important;
-        /* Diminui a fonte (mesmo tamanho do player-title no mobile) */
         padding: 2px 5px !important;
-        /* Reduz o preenchimento da caixa */
         margin-bottom: 4px !important;
-        /* Aproxima os elementos */
         line-height: 10px;
         border-radius: 4px;
         display: flex;
-        /* Alinha ícone e texto */
         align-items: center;
         justify-content: center;
         gap: 2px;
-        /* Espaço entre ícone e texto */
         max-width: 60px !important;
         min-width: 60px !important;
+        height: 15px;
     }
 
     .religion-icon {
@@ -1541,6 +1521,7 @@ body.hide-religion .decks-wrapper {
     .deck {
         width: 46px;
         height: 68px;
+        border: 2px solid #3b5998;
     }
 
     #deck-count {
@@ -1720,6 +1701,7 @@ body.hide-religion .decks-wrapper {
 /* =======================================================
        === 12. CONFIGURAÇÃO DE BARALHO (LISTAS E INPUTS) ===
        ======================================================= */
+
 .card-config-list {
     list-style: none;
     padding: 0;
@@ -1821,6 +1803,9 @@ body.hide-religion .decks-wrapper {
 }
 
 
+
+
+
 /* =======================================================
        === 16. VERSÃO PC OTIMIZADA (TELAS GRANDES) ===
        ======================================================= */
@@ -1845,8 +1830,8 @@ body.hide-religion .decks-wrapper {
     .slot,
     .card.small,
     .slot.small {
-        width: 48px;
-        height: 72px;
+        width: 53px;
+        height: 76px;
     }
 
     .player-area {
@@ -1879,6 +1864,7 @@ body.hide-religion .decks-wrapper {
         text-align: center;
     }
 
+
     .player-stack {
         display: flex;
         flex-wrap: wrap;
@@ -1886,17 +1872,14 @@ body.hide-religion .decks-wrapper {
         align-items: center;
         padding: 6px;
         width: 100%;
-        gap: 3px;
-    }
-
-    .slot {
-        border: 3px dashed rgba(255, 255, 255, 0.06);
+        gap: 7px;
     }
 
     .card {
         border-radius: 8px;
+        /* border: 2px solid #4a8d82; */
+        border: 2px solid #3b5898;
     }
-
 
     .center-area {
         gap: 8px;
@@ -1931,8 +1914,10 @@ body.hide-religion .decks-wrapper {
     }
 
     .deck {
-        width: 64px;
+        width: 66px;
         height: 94px;
+        border-radius: 10px;
+        border: 3px solid #3b5998;
     }
 
     .asylum-image {
