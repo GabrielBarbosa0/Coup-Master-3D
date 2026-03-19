@@ -209,9 +209,14 @@
               <div class="pile-info muted">
               </div>
               <div class="deck" id="deck" draggable="true">Deck</div>
-              <div class="pile-info muted">
-                <div>Cartas no deck: <span id="deck-count"></div>
+
+              <div class="pile-info muted deck-text-wrapper">
+                <p>Cartas no deck:</p>
+                <span id="deck-count"></span>
               </div>
+              <!-- <div class="pile-info muted">
+                <div>Cartas no deck: <span id="deck-count"></div>
+              </div> -->
             </div>
 
           </div>
@@ -387,6 +392,14 @@
           </button>
         </div>
 
+        <div class="setting-row">
+          <label>Tema Retrô</label>
+          <button id="toggleRetroThemeBtn" class="icon-btn">
+            <img src="img/eye.svg" alt="">
+            <span>Desativado</span>
+          </button>
+        </div>
+
         <div class="setting-row" style="justify-content: center; margin-top: 20px;">
           <button id="openDeckConfigBtn"
             style="background: #1e90ff; color: white; padding: 10px; border: 0; border-radius: 8px; cursor: pointer; width: 100%;">
@@ -404,7 +417,7 @@
       <button id="closeSpectatorModalBtn" class="close-btn">&times;</button>
       <h2 style="margin-bottom: 16px;">Quem deseja assistir?</h2>
       <div id="spectator-list" class="spectator-list">
-        </div>
+      </div>
     </div>
   </div>
 
@@ -415,7 +428,7 @@
       <h2 style="margin-bottom: 10px;">Modo Espectador</h2>
       <p class="muted" style="margin-bottom: 20px;">Escolha um jogador para assistir:</p>
       <div id="spectator-list" class="spectator-list" style="display: flex; flex-direction: column; gap: 10px;">
-        </div>
+      </div>
     </div>
   </div>
 
@@ -444,7 +457,7 @@
   <script src="js/gameState.js" defer></script>
   <script src="js/ui.js" defer></script>
 
-  
+
 
 </body>
 

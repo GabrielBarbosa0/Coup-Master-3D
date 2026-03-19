@@ -45,6 +45,31 @@ function shouldShowBack(card) {
 }
 
 
+// Local: ui.js (antes de setupUI)
+const updateAllCardImages = () => {
+  const isRetro = document.body.classList.contains('theme-retro');
+  const suffix = isRetro ? '-retro' : '';
+  const cardsOnTable = document.querySelectorAll('.card');
+
+  cardsOnTable.forEach(cardEl => {
+    // Se a carta NÃO estiver de costas, atualiza a frente
+    if (!cardEl.classList.contains('back')) {
+      const currentBg = cardEl.style.backgroundImage;
+      // Extrai o nome da carta (ex: duque) da URL atual
+      const cardTypeMatch = currentBg.match(/\/([a-z0-9_-]+?)(?:-retro)?\.png/i);
+
+      if (cardTypeMatch) {
+        const cardType = cardTypeMatch[1].toLowerCase();
+        cardEl.style.backgroundImage = `url('./img/${cardType}${suffix}.png')`;
+      }
+    } else {
+      // Se estiver de costas, troca entre back.png e back-retro.png
+      const backImg = isRetro ? 'back-retro.png' : 'back.png';
+      cardEl.style.backgroundImage = `url('./img/${backImg}')`;
+    }
+  });
+};
+
 
 function createCardElement(card) {
   const el = document.createElement('div');
@@ -52,13 +77,23 @@ function createCardElement(card) {
   el.draggable = true;
   el.dataset.cardId = card.id;
 
+  // Local: ui.js -> Lógica de Imagem Dinâmica
+  const isRetro = document.body.classList.contains('theme-retro');
+  const suffix = isRetro ? '-retro' : '';
+
   if (shouldShowBack(card)) {
     el.classList.add('back');
+    // Se for retro, aplicamos a imagem específica para o verso pixelado
+    if (isRetro) {
+      el.style.backgroundImage = "url('./img/back-retro.png')";
+    }
   } else {
-    const imageUrl = `./img/${card.type.toLowerCase()}.png`;
+    // Busca a arte normal ou a versão -retro.png
+    const imageUrl = `./img/${card.type.toLowerCase()}${suffix}.png`;
     el.style.backgroundImage = `url('${imageUrl}')`;
   }
 
+  // Mantém os eventos de Drag and Drop e Efeitos
   el.addEventListener('dragstart', (ev) => {
     ev.dataTransfer.setData('text/plain', card.id);
     ev.dataTransfer.effectAllowed = "move";
@@ -87,7 +122,7 @@ function renderAll() {
   const state = localGameState;
   if (!state || !state.players) return;
 
-// --- LÓGICA DO BOTÃO FANTASMA (ESPECTADOR) ---
+  // --- LÓGICA DO BOTÃO FANTASMA (ESPECTADOR) ---
   const spectatorBtn = document.getElementById('spectatorBtn');
   const spectatorModal = document.getElementById('spectatorModal');
   const spectatorList = document.getElementById('spectator-list');
@@ -107,7 +142,7 @@ function renderAll() {
 
     spectatorBtn.onclick = () => {
       playSound('click');
-      spectatorList.innerHTML = ''; 
+      spectatorList.innerHTML = '';
 
       for (let i = 1; i <= 10; i++) {
         const p = state.players[i];
@@ -395,6 +430,7 @@ function setupUI() {
         if (spanText) spanText.textContent = "Visível";
       }
     };
+
   }
 
 
@@ -568,6 +604,42 @@ function setupUI() {
   if (document.getElementById('asylum-plus')) {
     document.getElementById('asylum-plus').onclick = () => updateAsylumScore(1);
     document.getElementById('asylum-minus').onclick = () => updateAsylumScore(-1);
+  }
+
+
+  // Local: Dentro de setupUI() no ui.js
+  const toggleRetroBtn = document.getElementById('toggleRetroThemeBtn');
+
+  const applyRetroTheme = (isEnabled) => {
+    const body = document.body;
+    const btnSpan = toggleRetroBtn?.querySelector('span');
+    const btnImg = toggleRetroBtn?.querySelector('img');
+
+    if (isEnabled) {
+      body.classList.add('theme-retro');
+      if (btnSpan) btnSpan.textContent = "Ativado";
+      if (toggleRetroBtn) toggleRetroBtn.style.opacity = "1";
+    } else {
+      body.classList.remove('theme-retro');
+      if (btnSpan) btnSpan.textContent = "Desativado";
+      if (toggleRetroBtn) toggleRetroBtn.style.opacity = "0.6";
+    }
+
+    localStorage.setItem('retroTheme', isEnabled);
+  };
+
+  if (toggleRetroBtn) {
+    const isRetro = localStorage.getItem('retroTheme') === 'true';
+    applyRetroTheme(isRetro); // Aplica o tema salvo ao carregar
+
+    toggleRetroBtn.onclick = () => {
+      playSound('click');
+      const currentlyRetro = document.body.classList.contains('theme-retro');
+      const nextState = !currentlyRetro;
+
+      applyRetroTheme(nextState); // Altera cores e persistência
+      updateAllCardImages();      // Atualiza as imagens das cartas
+    };
   }
 }
 

@@ -7,6 +7,14 @@
     font-display: swap;
 }
 
+@font-face {
+    font-family: 'PressStart2P';
+    src: url('../fonts/PressStart2P-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 
 @keyframes spin {
     0% {
@@ -39,6 +47,12 @@
        ======================================================= */
 * {
     font-family: "Cinzel", serif !important;
+}
+
+/* Reset global de margens para parágrafos */
+p {
+    margin: 0;
+    padding: 0;
 }
 
 html,
@@ -475,8 +489,8 @@ body.hide-religion .decks-wrapper {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 18px;
+    gap: 4px;
+    padding: 8px;
     border-radius: 12px;
     border: 3px var(--accent) dashed;
     background: var(--panel);
@@ -496,8 +510,9 @@ body.hide-religion .decks-wrapper {
 }
 
 .pile-info {
+    margin: 0px !important;
     display: flex;
-    gap: 12px;
+    gap: 4px;
     align-items: center;
     text-align: center;
 }
@@ -796,8 +811,7 @@ body.hide-religion .decks-wrapper {
         width: 100%;
     }
 
-    .asylum-area,
-    .deck-area {
+    .asylum-area {
         padding: 4px;
         gap: 4px;
         border-width: 2px;
@@ -963,8 +977,7 @@ body.hide-religion .decks-wrapper {
         width: 100%;
     }
 
-    .asylum-area,
-    .deck-area {
+    .asylum-area {
         padding: 4px;
         gap: 4px;
         border-width: 2px;
@@ -1136,8 +1149,7 @@ body.hide-religion .decks-wrapper {
         width: 100%;
     }
 
-    .asylum-area,
-    .deck-area {
+    .asylum-area {
         padding: 4px;
         gap: 4px;
         border-width: 2px;
@@ -1311,8 +1323,7 @@ body.hide-religion .decks-wrapper {
         width: 100%;
     }
 
-    .asylum-area,
-    .deck-area {
+    .asylum-area {
         padding: 4px;
         gap: 4px;
         border-width: 2px;
@@ -1486,8 +1497,7 @@ body.hide-religion .decks-wrapper {
         width: 100%;
     }
 
-    .asylum-area,
-    .deck-area {
+    .asylum-area {
         padding: 4px;
         gap: 4px;
         border-width: 2px;
@@ -1962,3 +1972,273 @@ body.hide-religion .decks-wrapper {
     }
 }
 
+
+
+
+
+
+/* =======================================================
+   === TEMA RETRÔ (Game Boy Style) ===
+   ======================================================= */
+
+body.theme-retro {
+    --bg: #071821 !important;
+    --panel: #071821 !important;
+    --accent: #86c06c !important;
+    --accent2: #86c06c !important;
+    --text: #e0f8cf !important;
+    --active: #e0f8cf !important;
+    --muted: rgba(134, 192, 108, 0.4) !important;
+}
+
+/* --- TIPOGRAFIA E ESCALA --- */
+body.theme-retro,
+body.theme-retro * {
+    font-family: 'PressStart2P', cursive !important;
+    text-transform: uppercase;
+}
+
+/* Títulos e Nomes (Redução de ~20% para ajuste manual) */
+body.theme-retro h1,
+body.theme-retro h2,
+body.theme-retro .player-title {
+    font-size: 0.5em !important;
+    letter-spacing: 0.5px;
+}
+
+/* Parágrafos, Spans e Status */
+body.theme-retro p,
+body.theme-retro span,
+body.theme-retro .religion-status,
+body.theme-retro .score {
+    font-size: 0.41em !important;
+    line-height: 1.2;
+}
+
+
+/* --- CABEÇALHO (CÓDIGO DA SALA) --- */
+body.theme-retro header {
+    border: 3px dashed var(--accent) !important;
+    background: var(--bg) !important;
+    color: var(--text) !important;
+}
+
+body.theme-retro header h1 {
+    font-size: 14px !important;
+    /* Tamanho fixo para o título principal */
+    margin: 0;
+}
+
+body.theme-retro header h1 span {
+    font-size: 1em !important;
+    /* Herda exatamente os 14px do h1 */
+    display: inline;
+}
+
+body.theme-retro header.copied {
+    border-style: solid !important;
+    border-color: var(--text) !important;
+    box-shadow: 0 0 15px rgba(134, 192, 108, 0.4);
+}
+
+/* --- CONTADORES (DECK E ASILO) --- */
+body.theme-retro .pile-info,
+body.theme-retro #deck-count,
+body.theme-retro .asylum-area .muted {
+    font-size: 0.42em !important;
+    /* Equalizado conforme pedido */
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+}
+
+body.theme-retro .pile-info {
+    gap: 0px;
+}
+
+body.theme-retro .pile-info {
+    gap: 0px;
+}
+
+body.theme-retro .deck-area {
+    gap: 8px;
+}
+
+/* --- ELEMENTOS DE JOGO (CARTAS E BORDAS) --- */
+body.theme-retro .card {
+    image-rendering: pixelated;
+    border: 2px solid var(--accent) !important;
+}
+
+body.theme-retro .board {
+    border-color: var(--accent) !important;
+}
+
+body.theme-retro img:not(.player-avatar) {
+    filter: brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(50deg) !important;
+}
+
+/* --- RELIGIÃO --- */
+body.theme-retro .religion-icon {
+    display: none !important;
+    /* Oculto para estética pixel art */
+}
+
+body.theme-retro .religion-status {
+    padding: 4px 8px !important;
+    justify-content: center;
+    text-align: center;
+}
+
+body.theme-retro .religion-status.catolico {
+    background-color: var(--accent) !important;
+    color: var(--bg) !important;
+}
+
+body.theme-retro .religion-status.protestante {
+    background-color: transparent !important;
+    border: 1px solid var(--accent) !important;
+    color: var(--accent) !important;
+}
+
+/* --- PONTUAÇÃO E BOTÕES --- */
+body.theme-retro .points .plus,
+body.theme-retro .points .minus,
+body.theme-retro .asylum-points button {
+    background-color: var(--accent) !important;
+    color: var(--bg) !important;
+    border: 1px solid var(--bg);
+}
+
+body.theme-retro .points .score,
+body.theme-retro .asylum-points .score {
+    color: var(--text) !important;
+    font-weight: bold;
+    font-size: 10px !important;
+}
+
+body.theme-retro .points button:active {
+    background-color: var(--text) !important;
+}
+
+/* --- MODAIS E CONFIGURAÇÕES --- */
+
+/* Aumenta o título principal do modal */
+body.theme-retro .modal-content h2 {
+    font-size: 0.9em !important;
+    margin-bottom: 20px;
+    color: var(--accent);
+}
+
+/* Diminui o texto da label (ex: Código da Sala:) */
+body.theme-retro .setting-row {
+    font-size: 0.8em !important;
+}
+
+/* Aumenta o texto de status dentro do botão (ex: Visível/Oculto) */
+body.theme-retro .icon-btn span {
+    font-size: 0.5em !important;
+    color: var(--text) !important;
+    letter-spacing: 0.5px;
+}
+
+
+
+
+
+
+
+body.theme-retro .close-btn {
+    background-color: var(--accent) !important;
+    color: var(--bg) !important;
+    border: 2px solid var(--text) !important;
+}
+
+body.theme-retro .close-btn:hover {
+    background-color: var(--text) !important;
+    color: var(--bg) !important;
+}
+
+body.theme-retro #openDeckConfigBtn {
+    background-color: var(--accent) !important;
+    color: var(--bg) !important;
+    border: 1px solid var(--bg) !important;
+}
+
+body.theme-retro .icon-btn span {
+    color: var(--text) !important;
+}
+
+body.theme-retro #volumeSlider {
+    accent-color: var(--accent) !important;
+    background: var(--bg) !important;
+    border: 1px solid var(--accent);
+}
+
+/* --- IMAGENS DE AMBIENTE (RETRO ASSETS) --- */
+body.theme-retro .deck {
+    background-image: url('../img/back-retro.png') !important;
+    border-color: var(--accent) !important;
+    image-rendering: pixelated;
+    background-size: cover;
+}
+
+body.theme-retro .asylum-image {
+    background-image: url('../img/asilo-retro.png') !important;
+    border-radius: 10px;
+    image-rendering: pixelated;
+    background-size: cover;
+}
+
+
+/* Reduz o espaço abaixo do título principal do modal */
+body.theme-retro .config-title {
+    margin-bottom: 6px !important;
+    font-size: 0.7em !important;
+}
+
+/* Aumenta o nome das DLCs/Categorias de cartas */
+body.theme-retro .title-dlc-card-config-item {
+    font-size: 36px !important;
+    /* Aumentado para se destacar na lista */
+    color: var(--accent) !important;
+    padding: 15px 0 10px 0;
+    text-align: center;
+    border-bottom: 2px solid var(--muted);
+    margin-top: 10px;
+}
+
+/* Local: style.css -> bloco body.theme-retro */
+body.theme-retro .card,
+body.theme-retro .deck,
+body.theme-retro .asylum-image {
+    /* O segredo para Pixel Art nítida: */
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    /* Para suporte em navegadores mais antigos */
+}
+
+
+
+/* Botão de Aplicar Configuração do Baralho no Modo Retrô */
+body.theme-retro #applyDeckConfigBtn {
+    background-color: var(--accent) !important; /* Verde Médio #86c06c */
+    color: var(--bg) !important;              /* Texto Escuro #071821 */
+    border: 2px solid var(--text) !important; /* Borda clara para destaque */
+    font-family: 'PressStart2P', cursive !important;
+    font-size: 0.6em !important;              /* Seguindo a sua escala reduzida */
+    text-transform: uppercase;
+}
+
+body.theme-retro #applyDeckConfigBtn:hover {
+    background-color: var(--text) !important;  /* Inverte as cores no hover */
+    color: var(--bg) !important;
+    filter: none; 
+}
+
+body.theme-retro #applyDeckConfigBtn:disabled {
+    background-color: var(--bg) !important;
+    color: var(--muted) !important;
+    border-color: var(--muted) !important;
+    opacity: 0.6;
+}
