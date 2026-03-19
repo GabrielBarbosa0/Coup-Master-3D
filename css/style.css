@@ -2132,7 +2132,21 @@ body.theme-retro .modal-content h2 {
 
 /* Diminui o texto da label (ex: Código da Sala:) */
 body.theme-retro .setting-row {
+    font-size: 0.6em !important;
+}
+
+/* Diminui especificamente o nome da carta na lista de configuração */
+body.theme-retro .card-config-item label {
+    font-size: 0.8em !important; /* Reduzido de 0.5em para 0.4em para ganhar espaço */
+    color: var(--text);
+    text-transform: uppercase;
+}
+
+/* Ajusta o input ao lado para manter o alinhamento */
+body.theme-retro .card-config-item input {
     font-size: 0.8em !important;
+    width: 45px !important; /* Input mais estreito para o modo retrô */
+    padding: 2px !important;
 }
 
 /* Aumenta o texto de status dentro do botão (ex: Visível/Oculto) */
@@ -2160,6 +2174,7 @@ body.theme-retro .close-btn:hover {
 }
 
 body.theme-retro #openDeckConfigBtn {
+    font-size: 0.9em !important;
     background-color: var(--accent) !important;
     color: var(--bg) !important;
     border: 1px solid var(--bg) !important;
