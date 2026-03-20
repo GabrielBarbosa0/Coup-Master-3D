@@ -264,15 +264,29 @@ function renderAll() {
     }
   }
 
-  state.freeCards?.forEach(card => {
+  // 1. Atualiza contadores básicos
+  deckCountEl.textContent = state.deck?.length || 0;
+  if (asylumScoreEl) asylumScoreEl.textContent = state.asylumScore || 0;
+
+  // 2. Lógica Unificada do Cemitério
+  const freeCards = state.freeCards || [];
+
+  // Se houver cartas, adicionamos a classe para o CSS ocultar o texto instrutivo
+  if (freeCards.length > 0) {
+    freeArea.classList.add('has-cards');
+  } else {
+    freeArea.classList.remove('has-cards');
+  }
+
+  // Renderiza as cartas no cemitério
+  freeCards.forEach(card => {
     const el = createCardElement(card);
     el.classList.add('small');
     freeArea.appendChild(el);
   });
-
-  deckCountEl.textContent = state.deck?.length || 0;
-  if (asylumScoreEl) asylumScoreEl.textContent = state.asylumScore || 0;
 }
+
+
 
 // =======================================================
 // === EVENTOS DRAG & DROP ===

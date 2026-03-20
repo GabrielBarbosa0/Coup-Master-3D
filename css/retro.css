@@ -1,0 +1,269 @@
+/* =======================================================
+   === TEMA RETRÔ (Game Boy Style) ===
+   ======================================================= */
+
+body.theme-retro {
+    /* --- 1. VARIÁVEIS E CORES --- */
+    --bg: #071821 !important;
+    --panel: #071821 !important;
+    --accent: #86c06c !important;
+    --accent2: #86c06c !important;
+    --text: #e0f8cf !important;
+    --active: #e0f8cf !important;
+    --muted: rgba(134, 192, 108, 0.4) !important;
+}
+
+
+/* --- 2. TIPOGRAFIA GLOBAL RETRÔ --- */
+
+@font-face {
+    font-family: 'PressStart2P';
+    src: url('../fonts/PressStart2P-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+body.theme-retro,
+body.theme-retro * {
+    font-family: 'PressStart2P', cursive !important;
+    text-transform: uppercase;
+}
+
+/* Títulos Principais e Nomes de Jogadores */
+body.theme-retro h1,
+body.theme-retro h2,
+body.theme-retro .player-title {
+    font-size: 0.5em !important;
+    letter-spacing: 0.5px;
+}
+
+/* Textos de Suporte, Spans e Status */
+body.theme-retro p,
+body.theme-retro span,
+body.theme-retro .religion-status,
+body.theme-retro .score {
+    font-size: 0.41em !important;
+    line-height: 1.8;
+}
+
+/* --- 3. CABEÇALHO (SALA) --- */
+body.theme-retro header {
+    border: 3px dashed var(--accent) !important;
+    background: var(--bg) !important;
+    color: var(--text) !important;
+}
+
+body.theme-retro header h1 {
+    font-size: 14px !important;
+    margin: 0;
+}
+
+body.theme-retro header h1 span {
+    font-size: 1em !important;
+}
+
+body.theme-retro header.copied {
+    border-style: solid !important;
+    border-color: var(--text) !important;
+    box-shadow: 0 0 15px rgba(134, 192, 108, 0.4);
+}
+
+/* --- 4. ELEMENTOS DO TABULEIRO (CARDS, DECK, ASILO) --- */
+body.theme-retro .board {
+    border-color: var(--accent) !important;
+}
+
+body.theme-retro .card,
+body.theme-retro .deck,
+body.theme-retro .asylum-image {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    border: 2px solid var(--accent) !important;
+}
+
+body.theme-retro .deck {
+    background-image: url('../img/back-retro.png') !important;
+    background-size: cover;
+}
+
+body.theme-retro .asylum-image {
+    background-image: url('../img/asilo-retro.png') !important;
+    border-radius: 10px;
+    background-size: cover;
+}
+
+body.theme-retro img:not(.player-avatar) {
+    filter: brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(50deg) !important;
+}
+
+/* Contadores e Áreas de Pilha */
+body.theme-retro .pile-info,
+body.theme-retro #deck-count,
+body.theme-retro .asylum-area .muted {
+    font-size: 0.42em !important;
+    display: flex;
+    align-items: center;
+}
+
+body.theme-retro .deck-area {
+    gap: 8px;
+}
+
+body.theme-retro .pile-info {
+    gap: 0px;
+}
+
+/* --- 5. INTERFACE DE RELIGIÃO E PONTOS --- */
+body.theme-retro .religion-icon {
+    display: none !important;
+}
+
+body.theme-retro .religion-status {
+    padding: 4px 8px !important;
+    justify-content: center;
+    text-align: center;
+}
+
+body.theme-retro .religion-status.catolico {
+    background-color: var(--accent) !important;
+    color: var(--bg) !important;
+}
+
+body.theme-retro .religion-status.protestante {
+    background-color: transparent !important;
+    border: 1px solid var(--accent) !important;
+    color: var(--accent) !important;
+}
+
+body.theme-retro .points .plus,
+body.theme-retro .points .minus,
+body.theme-retro .asylum-points button {
+    background-color: var(--accent) !important;
+    color: var(--bg) !important;
+    border: 1px solid var(--bg);
+}
+
+body.theme-retro .points .score,
+body.theme-retro .asylum-points .score {
+    color: var(--text) !important;
+    font-weight: bold;
+    font-size: 10px !important;
+}
+
+body.theme-retro .points button:active {
+    background-color: var(--text) !important;
+}
+
+/* --- 6. BOTÕES DE SISTEMA (CONTROLES E RESET) --- */
+body.theme-retro .controls button,
+body.theme-retro .controls .icon-btn,
+body.theme-retro .resetBtn {
+    border: 2px dashed var(--accent) !important;
+    background-color: var(--bg) !important;
+    border-radius: 4px;
+    padding: 8px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+body.theme-retro .controls button:hover,
+body.theme-retro .resetBtn:hover {
+    background-color: var(--text) !important;
+    border-color: var(--bg) !important;
+    transform: scale(1.1) translateY(-2px);
+}
+
+body.theme-retro .resetBtn img {
+    filter: brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(50deg) !important;
+}
+
+/* --- 7. MODAIS E CONFIGURAÇÕES --- */
+body.theme-retro .modal-content h2 {
+    font-size: 0.9em !important;
+    margin-bottom: 20px;
+    color: var(--accent);
+}
+
+body.theme-retro .close-btn {
+    background-color: var(--accent) !important;
+    color: var(--bg) !important;
+    border: 2px solid var(--text) !important;
+}
+
+body.theme-retro .close-btn:hover {
+    background-color: var(--text) !important;
+    color: var(--bg) !important;
+}
+
+body.theme-retro .setting-row {
+    font-size: 0.6em !important;
+}
+
+body.theme-retro .icon-btn span {
+    font-size: 0.5em !important;
+    color: var(--text) !important;
+    letter-spacing: 0.5px;
+}
+
+body.theme-retro #volumeSlider {
+    accent-color: var(--accent) !important;
+    background: var(--bg) !important;
+    border: 1px solid var(--accent);
+}
+
+/* Configuração de Baralho (DLCs e Cards) */
+body.theme-retro .config-title {
+    margin-bottom: 6px !important;
+    font-size: 0.7em !important;
+}
+
+body.theme-retro .title-dlc-card-config-item {
+    font-size: 36px !important;
+    color: var(--accent) !important;
+    padding: 15px 0 10px 0;
+    text-align: center;
+    border-bottom: 2px solid var(--muted);
+    margin-top: 10px;
+}
+
+body.theme-retro .card-config-item label {
+    font-size: 0.8em !important;
+    color: var(--text);
+}
+
+body.theme-retro .card-config-item input {
+    font-size: 0.8em !important;
+    width: 45px !important;
+    padding: 2px !important;
+}
+
+body.theme-retro #openDeckConfigBtn {
+    font-size: 0.9em !important;
+    background-color: var(--accent) !important;
+    color: var(--bg) !important;
+    border: 1px solid var(--bg) !important;
+}
+
+/* Botão Aplicar */
+body.theme-retro #applyDeckConfigBtn {
+    background-color: var(--accent) !important;
+    color: var(--bg) !important;
+    border: 2px solid var(--text) !important;
+    font-size: 0.6em !important;
+}
+
+body.theme-retro #applyDeckConfigBtn:hover {
+    background-color: var(--text) !important;
+    color: var(--bg) !important;
+    filter: none;
+}
+
+body.theme-retro #applyDeckConfigBtn:disabled {
+    background-color: var(--bg) !important;
+    color: var(--muted) !important;
+    border-color: var(--muted) !important;
+    opacity: 0.6;
+}
