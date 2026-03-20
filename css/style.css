@@ -92,7 +92,7 @@ header {
     border: 3px dashed #ffffff1f;
     padding: 10px 18px;
     text-align: center;
-    background: var(--panel);
+    background: var(--bg);
     color: #ffffff;
     margin-bottom: 8px;
     display: block;
