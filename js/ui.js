@@ -149,7 +149,7 @@ function renderAll() {
           btn.className = 'spectator-target-btn';
           btn.innerHTML = `
             <img src="${p.photo || 'img/coup.png'}" alt="">
-            <span>${p.name || 'Jogador ' + i}</span>
+            <span class="spectator-name">${p.name || 'Jogador ' + i}</span>
           `;
           btn.onclick = () => {
             playSound('pop');
@@ -370,6 +370,63 @@ function setupAutoScroll() {
 // =======================================================
 
 function setupUI() {
+  
+  createPlayerAreas();
+
+  function createPlayerAreas() {
+    const container = document.getElementById('playerHandsContainer');
+    if (!container) return;
+
+    container.innerHTML = ''; // Limpa lixo residual
+
+    for (let i = 1; i <= 10; i++) {
+      const playerArea = document.createElement('div');
+      playerArea.className = 'player-area';
+      playerArea.id = `player-${i}`;
+      playerArea.dataset.player = i;
+
+      // IMPORTANTE: Deixe como 'none' inicialmente, 
+      // o renderAll() vai mudar para 'block' ou 'flex' quando houver jogadores na sala.
+      playerArea.style.display = 'none';
+
+      const defaultRel = (i === 10) ? 'Protestante' : 'Católico';
+
+      playerArea.innerHTML = `
+            <button class="remove-player" data-pid="${i}" title="Remover Jogador"></button>
+            <div class="player-title">Jogador ${i}</div>
+            <div class="points">
+              <button class="minus" data-pid="${i}">-</button>
+              <div class="score" data-score="0">0</div>
+              <button class="plus" data-pid="${i}">+</button>
+            </div>
+            <div class="religion-status" data-pid="${i}">${defaultRel}</div>
+            <div class="player-stack hand" data-hand></div>
+        `;
+
+      container.appendChild(playerArea);
+    }
+
+    // Após criar, precisamos religar os eventos que o HTML estático tinha
+    setupDynamicEvents();
+  }
+
+  // Função auxiliar para garantir que os botões funcionem
+  function setupDynamicEvents() {
+    document.querySelectorAll('.plus').forEach(btn => {
+      btn.onclick = () => updateScore(btn.dataset.pid, 1);
+    });
+    document.querySelectorAll('.minus').forEach(btn => {
+      btn.onclick = () => updateScore(btn.dataset.pid, -1);
+    });
+    document.querySelectorAll('.religion-status').forEach(div => {
+      div.onclick = () => toggleReligion(div.dataset.pid);
+    });
+    document.querySelectorAll('.remove-player').forEach(btn => {
+      btn.onclick = () => kickPlayer(btn.dataset.pid);
+    });
+  }
+
+
   if (resetBtn) resetBtn.onclick = () => { if (confirm("Resetar mesa?")) resetTable(); };
 
   const musicBtn = document.getElementById('musicBtn');
@@ -605,7 +662,7 @@ function setupUI() {
   }
 
 
-  // Local: Dentro de setupUI() no ui.js
+
   const toggleRetroBtn = document.getElementById('toggleRetroThemeBtn');
 
   const applyRetroTheme = (isEnabled) => {

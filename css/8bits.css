@@ -168,11 +168,17 @@ body.theme-retro .resetBtn {
     transition: all 0.2s ease;
 }
 
-body.theme-retro .controls button:hover,
-body.theme-retro .resetBtn:hover {
-    background-color: var(--text) !important;
-    border-color: var(--bg) !important;
-    transform: scale(1.1) translateY(-2px);
+body.theme-retro .spectatorBtn {
+    display: flex !important;
+    /* Força o flex para que os alinhamentos funcionem */
+    align-items: center;
+    justify-content: center;
+}
+
+body.theme-retro .spectatorBtn img {
+    display: block;
+    margin: 0;
+    /* Remove qualquer margem residual que desalinhe o ícone */
 }
 
 body.theme-retro .resetBtn img {
@@ -292,4 +298,17 @@ body.theme-retro .free-area .muted {
     line-height: 1.4;
     padding: 0 10px;
     width: 100%;
+}
+
+
+/* Local: retro.css ou style.css */
+
+/* Usamos 'body.theme-retro' antes da classe para ganhar a disputa de prioridade */
+body.theme-retro .spectator-name {
+    font-size: 0.6em !important; /* Agora este valor vencerá o 0.41em genérico */
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    display: inline-block;
+    margin-left: 10px;
 }
