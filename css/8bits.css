@@ -312,3 +312,10 @@ body.theme-retro .spectator-name {
     display: inline-block;
     margin-left: 10px;
 }
+
+
+/* Garante que o botão de espectador suma quando o JS mandar, 
+   mesmo que outras regras tentem forçar o flex/block */
+body.theme-retro .spectatorBtn[style*="display: none"] {
+    display: none !important;
+}
