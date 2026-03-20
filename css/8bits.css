@@ -1,5 +1,5 @@
 /* =======================================================
-   === TEMA RETRÔ (Game Boy Style) ===
+   === TEMA 8bits (Game Boy Style) ===
    ======================================================= */
 
 body.theme-retro {
@@ -12,7 +12,6 @@ body.theme-retro {
     --active: #e0f8cf !important;
     --muted: rgba(134, 192, 108, 0.4) !important;
 }
-
 
 /* --- 2. TIPOGRAFIA GLOBAL RETRÔ --- */
 
@@ -266,4 +265,31 @@ body.theme-retro #applyDeckConfigBtn:disabled {
     color: var(--muted) !important;
     border-color: var(--muted) !important;
     opacity: 0.6;
+}
+
+/* Aplica o verde apenas em ícones pequenos, ignorando as cartas de regras */
+body.theme-retro img:not(.player-avatar):not(.flip-card img) {
+    filter: brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(50deg) !important;
+}
+
+/* Garante que as imagens de regras mantenham suas cores originais */
+body.theme-retro .flip-card img {
+    filter: none !important;
+    image-rendering: auto;
+    /* Opcional: remove o efeito pixelado em fotos complexas */
+}
+
+/* Local: retro.css ou seção body.theme-retro do style.css */
+
+body.theme-retro .free-area .muted {
+    /* Diminui o tamanho do texto original (que era 0.41em ou 0.42em) */
+    font-size: 0.35em !important;
+
+    /* Melhora o espaçamento entre letras para compensar o tamanho menor */
+    letter-spacing: 0px;
+
+    /* Garante que o texto fique centralizado e com margens controladas */
+    line-height: 1.4;
+    padding: 0 10px;
+    width: 100%;
 }
