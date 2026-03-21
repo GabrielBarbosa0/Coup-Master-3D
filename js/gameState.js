@@ -400,7 +400,12 @@ function joinGame() {
   });
 }
 
+// --- SISTEMA DE CONEXÃO E INICIALIZAÇÃO ---
 function initializeGame() {
+  // 1. PRIMEIRO: Cria a interface física (Modais, áreas de jogadores, etc.)
+  if (typeof setupUI === "function") setupUI();
+
+  // 2. DEPOIS: Configura o ouvinte do Firebase
   gameStateRef.on('value', (snapshot) => {
     const state = snapshot.val();
     if (state) {
@@ -409,21 +414,20 @@ function initializeGame() {
         playSound(state.lastSFX.id);
       }
       localGameState = state;
-      // renderAll() é chamada aqui, ela ficará no ui.js
       if (typeof renderAll === "function") {
-        renderAll();
+        renderAll(); // Agora ele sempre encontrará as divs criadas pelo setupUI
       }
     }
   });
 
   joinGame();
-  setupNotificationListener(); // [ADICIONE ESTA LINHA AQUI]
-
-  // As funções de UI ficarão no ui.js
-  if (typeof setupUI === "function") setupUI();
+  setupNotificationListener();
   if (typeof setupDropzones === "function") setupDropzones();
   if (typeof setupAutoScroll === "function") setupAutoScroll();
 }
+
+
+
 
 // Inicia o jogo quando o Firebase Auth confirmar o login
 auth.onAuthStateChanged((user) => {

@@ -68,6 +68,18 @@ const updateAllCardImages = () => {
   });
 };
 
+// --- SISTEMA DE HIERARQUIA E SUCESSÃO (HOST) ---
+function isLocalPlayerHost() {
+  if (!localGameState || !localGameState.players) return false;
+
+  // Encontra o menor ID que está online
+  for (let i = 1; i <= 10; i++) {
+    if (localGameState.players[i] && localGameState.players[i].online) {
+      return i === myPlayerId; // Retorna true se VOCÊ for o menor ID online
+    }
+  }
+  return false;
+}
 
 function createCardElement(card) {
   const el = document.createElement('div');
@@ -75,7 +87,6 @@ function createCardElement(card) {
   el.draggable = true;
   el.dataset.cardId = card.id;
 
-  // Local: ui.js -> Lógica de Imagem Dinâmica
   const isRetro = document.body.classList.contains('theme-retro');
   const suffix = isRetro ? '-retro' : '';
 
@@ -116,9 +127,18 @@ function createCardElement(card) {
   return el;
 }
 
+
+// --- FUNÇÕES DE RENDERIZAÇÃO ---
 function renderAll() {
   const state = localGameState;
   if (!state || !state.players) return;
+
+  // Verificação de segurança: se o container estiver vazio, força a criação
+  const container = document.getElementById('playerHandsContainer');
+  if (container && container.innerHTML === '') {
+    console.log("Container vazio detectado no renderAll, criando áreas...");
+    createPlayerAreas();
+  }
 
   // --- LÓGICA DO BOTÃO FANTASMA (ESPECTADOR) ---
   const spectatorBtn = document.getElementById('spectatorBtn');
@@ -174,6 +194,28 @@ function renderAll() {
     }
   }
 
+
+  // --- CONTROLE DE ACESSO ADMINISTRATIVO DO TABULEIRO ---
+  const iamHost = isLocalPlayerHost();
+
+  // Botão Reset
+  if (resetBtn) resetBtn.style.display = iamHost ? 'block' : 'none';
+
+  // Botão Configurar Baralho (dentro do modal de settings)
+  const openDeckConfigBtn = document.getElementById('openDeckConfigBtn');
+  if (openDeckConfigBtn) openDeckConfigBtn.style.display = iamHost ? 'block' : 'none';
+
+  // Botão Adicionar Bot
+  const addBotBtn = document.getElementById('addBotBtn');
+  if (addBotBtn) addBotBtn.style.display = iamHost ? 'flex' : 'none';
+
+  // Botões de Remover Jogador (X)
+  document.querySelectorAll('.remove-player').forEach(btn => {
+    btn.style.display = iamHost ? 'block' : 'none';
+  });
+
+
+
   clearDOM();
 
   for (let pid = 1; pid <= 10; pid++) {
@@ -223,8 +265,6 @@ function renderAll() {
       const isProtestant = rel === 'protestante';
 
       // Atualiza o Texto e o Ícone
-      // DICA: Se a imagem não aparecer, o texto pode sumir. 
-      // Certifique-se que shield-sword.svg e shield-cross.svg existem em /img.
       const icon = isProtestant ? 'shield-sword.svg' : 'shield-cross.svg';
       const text = isProtestant ? 'Protestante' : 'Católico';
 
@@ -254,7 +294,8 @@ function renderAll() {
     scoreEl.textContent = player.score || 0;
   }
 
-  // --- [ADICIONE O INDICADOR AQUI] ---
+
+  // --- INDICADOR VISUAL DE ALVO DE ESPECTADOR ---
   for (let pid = 1; pid <= 10; pid++) {
     const player = state.players[pid];
     const playerEl = document.getElementById(`player-${pid}`);
@@ -376,8 +417,8 @@ function setupAutoScroll() {
 // =======================================================
 
 function setupUI() {
-
-  createPlayerAreas();
+  c
+  reatePlayerAreas();
 
   // Local: ui.js -> dentro de setupUI()
   function createPlayerAreas() {
