@@ -80,7 +80,14 @@ function triggerSound(soundId) {
 // === AÇÕES DE CARTAS E BARALHO ===
 // =======================================================
 
+// --- SEGURANÇA DE AÇÕES ADMINISTRATIVAS ---
 function resetTable(newConfig = null) {
+  // Verificação extra de segurança no lado do cliente
+  if (myPlayerId !== null && !isLocalPlayerHost()) {
+    alert("Apenas o Host pode resetar a mesa.");
+    return;
+  }
+
   updateRoomActivity();
   console.log("Resetando a mesa...");
   triggerSound('8-bit-start');
@@ -254,7 +261,7 @@ function updateScore(pid, amount) {
 
 function updateAsylumScore(amount) {
   triggerSound('coin');
-  updateRoomActivity();
+    updateRoomActivity();
   const scoreRef = db.ref(`salas/${roomCode}/gameState/asylumScore`);
   scoreRef.once('value', (snapshot) => {
     let newScore = (snapshot.val() || 0) + amount;
@@ -263,19 +270,12 @@ function updateAsylumScore(amount) {
   });
 }
 
-
 function toggleReligion(pid) {
-  const player = localGameState.players[pid];
-  if (!player) return;
-
-  const currentRel = (player.religion || 'catolico').toLowerCase();
-  const newRel = (currentRel === 'protestante') ? 'catolico' : 'protestante';
-
-  // CORREÇÃO: Usando o som de papel/carta em vez de moeda
-  playSound('paper'); 
-
-  // Caminho correto para disparar a atualização visual no ui.js
-  db.ref(`salas/${roomCode}/gameState/players/${pid}/religion`).set(newRel);
+  triggerSound('paper');
+  const religionRef = db.ref(`salas/${roomCode}/gameState/players/${pid}/religion`);
+  religionRef.transaction((currentReligion) => {
+    return (currentReligion === 'catolico') ? 'protestante' : 'catolico';
+  });
 }
 
 function addBot() {
@@ -400,12 +400,7 @@ function joinGame() {
   });
 }
 
-// --- SISTEMA DE CONEXÃO E INICIALIZAÇÃO ---
 function initializeGame() {
-  // 1. PRIMEIRO: Cria a interface física (Modais, áreas de jogadores, etc.)
-  if (typeof setupUI === "function") setupUI();
-
-  // 2. DEPOIS: Configura o ouvinte do Firebase
   gameStateRef.on('value', (snapshot) => {
     const state = snapshot.val();
     if (state) {
@@ -414,20 +409,21 @@ function initializeGame() {
         playSound(state.lastSFX.id);
       }
       localGameState = state;
+      // renderAll() é chamada aqui, ela ficará no ui.js
       if (typeof renderAll === "function") {
-        renderAll(); // Agora ele sempre encontrará as divs criadas pelo setupUI
+        renderAll();
       }
     }
   });
 
   joinGame();
-  setupNotificationListener();
+  setupNotificationListener(); // [ADICIONE ESTA LINHA AQUI]
+
+  // As funções de UI ficarão no ui.js
+  if (typeof setupUI === "function") setupUI();
   if (typeof setupDropzones === "function") setupDropzones();
   if (typeof setupAutoScroll === "function") setupAutoScroll();
 }
-
-
-
 
 // Inicia o jogo quando o Firebase Auth confirmar o login
 auth.onAuthStateChanged((user) => {

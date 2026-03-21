@@ -68,18 +68,6 @@ const updateAllCardImages = () => {
   });
 };
 
-// --- SISTEMA DE HIERARQUIA E SUCESSÃO (HOST) ---
-function isLocalPlayerHost() {
-  if (!localGameState || !localGameState.players) return false;
-
-  // Encontra o menor ID que está online
-  for (let i = 1; i <= 10; i++) {
-    if (localGameState.players[i] && localGameState.players[i].online) {
-      return i === myPlayerId; // Retorna true se VOCÊ for o menor ID online
-    }
-  }
-  return false;
-}
 
 function createCardElement(card) {
   const el = document.createElement('div');
@@ -87,6 +75,7 @@ function createCardElement(card) {
   el.draggable = true;
   el.dataset.cardId = card.id;
 
+  // Local: ui.js -> Lógica de Imagem Dinâmica
   const isRetro = document.body.classList.contains('theme-retro');
   const suffix = isRetro ? '-retro' : '';
 
@@ -127,20 +116,59 @@ function createCardElement(card) {
   return el;
 }
 
+// --- SISTEMA DE HIERARQUIA E SUCESSÃO (HOST) ---
+function isLocalPlayerHost() {
+  if (!localGameState || !localGameState.players) return false;
+
+  for (let i = 1; i <= 10; i++) {
+    const p = localGameState.players[i];
+
+    // FILTRO: Só considera o jogador se ele estiver online E não for um bot
+    // Bots no sistema começam com o UID 'bot-'
+    if (p && p.online && p.uid && !p.uid.startsWith('bot-')) {
+      return i === myPlayerId;
+    }
+  }
+  return false;
+}
+
+
 
 // --- FUNÇÕES DE RENDERIZAÇÃO ---
 function renderAll() {
   const state = localGameState;
   if (!state || !state.players) return;
 
-  // Verificação de segurança: se o container estiver vazio, força a criação
-  const container = document.getElementById('playerHandsContainer');
-  if (container && container.innerHTML === '') {
-    console.log("Container vazio detectado no renderAll, criando áreas...");
-    createPlayerAreas();
+  // --- CONTROLE DE ACESSO ADMINISTRATIVO ---
+  const iamHost = isLocalPlayerHost();
+
+  // Exibe botões apenas para o Host
+  if (resetBtn) resetBtn.style.display = iamHost ? 'block' : 'none';
+
+  const addBotBtn = document.getElementById('addBotBtn');
+  if (addBotBtn) addBotBtn.style.display = iamHost ? 'flex' : 'none';
+
+  const applyDeckConfigBtn = document.getElementById('applyDeckConfigBtn');
+  if (applyDeckConfigBtn) {
+    applyDeckConfigBtn.disabled = !iamHost;
+    applyDeckConfigBtn.style.background = iamHost ? '' : '#555';
+    applyDeckConfigBtn.textContent = iamHost ? 'Aplicar e Resetar Jogo' : 'Apenas o Host pode aplicar';
   }
 
-  // --- LÓGICA DO BOTÃO FANTASMA (ESPECTADOR) ---
+  // Bloqueia inputs de configuração para convidados
+  document.querySelectorAll('.card-config-item input').forEach(input => {
+    input.disabled = !iamHost;
+  });
+
+  // Mostra botão de expulsar (X) apenas para o Host
+  document.querySelectorAll('.remove-player').forEach(btn => {
+    btn.style.display = iamHost ? 'block' : 'none';
+  });
+
+
+
+
+  // --- LÓGICA DO MODO ESPECTADOR ---
   const spectatorBtn = document.getElementById('spectatorBtn');
   const spectatorModal = document.getElementById('spectatorModal');
   const spectatorList = document.getElementById('spectator-list');
@@ -194,28 +222,6 @@ function renderAll() {
     }
   }
 
-
-  // --- CONTROLE DE ACESSO ADMINISTRATIVO DO TABULEIRO ---
-  const iamHost = isLocalPlayerHost();
-
-  // Botão Reset
-  if (resetBtn) resetBtn.style.display = iamHost ? 'block' : 'none';
-
-  // Botão Configurar Baralho (dentro do modal de settings)
-  const openDeckConfigBtn = document.getElementById('openDeckConfigBtn');
-  if (openDeckConfigBtn) openDeckConfigBtn.style.display = iamHost ? 'block' : 'none';
-
-  // Botão Adicionar Bot
-  const addBotBtn = document.getElementById('addBotBtn');
-  if (addBotBtn) addBotBtn.style.display = iamHost ? 'flex' : 'none';
-
-  // Botões de Remover Jogador (X)
-  document.querySelectorAll('.remove-player').forEach(btn => {
-    btn.style.display = iamHost ? 'block' : 'none';
-  });
-
-
-
   clearDOM();
 
   for (let pid = 1; pid <= 10; pid++) {
@@ -256,23 +262,19 @@ function renderAll() {
     nameTxt.textContent = player.name || `Jogador ${pid}`;
     playerEl.style.opacity = player.online ? '1' : '0.5';
 
-
-
-
     const religionEl = playerEl.querySelector('.religion-status');
     if (religionEl) {
-      const rel = (player.religion || 'catolico').toLowerCase();
-      const isProtestant = rel === 'protestante';
+      let iconFile = player.religion === 'protestante' ? 'shield-sword.svg' : 'shield-cross.svg';
+      let religionText = player.religion === 'protestante' ? 'Protestante' : 'Católico';
+      religionEl.innerHTML = `<img src="img/${iconFile}" class="religion-icon"> ${religionText}`;
 
-      // Atualiza o Texto e o Ícone
-      const icon = isProtestant ? 'shield-sword.svg' : 'shield-cross.svg';
-      const text = isProtestant ? 'Protestante' : 'Católico';
-
-      religionEl.innerHTML = `<img src="img/${icon}" class="religion-icon"> ${text}`;
-
-      // TROCA DE CLASSES (Importante para a cor)
-      religionEl.classList.remove('catolico', 'protestante');
-      religionEl.classList.add(rel);
+      if (player.religion === 'protestante') {
+        religionEl.classList.remove('catolico');
+        religionEl.classList.add('protestante');
+      } else {
+        religionEl.classList.remove('protestante');
+        religionEl.classList.add('catolico');
+      }
     }
 
     player.hand?.forEach((card) => {
@@ -294,8 +296,7 @@ function renderAll() {
     scoreEl.textContent = player.score || 0;
   }
 
-
-  // --- INDICADOR VISUAL DE ALVO DE ESPECTADOR ---
+  // --- [ADICIONE O INDICADOR AQUI] ---
   for (let pid = 1; pid <= 10; pid++) {
     const player = state.players[pid];
     const playerEl = document.getElementById(`player-${pid}`);
@@ -417,61 +418,6 @@ function setupAutoScroll() {
 // =======================================================
 
 function setupUI() {
-  c
-  reatePlayerAreas();
-
-  // Local: ui.js -> dentro de setupUI()
-  function createPlayerAreas() {
-    const container = document.getElementById('playerHandsContainer');
-    if (!container) return;
-    container.innerHTML = '';
-
-    for (let i = 1; i <= 10; i++) {
-      const playerArea = document.createElement('div');
-      playerArea.className = 'player-area';
-      playerArea.id = `player-${i}`;
-      playerArea.dataset.player = i;
-      playerArea.style.display = 'none';
-
-      // O HTML inicial agora é apenas um esqueleto; o renderAll preencherá o resto
-      playerArea.innerHTML = `
-            <button class="remove-player" title="Remover Jogador"></button>
-            <div class="player-title">Jogador ${i}</div>
-            <div class="points">
-              <button class="minus">-</button>
-              <div class="score">0</div>
-              <button class="plus">+</button>
-            </div>
-            <div class="religion-status">Carregando...</div>
-            <div class="player-stack hand" data-hand></div>
-        `;
-
-      // Atribuição ÚNICA de eventos. Remova qualquer addEventListener externo a esta função!
-      playerArea.querySelector('.remove-player').onclick = () => kickPlayer(i);
-      playerArea.querySelector('.plus').onclick = () => updateScore(i, 1);
-      playerArea.querySelector('.minus').onclick = () => updateScore(i, -1);
-      playerArea.querySelector('.religion-status').onclick = () => toggleReligion(i);
-
-      container.appendChild(playerArea);
-    }
-  }
-
-  // Função auxiliar para garantir que os botões funcionem
-  function setupDynamicEvents() {
-    document.querySelectorAll('.plus').forEach(btn => {
-      btn.onclick = () => updateScore(btn.dataset.pid, 1);
-    });
-    document.querySelectorAll('.minus').forEach(btn => {
-      btn.onclick = () => updateScore(btn.dataset.pid, -1);
-    });
-    document.querySelectorAll('.religion-status').forEach(div => {
-      div.onclick = () => toggleReligion(div.dataset.pid);
-    });
-    document.querySelectorAll('.remove-player').forEach(btn => {
-      btn.onclick = () => kickPlayer(btn.dataset.pid);
-    });
-  }
-
 
   if (resetBtn) resetBtn.onclick = () => { if (confirm("Resetar mesa?")) resetTable(); };
 
@@ -690,6 +636,16 @@ function setupUI() {
       };
     }
   }
+
+  document.querySelectorAll('.player-area').forEach(area => {
+    const pid = parseInt(area.dataset.player);
+    const removeBtn = area.querySelector('.remove-player');
+    if (removeBtn) removeBtn.addEventListener('click', () => kickPlayer(pid));
+    const religionEl = area.querySelector('.religion-status');
+    if (religionEl) religionEl.addEventListener('click', () => toggleReligion(pid));
+    area.querySelector('.plus').addEventListener('click', () => updateScore(pid, 1));
+    area.querySelector('.minus').addEventListener('click', () => updateScore(pid, -1));
+  });
 
 
   if (document.getElementById('asylum-plus')) {
