@@ -254,7 +254,7 @@ function updateScore(pid, amount) {
 
 function updateAsylumScore(amount) {
   triggerSound('coin');
-    updateRoomActivity();
+  updateRoomActivity();
   const scoreRef = db.ref(`salas/${roomCode}/gameState/asylumScore`);
   scoreRef.once('value', (snapshot) => {
     let newScore = (snapshot.val() || 0) + amount;
@@ -263,12 +263,19 @@ function updateAsylumScore(amount) {
   });
 }
 
+
 function toggleReligion(pid) {
-  triggerSound('paper');
-  const religionRef = db.ref(`salas/${roomCode}/gameState/players/${pid}/religion`);
-  religionRef.transaction((currentReligion) => {
-    return (currentReligion === 'catolico') ? 'protestante' : 'catolico';
-  });
+  const player = localGameState.players[pid];
+  if (!player) return;
+
+  const currentRel = (player.religion || 'catolico').toLowerCase();
+  const newRel = (currentRel === 'protestante') ? 'catolico' : 'protestante';
+
+  // CORREÇÃO: Usando o som de papel/carta em vez de moeda
+  playSound('paper'); 
+
+  // Caminho correto para disparar a atualização visual no ui.js
+  db.ref(`salas/${roomCode}/gameState/players/${pid}/religion`).set(newRel);
 }
 
 function addBot() {

@@ -214,19 +214,25 @@ function renderAll() {
     nameTxt.textContent = player.name || `Jogador ${pid}`;
     playerEl.style.opacity = player.online ? '1' : '0.5';
 
+
+
+
     const religionEl = playerEl.querySelector('.religion-status');
     if (religionEl) {
-      let iconFile = player.religion === 'protestante' ? 'shield-sword.svg' : 'shield-cross.svg';
-      let religionText = player.religion === 'protestante' ? 'Protestante' : 'Católico';
-      religionEl.innerHTML = `<img src="img/${iconFile}" class="religion-icon"> ${religionText}`;
+      const rel = (player.religion || 'catolico').toLowerCase();
+      const isProtestant = rel === 'protestante';
 
-      if (player.religion === 'protestante') {
-        religionEl.classList.remove('catolico');
-        religionEl.classList.add('protestante');
-      } else {
-        religionEl.classList.remove('protestante');
-        religionEl.classList.add('catolico');
-      }
+      // Atualiza o Texto e o Ícone
+      // DICA: Se a imagem não aparecer, o texto pode sumir. 
+      // Certifique-se que shield-sword.svg e shield-cross.svg existem em /img.
+      const icon = isProtestant ? 'shield-sword.svg' : 'shield-cross.svg';
+      const text = isProtestant ? 'Protestante' : 'Católico';
+
+      religionEl.innerHTML = `<img src="img/${icon}" class="religion-icon"> ${text}`;
+
+      // TROCA DE CLASSES (Importante para a cor)
+      religionEl.classList.remove('catolico', 'protestante');
+      religionEl.classList.add(rel);
     }
 
     player.hand?.forEach((card) => {
@@ -370,44 +376,43 @@ function setupAutoScroll() {
 // =======================================================
 
 function setupUI() {
-  
+
   createPlayerAreas();
 
+  // Local: ui.js -> dentro de setupUI()
   function createPlayerAreas() {
     const container = document.getElementById('playerHandsContainer');
     if (!container) return;
-
-    container.innerHTML = ''; // Limpa lixo residual
+    container.innerHTML = '';
 
     for (let i = 1; i <= 10; i++) {
       const playerArea = document.createElement('div');
       playerArea.className = 'player-area';
       playerArea.id = `player-${i}`;
       playerArea.dataset.player = i;
-
-      // IMPORTANTE: Deixe como 'none' inicialmente, 
-      // o renderAll() vai mudar para 'block' ou 'flex' quando houver jogadores na sala.
       playerArea.style.display = 'none';
 
-      const defaultRel = (i === 10) ? 'Protestante' : 'Católico';
-
+      // O HTML inicial agora é apenas um esqueleto; o renderAll preencherá o resto
       playerArea.innerHTML = `
-            <button class="remove-player" data-pid="${i}" title="Remover Jogador"></button>
+            <button class="remove-player" title="Remover Jogador"></button>
             <div class="player-title">Jogador ${i}</div>
             <div class="points">
-              <button class="minus" data-pid="${i}">-</button>
-              <div class="score" data-score="0">0</div>
-              <button class="plus" data-pid="${i}">+</button>
+              <button class="minus">-</button>
+              <div class="score">0</div>
+              <button class="plus">+</button>
             </div>
-            <div class="religion-status" data-pid="${i}">${defaultRel}</div>
+            <div class="religion-status">Carregando...</div>
             <div class="player-stack hand" data-hand></div>
         `;
 
+      // Atribuição ÚNICA de eventos. Remova qualquer addEventListener externo a esta função!
+      playerArea.querySelector('.remove-player').onclick = () => kickPlayer(i);
+      playerArea.querySelector('.plus').onclick = () => updateScore(i, 1);
+      playerArea.querySelector('.minus').onclick = () => updateScore(i, -1);
+      playerArea.querySelector('.religion-status').onclick = () => toggleReligion(i);
+
       container.appendChild(playerArea);
     }
-
-    // Após criar, precisamos religar os eventos que o HTML estático tinha
-    setupDynamicEvents();
   }
 
   // Função auxiliar para garantir que os botões funcionem
@@ -644,16 +649,6 @@ function setupUI() {
       };
     }
   }
-
-  document.querySelectorAll('.player-area').forEach(area => {
-    const pid = parseInt(area.dataset.player);
-    const removeBtn = area.querySelector('.remove-player');
-    if (removeBtn) removeBtn.addEventListener('click', () => kickPlayer(pid));
-    const religionEl = area.querySelector('.religion-status');
-    if (religionEl) religionEl.addEventListener('click', () => toggleReligion(pid));
-    area.querySelector('.plus').addEventListener('click', () => updateScore(pid, 1));
-    area.querySelector('.minus').addEventListener('click', () => updateScore(pid, -1));
-  });
 
 
   if (document.getElementById('asylum-plus')) {
