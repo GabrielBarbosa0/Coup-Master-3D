@@ -652,14 +652,26 @@ function setupUI() {
     }
   }
 
+  // --- EVENTOS DE CLIQUE DOS JOGADORES (CORRIGIDO) ---
   document.querySelectorAll('.player-area').forEach(area => {
     const pid = parseInt(area.dataset.player);
+    
+    // Botão de Kick (já estava correto com .onclick)
     const removeBtn = area.querySelector('.remove-player');
-    if (removeBtn) removeBtn.addEventListener('click', () => kickPlayer(pid));
+    if (removeBtn) removeBtn.onclick = () => kickPlayer(pid);
+
+    // Religião (Trocado addEventListener por .onclick para evitar duplo clique)
     const religionEl = area.querySelector('.religion-status');
-    if (religionEl) religionEl.addEventListener('click', () => toggleReligion(pid));
-    area.querySelector('.plus').addEventListener('click', () => updateScore(pid, 1));
-    area.querySelector('.minus').addEventListener('click', () => updateScore(pid, -1));
+    if (religionEl) {
+      religionEl.onclick = () => toggleReligion(pid);
+    }
+
+    // Pontos (Trocado addEventListener por .onclick)
+    const plusBtn = area.querySelector('.plus');
+    const minusBtn = area.querySelector('.minus');
+    
+    if (plusBtn) plusBtn.onclick = () => updateScore(pid, 1);
+    if (minusBtn) minusBtn.onclick = () => updateScore(pid, -1);
   });
 
 
