@@ -142,12 +142,20 @@ function renderAll() {
   // --- CONTROLE DE ACESSO ADMINISTRATIVO ---
   const iamHost = isLocalPlayerHost();
 
-  // Exibe botões apenas para o Host
+  // Botão Reset
   if (resetBtn) resetBtn.style.display = iamHost ? 'block' : 'none';
 
+  // Linha Completa de Adicionar Bot (Texto + Botão)
   const addBotBtn = document.getElementById('addBotBtn');
-  if (addBotBtn) addBotBtn.style.display = iamHost ? 'flex' : 'none';
+  if (addBotBtn) {
+    // O .closest('.setting-row') garante que o rótulo "Adicionar Bot:" também suma
+    const botRow = addBotBtn.closest('.setting-row');
+    if (botRow) {
+      botRow.style.display = iamHost ? 'flex' : 'none';
+    }
+  }
 
+  // Botão Aplicar Configuração de Baralho
   const applyDeckConfigBtn = document.getElementById('applyDeckConfigBtn');
   if (applyDeckConfigBtn) {
     applyDeckConfigBtn.disabled = !iamHost;
@@ -164,8 +172,6 @@ function renderAll() {
   document.querySelectorAll('.remove-player').forEach(btn => {
     btn.style.display = iamHost ? 'block' : 'none';
   });
-
-
 
 
   // --- LÓGICA DO MODO ESPECTADOR ---

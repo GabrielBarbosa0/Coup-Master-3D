@@ -700,8 +700,8 @@ body.hide-religion .decks-wrapper {
 }
 
 .slot {
-    width: 96px;
-    height: 136px;
+    /* width: 96px;
+    height: 136px; */
     border-radius: 10px;
     display: flex;
     align-items: center;
