@@ -261,7 +261,7 @@ function updateScore(pid, amount) {
 
 function updateAsylumScore(amount) {
   triggerSound('coin');
-    updateRoomActivity();
+  updateRoomActivity();
   const scoreRef = db.ref(`salas/${roomCode}/gameState/asylumScore`);
   scoreRef.once('value', (snapshot) => {
     let newScore = (snapshot.val() || 0) + amount;
@@ -401,15 +401,26 @@ function joinGame() {
 }
 
 function initializeGame() {
+  // Flag para ignorar o som que já estava gravado no Firebase ao entrar
+  let isFirstLoad = true;
+
   gameStateRef.on('value', (snapshot) => {
     const state = snapshot.val();
     if (state) {
-      if (state.lastSFX && state.lastSFX.timestamp > lastSoundTimestamp) {
-        lastSoundTimestamp = state.lastSFX.timestamp;
-        playSound(state.lastSFX.id);
+      // Sincronização de sons
+      if (state.lastSFX) {
+        if (isFirstLoad) {
+          // Na primeira carga, apenas igualamos o tempo para não tocar o som antigo
+          lastSoundTimestamp = state.lastSFX.timestamp;
+          isFirstLoad = false;
+        } else if (state.lastSFX.timestamp > lastSoundTimestamp) {
+          // Só toca se o som for realmente novo (gerado após você entrar)
+          lastSoundTimestamp = state.lastSFX.timestamp;
+          playSound(state.lastSFX.id);
+        }
       }
+
       localGameState = state;
-      // renderAll() é chamada aqui, ela ficará no ui.js
       if (typeof renderAll === "function") {
         renderAll();
       }
@@ -417,12 +428,18 @@ function initializeGame() {
   });
 
   joinGame();
-  setupNotificationListener(); // [ADICIONE ESTA LINHA AQUI]
+  setupNotificationListener();
 
-  // As funções de UI ficarão no ui.js
   if (typeof setupUI === "function") setupUI();
   if (typeof setupDropzones === "function") setupDropzones();
   if (typeof setupAutoScroll === "function") setupAutoScroll();
+
+
+
+// As funções de UI ficarão no ui.js
+if (typeof setupUI === "function") setupUI();
+if (typeof setupDropzones === "function") setupDropzones();
+if (typeof setupAutoScroll === "function") setupAutoScroll();
 }
 
 // Inicia o jogo quando o Firebase Auth confirmar o login
