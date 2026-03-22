@@ -372,10 +372,14 @@ function setupDropzones() {
   };
 }
 
+
+
 // =======================================================
-// === EFEITOS VISUAIS ===
+// === EFEITOS VISUAIS  ===
 // =======================================================
 
+
+// EFEITOS VISUAIS (BALATRO)
 function attachBalatroEffect(element, isDeck = false) {
   if (!element) return;
 
@@ -389,19 +393,24 @@ function attachBalatroEffect(element, isDeck = false) {
     const centerY = rect.height / 2;
 
     const sensitivity = 5;
-
     const rotateX = -(y - centerY) / sensitivity;
     const rotateY = (x - centerX) / sensitivity;
 
+    // Detecta se o tema retro está ativo no momento
+    const isRetro = document.body.classList.contains('theme-retro');
+    
     let shadowColor;
     if (isDeck) {
-      shadowColor = 'rgba(0, 191, 255, 0.2)';
+      // Azul claro no tema normal, Verde vibrante no tema retro
+      shadowColor = isRetro ? 'rgba(0, 255, 100, 0.4)' : 'rgba(0, 191, 255, 0.3)';
     } else {
-      shadowColor = 'rgba(255, 200, 80, 0.15)';
+      // Dourado no tema normal, Verde suave no tema retro
+      shadowColor = isRetro ? 'rgba(0, 255, 0, 0.2)' : 'rgba(0, 191, 255, 0.3)';
     }
 
     element.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.08)`;
-    element.style.boxShadow = `${-rotateY * 1.5}px ${rotateX * 1.5}px 12px ${shadowColor}`;
+    // Aumentei levemente a intensidade do brilho (15px) para destacar o neon
+    element.style.boxShadow = `${-rotateY * 1.5}px ${rotateX * 1.5}px 15px ${shadowColor}`;
   });
 
   element.addEventListener('mouseleave', () => {

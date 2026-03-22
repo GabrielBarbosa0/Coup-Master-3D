@@ -42,7 +42,7 @@ body.theme-retro p,
 body.theme-retro span,
 body.theme-retro .religion-status,
 body.theme-retro .score {
-    font-size: 0.41em !important;
+    font-size: 0.36em !important;
     line-height: 1.8;
 }
 
@@ -66,6 +66,26 @@ body.theme-retro header.copied {
     border-style: solid !important;
     border-color: var(--text) !important;
     box-shadow: 0 0 15px rgba(134, 192, 108, 0.4);
+}
+
+
+/* --- CORREÇÃO DE CENTRALIZAÇÃO E PERMISSÃO DO RESET RETRÔ --- */
+
+/* Esta regra só aplica o flex se o botão NÃO estiver marcado como 'display: none' pelo JS */
+body.theme-retro .resetBtn:not([style*="display: none"]) {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    padding: 0 !important;
+}
+
+/* Garante que o ícone fique no tamanho certo sem padding */
+body.theme-retro .resetBtn img {
+    margin: 0 !important;
+    display: block !important;
+    width: 18px !important;
+    height: 18px !important;
 }
 
 /* --- 4. ELEMENTOS DO TABULEIRO (CARDS, DECK, ASILO) --- */
