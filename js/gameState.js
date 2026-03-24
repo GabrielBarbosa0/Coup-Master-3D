@@ -407,39 +407,35 @@ function initializeGame() {
   gameStateRef.on('value', (snapshot) => {
     const state = snapshot.val();
     if (state) {
-      // Sincronização de sons
+      // 1. Sincronização de sons (Evita o "susto" ao entrar ou dar F5)
       if (state.lastSFX) {
         if (isFirstLoad) {
-          // Na primeira carga, apenas igualamos o tempo para não tocar o som antigo
+          // Apenas sincroniza o tempo no primeiro carregamento sem tocar áudio
           lastSoundTimestamp = state.lastSFX.timestamp;
           isFirstLoad = false;
         } else if (state.lastSFX.timestamp > lastSoundTimestamp) {
-          // Só toca se o som for realmente novo (gerado após você entrar)
+          // Toca apenas sons gerados após a conexão do jogador
           lastSoundTimestamp = state.lastSFX.timestamp;
           playSound(state.lastSFX.id);
         }
       }
 
+      // 2. Atualização do Estado e Renderização Reativa
       localGameState = state;
       if (typeof renderAll === "function") {
-        renderAll();
+        renderAll(); // Garante que bots e ações apareçam instantaneamente para todos
       }
     }
   });
 
+  // 3. Inicialização de conexões e listeners
   joinGame();
   setupNotificationListener();
 
+  // 4. Configuração única da Interface (Chamadas uma única vez)
   if (typeof setupUI === "function") setupUI();
   if (typeof setupDropzones === "function") setupDropzones();
   if (typeof setupAutoScroll === "function") setupAutoScroll();
-
-
-
-// As funções de UI ficarão no ui.js
-if (typeof setupUI === "function") setupUI();
-if (typeof setupDropzones === "function") setupDropzones();
-if (typeof setupAutoScroll === "function") setupAutoScroll();
 }
 
 // Inicia o jogo quando o Firebase Auth confirmar o login
