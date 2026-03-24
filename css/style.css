@@ -1167,8 +1167,6 @@ body.hide-religion .decks-wrapper {
 /* ////////////////////////////////////////////////////////////////////// */
 
 
-
-
 /* =======================================================
        === 16. VERSÃO PC OTIMIZADA (TELAS > 1200px) ===
        ======================================================= */
@@ -1322,6 +1320,10 @@ body.hide-religion .decks-wrapper {
 
 
 
+
+
+
+
 /* =======================================================
    === VERSÃO RESPONSIVA COMPACTA (ALTURA REDUZIDA) ===
    ======================================================= */
@@ -1378,22 +1380,23 @@ body.hide-religion .decks-wrapper {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        gap: 4px !important;
-        font-size: 9px !important;
+        gap: 2px !important;
+        font-size: 6px !important;
         /* Texto pequeno, mas visível */
-        padding: 2px 8px !important;
-        min-width: 68px !important;
+        padding: 0px 1px !important;
+        min-width: 56px !important;
         /* Largura para caber o texto "Protestante" */
-        height: 18px !important;
+        height: 12px !important;
         /* Altura reduzida para não quebrar o layout */
         border-radius: 4px;
         text-transform: uppercase;
+        line-height: 0px;
     }
 
     .religion-icon {
-        width: 11px !important;
+        width: 8px !important;
         /* Ícone levemente menor que o mobile padrão */
-        height: 11px !important;
+        height: 8px !important;
         margin: 0 !important;
     }
 
@@ -1540,7 +1543,7 @@ body.hide-religion .decks-wrapper {
         /* Garante que o modal nunca seja maior que a tela */
         overflow-y: auto !important;
         /* Adiciona rolagem interna se o conteúdo ainda for grande */
-        width: 30% !important;
+        width: 40% !important;
         /* Estreita a largura para focar no centro */
     }
 
