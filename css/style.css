@@ -1298,7 +1298,7 @@ body.hide-religion .decks-wrapper {
         gap: 10px;
         width: 280px;
     }
-    
+
 
     .asylum-area,
     .deck-area {
@@ -1317,5 +1317,301 @@ body.hide-religion .decks-wrapper {
     .asylum-image {
         width: 45px;
         height: 45px;
+    }
+}
+
+
+
+/* =======================================================
+   === VERSÃO RESPONSIVA COMPACTA (ALTURA REDUZIDA) ===
+   ======================================================= */
+
+@media (max-height: 450px) {
+
+    /* --- 1. ESTRUTURA GLOBAL E HEADER --- */
+    #roomHeader,
+    header {
+        display: none !important;
+        /* Remove totalmente o cabeçalho para ganhar espaço */
+    }
+
+    .board {
+        padding: 6px;
+    }
+
+    .center-area {
+        gap: 4px;
+        /* Reduzido para aproximar os elementos */
+    }
+
+    /* --- 2. ÁREA DOS JOGADORES (PLAYERS) --- */
+    .player-hands-container {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        /* Rolagem horizontal se houver muitos jogadores */
+        gap: 8px;
+        padding-bottom: 8px;
+    }
+
+    .player-area {
+        min-width: 140px;
+        flex-shrink: 0;
+    }
+
+    .player-stack {
+        grid-template-columns: repeat(auto-fit, 40px);
+        /* Conforme seu teste de 32px */
+        gap: 0;
+    }
+
+    .points .plus,
+    .points .minus {
+        width: 14px !important;
+        height: 14px !important;
+        font-size: 10px !important;
+        line-height: 14px !important;
+    }
+
+    /* ADICIONE ESTE TRECHO NO LUGAR: */
+    .religion-status {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        font-size: 9px !important;
+        /* Texto pequeno, mas visível */
+        padding: 2px 8px !important;
+        min-width: 68px !important;
+        /* Largura para caber o texto "Protestante" */
+        height: 18px !important;
+        /* Altura reduzida para não quebrar o layout */
+        border-radius: 4px;
+        text-transform: uppercase;
+    }
+
+    .religion-icon {
+        width: 11px !important;
+        /* Ícone levemente menor que o mobile padrão */
+        height: 11px !important;
+        margin: 0 !important;
+    }
+
+    /* --- 3. CARTAS, SLOTS E DECK --- */
+    .card,
+    .slot,
+    .deck-container,
+    #deck {
+        width: 34px !important;
+        /* Tamanho final ajustado por você */
+        height: 49px !important;
+    }
+
+    /* --- 4. CONTROLES E BOTÕES DE AÇÃO --- */
+    .controls button,
+    .resetBtn,
+    .spectatorBtn,
+    .dividaBtn,
+    .controleBtn,
+    .infoBtn,
+    .shuffleBtn,
+    .configBtn,
+    .musicBtn,
+    .altRulesBtn {
+        width: 24px !important;
+        height: 24px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Ícones internos padronizados em 16px */
+    .controls button img,
+    .resetBtn img,
+    .spectatorBtn img,
+    .altRulesBtn img,
+    .infoBtn img,
+    .configBtn img,
+    .musicBtn img {
+        width: 16px !important;
+        height: 16px !important;
+        margin: 0 !important;
+        display: block;
+    }
+
+    /* Ícones específicos de Dívida/Controle (12px para melhor respiro) */
+    .dividaBtn img,
+    .controleBtn img {
+        width: 12px !important;
+        height: 12px !important;
+    }
+
+    /* --- 5. TABULEIRO INFERIOR (DECK, ASILO E CEMITÉRIO) --- */
+    .bottom-table-container {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: stretch !important;
+        /* Força todos a terem a mesma altura (thickness) */
+        gap: 8px;
+        width: 100%;
+    }
+
+    /* Padronização de "Grossura" (Padding e Gap) para Deck e Asilo */
+    .deck-area,
+    .asylum-area {
+        padding: 4px 15px !important;
+        gap: 4px !important;
+        min-width: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Ajuste específico do Cemitério (Free Area) para espelhar Deck/Asilo */
+    .free-area {
+        flex-grow: 1 !important;
+        padding: 4px 15px !important;
+        /* Mesma "grossura" de padding que os outros */
+        min-height: 60px !important;
+        /* Altura mínima para alinhar com o conjunto */
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-start;
+        align-items: center;
+        position: relative;
+    }
+
+    /* Mantém o cemitério alinhado à direita se preferir ou estendido */
+    #grave {
+        position: absolute;
+        right: 0;
+        top: 0;
+        left: auto;
+        transform: none;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    /* Elementos Internos do Asilo */
+    .asylum-image {
+        width: 26px !important;
+        height: 26px !important;
+        margin: 0 auto;
+    }
+
+    .asylum-points button {
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 12px !important;
+        line-height: 18px !important;
+    }
+
+
+    #grave {
+        position: relative !important;
+        /* Altera de absolute para relative para respeitar o flex */
+        right: auto !important;
+        display: flex;
+        justify-content: center;
+        flex: 1 !important;
+        /* Faz com que ele ocupe o mesmo espaço proporcional que o deck-wrapper */
+    }
+
+    .free-area {
+        flex-grow: 0 !important;
+        /* Remove o crescimento desenfreado */
+        width: 100% !important;
+        padding: 4px 15px !important;
+        /* O mesmo padding que você definiu para o Asilo/Deck */
+        gap: 4px !important;
+        /* O mesmo gap para manter a simetria interna */
+        min-height: 60px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 1. Redução Geral do Container do Modal */
+    .modal-content {
+        padding: 10px 20px !important;
+        /* Reduz o respiro interno */
+        max-height: 75vh !important;
+        /* Garante que o modal nunca seja maior que a tela */
+        overflow-y: auto !important;
+        /* Adiciona rolagem interna se o conteúdo ainda for grande */
+        width: 30% !important;
+        /* Estreita a largura para focar no centro */
+    }
+
+    /* 2. Ajuste de Títulos e Textos Internos */
+    .modal-content h2 {
+        font-size: 14px !important;
+        /* Fonte menor para economizar linhas */
+        margin-bottom: 8px !important;
+    }
+
+    .modal-content p,
+    .setting-row label {
+        font-size: 11px !important;
+        /* Texto de suporte e labels menores */
+    }
+
+    /* 3. Ícones e Botões dentro do Modal */
+    .modal-content .icon-btn {
+        padding: 4px 8px !important;
+        /* Achata os botões de configuração */
+        gap: 6px !important;
+    }
+
+    .modal-content .icon-btn img {
+        width: 14px !important;
+        /* Ícones internos menores */
+        height: 14px !important;
+    }
+
+    /* 4. Ajuste do Botão de Fechar (X) */
+    .close-btn {
+        width: 24px !important;
+        /* Reduz o botão de fechar para não dominar o topo */
+        height: 24px !important;
+        font-size: 16px !important;
+        line-height: 20px !important;
+        top: 5px !important;
+        right: 5px !important;
+    }
+
+    /* 1. Redução Global do Flip Card (Ações e Regras Alt) */
+    .flip-card {
+        width: 180px !important;
+        /* Reduz largura original de 300px */
+        height: 270px !important;
+        /* Reduz altura original de 450px */
+        perspective: 800px !important;
+        margin: 0 auto !important;
+    }
+
+    /* 2. Ajuste das imagens dentro do card para não distorcer */
+    .flip-card-front img,
+    .flip-card-back img {
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 12px !important;
+        /* Bordas mais suaves para o tamanho menor */
+    }
+
+    /* 3. Ajuste do container interno de transição */
+    .flip-card-inner {
+        transition: transform 0.6s !important;
+        /* Transição mais rápida para cards menores */
+    }
+
+    /* 4. Padding do modal de regras para centralizar verticalmente */
+    .modal-actions-and-rules {
+        padding: 5px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+
     }
 }

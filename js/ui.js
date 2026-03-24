@@ -674,6 +674,8 @@ function setupUI() {
     if (minusBtn) minusBtn.onclick = () => updateScore(pid, -1);
   });
 
+  
+
 
   if (document.getElementById('asylum-plus')) {
     document.getElementById('asylum-plus').onclick = () => updateAsylumScore(1);
