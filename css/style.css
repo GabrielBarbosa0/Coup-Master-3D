@@ -1328,7 +1328,7 @@ body.hide-religion .decks-wrapper {
    === VERSÃO RESPONSIVA COMPACTA (ALTURA REDUZIDA) ===
    ======================================================= */
 
-@media (max-height: 450px) {
+@media (max-height: 350px) {
 
     /* --- 1. ESTRUTURA GLOBAL E HEADER --- */
     #roomHeader,

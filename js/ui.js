@@ -116,20 +116,10 @@ function createCardElement(card) {
   return el;
 }
 
-// --- SISTEMA DE HIERARQUIA E SUCESSÃO (HOST) ---
+// --- SISTEMA DE HIERARQUIA (FIXO NO SLOT 1) ---
 function isLocalPlayerHost() {
-  if (!localGameState || !localGameState.players) return false;
-
-  for (let i = 1; i <= 10; i++) {
-    const p = localGameState.players[i];
-
-    // FILTRO: Só considera o jogador se ele estiver online E não for um bot
-    // Bots no sistema começam com o UID 'bot-'
-    if (p && p.online && p.uid && !p.uid.startsWith('bot-')) {
-      return i === myPlayerId;
-    }
-  }
-  return false;
+  // Retorna true apenas se o seu ID for 1, desativando a sucessão automática
+  return myPlayerId === 1; 
 }
 
 
