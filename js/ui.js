@@ -44,29 +44,6 @@ function shouldShowBack(card) {
   return false;
 }
 
-const updateAllCardImages = () => {
-  const isRetro = document.body.classList.contains('theme-retro');
-  const suffix = isRetro ? '-retro' : '';
-  const cardsOnTable = document.querySelectorAll('.card');
-
-  cardsOnTable.forEach(cardEl => {
-    // Se a carta NÃO estiver de costas, atualiza a frente
-    if (!cardEl.classList.contains('back')) {
-      const currentBg = cardEl.style.backgroundImage;
-      // Extrai o nome da carta (ex: duque) da URL atual
-      const cardTypeMatch = currentBg.match(/\/([a-z0-9_-]+?)(?:-retro)?\.png/i);
-
-      if (cardTypeMatch) {
-        const cardType = cardTypeMatch[1].toLowerCase();
-        cardEl.style.backgroundImage = `url('./img/${cardType}${suffix}.png')`;
-      }
-    } else {
-      // Se estiver de costas, troca entre back.png e back-retro.png
-      const backImg = isRetro ? 'back-retro.png' : 'back.png';
-      cardEl.style.backgroundImage = `url('./img/${backImg}')`;
-    }
-  });
-};
 
 
 function createCardElement(card) {
@@ -75,23 +52,13 @@ function createCardElement(card) {
   el.draggable = true;
   el.dataset.cardId = card.id;
 
-  // Local: ui.js -> Lógica de Imagem Dinâmica
-  const isRetro = document.body.classList.contains('theme-retro');
-  const suffix = isRetro ? '-retro' : '';
-
   if (shouldShowBack(card)) {
     el.classList.add('back');
-    // Se for retro, aplicamos a imagem específica para o verso pixelado
-    if (isRetro) {
-      el.style.backgroundImage = "url('./img/back-retro.png')";
-    }
   } else {
-    // Busca a arte normal ou a versão -retro.png
-    const imageUrl = `./img/${card.type.toLowerCase()}${suffix}.png`;
+    const imageUrl = `./img/${card.type.toLowerCase()}.png`;
     el.style.backgroundImage = `url('${imageUrl}')`;
   }
 
-  // Mantém os eventos de Drag and Drop e Efeitos
   el.addEventListener('dragstart', (ev) => {
     ev.dataTransfer.setData('text/plain', card.id);
     ev.dataTransfer.effectAllowed = "move";
@@ -116,55 +83,11 @@ function createCardElement(card) {
   return el;
 }
 
-// --- SISTEMA DE HIERARQUIA (FIXO NO SLOT 1) ---
-function isLocalPlayerHost() {
-  // Retorna true apenas se o seu ID for 1, desativando a sucessão automática
-  return myPlayerId === 1; 
-}
-
-
-
-// --- FUNÇÕES DE RENDERIZAÇÃO ---
 function renderAll() {
   const state = localGameState;
   if (!state || !state.players) return;
 
-  // --- CONTROLE DE ACESSO ADMINISTRATIVO ---
-  const iamHost = isLocalPlayerHost();
-
-  // Botão Reset
-  if (resetBtn) resetBtn.style.display = iamHost ? 'block' : 'none';
-
-  // Linha Completa de Adicionar Bot (Texto + Botão)
-  const addBotBtn = document.getElementById('addBotBtn');
-  if (addBotBtn) {
-    // O .closest('.setting-row') garante que o rótulo "Adicionar Bot:" também suma
-    const botRow = addBotBtn.closest('.setting-row');
-    if (botRow) {
-      botRow.style.display = iamHost ? 'flex' : 'none';
-    }
-  }
-
-  // Botão Aplicar Configuração de Baralho
-  const applyDeckConfigBtn = document.getElementById('applyDeckConfigBtn');
-  if (applyDeckConfigBtn) {
-    applyDeckConfigBtn.disabled = !iamHost;
-    applyDeckConfigBtn.style.background = iamHost ? '' : '#555';
-    applyDeckConfigBtn.textContent = iamHost ? 'Aplicar e Resetar Jogo' : 'Apenas o Host pode aplicar';
-  }
-
-  // Bloqueia inputs de configuração para convidados
-  document.querySelectorAll('.card-config-item input').forEach(input => {
-    input.disabled = !iamHost;
-  });
-
-  // Mostra botão de expulsar (X) apenas para o Host
-  document.querySelectorAll('.remove-player').forEach(btn => {
-    btn.style.display = iamHost ? 'block' : 'none';
-  });
-
-
-  // --- LÓGICA DO MODO ESPECTADOR ---
+  // --- LÓGICA DO BOTÃO FANTASMA (ESPECTADOR) ---
   const spectatorBtn = document.getElementById('spectatorBtn');
   const spectatorModal = document.getElementById('spectatorModal');
   const spectatorList = document.getElementById('spectator-list');
@@ -193,7 +116,7 @@ function renderAll() {
           btn.className = 'spectator-target-btn';
           btn.innerHTML = `
             <img src="${p.photo || 'img/coup.png'}" alt="">
-            <span class="spectator-name">${p.name || 'Jogador ' + i}</span>
+            <span>${p.name || 'Jogador ' + i}</span>
           `;
           btn.onclick = () => {
             playSound('pop');
@@ -362,14 +285,10 @@ function setupDropzones() {
   };
 }
 
-
-
 // =======================================================
-// === EFEITOS VISUAIS  ===
+// === EFEITOS VISUAIS ===
 // =======================================================
 
-
-// EFEITOS VISUAIS (BALATRO)
 function attachBalatroEffect(element, isDeck = false) {
   if (!element) return;
 
@@ -383,28 +302,23 @@ function attachBalatroEffect(element, isDeck = false) {
     const centerY = rect.height / 2;
 
     const sensitivity = 5;
+
     const rotateX = -(y - centerY) / sensitivity;
     const rotateY = (x - centerX) / sensitivity;
 
-    // Detecta se o tema retro está ativo no momento
-    const isRetro = document.body.classList.contains('theme-retro');
-    
     let shadowColor;
     if (isDeck) {
-      // Azul claro no tema normal, Verde vibrante no tema retro
-      shadowColor = isRetro ? 'rgba(0, 255, 100, 0.4)' : 'rgba(0, 191, 255, 0.3)';
+      shadowColor = 'rgba(0, 191, 255, 0.2)';
     } else {
-      // Dourado no tema normal, Verde suave no tema retro
-      shadowColor = isRetro ? 'rgba(0, 255, 0, 0.2)' : 'rgba(0, 191, 255, 0.3)';
+      shadowColor = 'rgba(0, 191, 255, 0.2)';
     }
 
-    element.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.08)`;
-    // Aumentei levemente a intensidade do brilho (15px) para destacar o neon
-    element.style.boxShadow = `${-rotateY * 1.5}px ${rotateX * 1.5}px 15px ${shadowColor}`;
+    element.style.transform = `perspective(300px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.08)`;
+    element.style.boxShadow = `${-rotateY * 1.5}px ${rotateX * 1.5}px 40px ${shadowColor}`;
   });
 
   element.addEventListener('mouseleave', () => {
-    element.style.transform = 'perspective(600px) rotateX(0) rotateY(0) scale(1)';
+    element.style.transform = 'perspective(300px) rotateX(0) rotateY(0) scale(1)';
     element.style.boxShadow = '';
   });
 }
@@ -423,7 +337,6 @@ function setupAutoScroll() {
 // =======================================================
 
 function setupUI() {
-
   if (resetBtn) resetBtn.onclick = () => { if (confirm("Resetar mesa?")) resetTable(); };
 
   const musicBtn = document.getElementById('musicBtn');
@@ -482,7 +395,6 @@ function setupUI() {
         if (spanText) spanText.textContent = "Visível";
       }
     };
-
   }
 
 
@@ -642,70 +554,20 @@ function setupUI() {
     }
   }
 
-  // --- EVENTOS DE CLIQUE DOS JOGADORES (CORRIGIDO) ---
   document.querySelectorAll('.player-area').forEach(area => {
     const pid = parseInt(area.dataset.player);
-    
-    // Botão de Kick (já estava correto com .onclick)
     const removeBtn = area.querySelector('.remove-player');
-    if (removeBtn) removeBtn.onclick = () => kickPlayer(pid);
-
-    // Religião (Trocado addEventListener por .onclick para evitar duplo clique)
+    if (removeBtn) removeBtn.addEventListener('click', () => kickPlayer(pid));
     const religionEl = area.querySelector('.religion-status');
-    if (religionEl) {
-      religionEl.onclick = () => toggleReligion(pid);
-    }
-
-    // Pontos (Trocado addEventListener por .onclick)
-    const plusBtn = area.querySelector('.plus');
-    const minusBtn = area.querySelector('.minus');
-    
-    if (plusBtn) plusBtn.onclick = () => updateScore(pid, 1);
-    if (minusBtn) minusBtn.onclick = () => updateScore(pid, -1);
+    if (religionEl) religionEl.addEventListener('click', () => toggleReligion(pid));
+    area.querySelector('.plus').addEventListener('click', () => updateScore(pid, 1));
+    area.querySelector('.minus').addEventListener('click', () => updateScore(pid, -1));
   });
-
-  
 
 
   if (document.getElementById('asylum-plus')) {
     document.getElementById('asylum-plus').onclick = () => updateAsylumScore(1);
     document.getElementById('asylum-minus').onclick = () => updateAsylumScore(-1);
-  }
-
-
-
-  const toggleRetroBtn = document.getElementById('toggleRetroThemeBtn');
-
-  const applyRetroTheme = (isEnabled) => {
-    const body = document.body;
-    const btnSpan = toggleRetroBtn?.querySelector('span');
-    const btnImg = toggleRetroBtn?.querySelector('img');
-
-    if (isEnabled) {
-      body.classList.add('theme-retro');
-      if (btnSpan) btnSpan.textContent = "Ativado";
-      if (toggleRetroBtn) toggleRetroBtn.style.opacity = "1";
-    } else {
-      body.classList.remove('theme-retro');
-      if (btnSpan) btnSpan.textContent = "Desativado";
-      if (toggleRetroBtn) toggleRetroBtn.style.opacity = "0.6";
-    }
-
-    localStorage.setItem('retroTheme', isEnabled);
-  };
-
-  if (toggleRetroBtn) {
-    const isRetro = localStorage.getItem('retroTheme') === 'true';
-    applyRetroTheme(isRetro); // Aplica o tema salvo ao carregar
-
-    toggleRetroBtn.onclick = () => {
-      playSound('click');
-      const currentlyRetro = document.body.classList.contains('theme-retro');
-      const nextState = !currentlyRetro;
-
-      applyRetroTheme(nextState); // Altera cores e persistência
-      updateAllCardImages();      // Atualiza as imagens das cartas
-    };
   }
 }
 

@@ -180,26 +180,26 @@ document.addEventListener("DOMContentLoaded", () => {
  * que não tiveram atividade nas últimas 24 horas.
  */
 function cleanupOldRooms() {
-  const roomsRef = db.ref('salas');
-  
-  roomsRef.once('value', (snapshot) => {
-    if (!snapshot.exists()) return;
+    const roomsRef = db.ref('salas');
 
-    const now = Date.now();
-    const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000; 
+    roomsRef.once('value', (snapshot) => {
+        if (!snapshot.exists()) return;
 
-    snapshot.forEach((roomSnap) => {
-      const data = roomSnap.val();
-      // O lastActivity é atualizado pelo gameState.js em cada ação
-      const lastActivity = data.lastActivity || 0;
+        const now = Date.now();
+        const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
 
-      if (now - lastActivity > TWENTY_FOUR_HOURS) {
-        console.log(`🧹 Limpeza: Removendo sala inativa ${roomSnap.key}`);
-        roomSnap.ref.remove()
-          .catch(err => console.error("Erro ao deletar sala:", err));
-      }
+        snapshot.forEach((roomSnap) => {
+            const data = roomSnap.val();
+            // O lastActivity é atualizado pelo gameState.js em cada ação
+            const lastActivity = data.lastActivity || 0;
+
+            if (now - lastActivity > TWENTY_FOUR_HOURS) {
+                console.log(`🧹 Limpeza: Removendo sala inativa ${roomSnap.key}`);
+                roomSnap.ref.remove()
+                    .catch(err => console.error("Erro ao deletar sala:", err));
+            }
+        });
     });
-  });
 }
 
 // Executa a limpeza sempre que alguém abrir o Lobby

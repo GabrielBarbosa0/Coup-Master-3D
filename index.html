@@ -15,13 +15,10 @@
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
 
   <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/8bits.css">
 
 </head>
 
 <body>
-
-  <!-- 1. Overlay de Carregamento e Cabeçalho -->
 
   <div id="loadingOverlay"
     style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #14171e; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
@@ -38,9 +35,6 @@
       <p class="copy-instruction" style="font-size: 10px; margin: 0; opacity: 0.6; letter-spacing: 1px; color: #fff;">
         (CLIQUE PARA COPIAR)</p>
     </header>
-
-
-<!-- 2. Controles Superiores (Botões de Sistema) -->
 
     <div class="board">
       <div class="top-row">
@@ -65,8 +59,6 @@
       </div>
 
       <div class="center-area" id="centerArea">
-
-<!-- Lista de Jogadores (Estrutura Repetitiva) -->
 
         <div class="player-hands-container">
 
@@ -193,8 +185,6 @@
         </div>
 
 
-<!-- 3. Áreas de Jogo (Cemitério, Asilo e Deck) -->
-
         <div class="bottom-table-container">
 
           <div class="free-area" id="freeArea" data-area="free">
@@ -219,12 +209,9 @@
               <div class="pile-info muted">
               </div>
               <div class="deck" id="deck" draggable="true">Deck</div>
-
-              <div class="pile-info muted deck-text-wrapper">
-                <p>Cartas no deck:</p>
-                <span id="deck-count"></span>
+              <div class="pile-info muted">
+                <div>Cartas no deck: <span id="deck-count"></div>
               </div>
-
             </div>
 
           </div>
@@ -232,9 +219,6 @@
       </div>
     </div>
   </div>
-
-
-<!-- 4. Modais (Telas Sobrepostas) -->
 
   <div id="infoModal" class="modal-overlay" style="display: none;">
     <div class="modal-actions-and-rules">
@@ -270,7 +254,6 @@
     </div>
   </div>
 
-  <!-- Configurar Baralho -->
   <div id="configModal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
       <button id="closeConfigModalBtn" class="close-btn">&times;</button>
@@ -384,7 +367,7 @@
           <label>Código da Sala:</label>
           <button id="toggleHeaderBtn" class="icon-btn" title="Mostrar/Ocultar Código da Sala">
             <img src="img/eye.svg" alt="Ver" style="width: 24px; height: 24px;">
-            <span style="margin-left: 6px;">Visível</span>
+            <span style="margin-left: 8px;">Visível</span>
           </button>
         </div>
 
@@ -392,7 +375,7 @@
           <label>Religião:</label>
           <button id="toggleReligionBtn" class="icon-btn" title="Mostrar/Ocultar Religião">
             <img src="img/eye.svg" alt="Ver" style="width: 24px; height: 24px;">
-            <span style="margin-left: 6px;">Visível</span>
+            <span style="margin-left: 8px;">Visível</span>
           </button>
         </div>
 
@@ -401,14 +384,6 @@
           <button id="addBotBtn" class="icon-btn" title="Adicionar Jogador Fantasma">
             <img src="img/robot.svg" alt="Bot" style="width: 24px; height: 24px;">
             <span style="margin-left: 2px;">+1</span>
-          </button>
-        </div>
-
-        <div class="setting-row">
-          <label>Tema 8-bits</label>
-          <button id="toggleRetroThemeBtn" class="icon-btn">
-            <img src="img/eye.svg" alt="">
-            <span style="margin-left: 6px;">Desativado</span>
           </button>
         </div>
 
@@ -423,14 +398,16 @@
     </div>
   </div>
 
+
   <div id="spectatorModal" class="modal-overlay" style="display: none;">
     <div class="modal-content" style="max-width: 400px;">
       <button id="closeSpectatorModalBtn" class="close-btn">&times;</button>
       <h2 style="margin-bottom: 16px;">Quem deseja assistir?</h2>
       <div id="spectator-list" class="spectator-list">
-      </div>
+        </div>
     </div>
   </div>
+
 
   <div id="spectatorModal" class="modal-overlay" style="display: none;">
     <div class="modal-content" style="max-width: 400px; text-align: center;">
@@ -438,17 +415,15 @@
       <h2 style="margin-bottom: 10px;">Modo Espectador</h2>
       <p class="muted" style="margin-bottom: 20px;">Escolha um jogador para assistir:</p>
       <div id="spectator-list" class="spectator-list" style="display: flex; flex-direction: column; gap: 10px;">
-      </div>
+        </div>
     </div>
   </div>
 
-<!-- Recursos de Áudio (SFX e BGM) -->
 
   <audio id="bgmAudio" loop autoplay>
     <source src="audio/bgm.mp3" type="audio/mpeg">
   </audio>
 
-  <audio id="audio-player-online" src="player-online/coin.mp3"></audio>
   <audio id="audio-coin" src="audio/coin.mp3"></audio>
   <audio id="audio-paper" src="audio/paper.mp3"></audio>
   <audio id="audio-knife" src="audio/knife.mp3"></audio>
@@ -459,13 +434,17 @@
   <audio id="audio-click" src="audio/click.mp3"></audio>
   <audio id="audio-pop" src="audio/pop.mp3"></audio>
 
+
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
   <script src="js/firebase.js" defer></script>
   <script src="js/rules.js" defer></script>
   <script src="js/gameState.js" defer></script>
   <script src="js/ui.js" defer></script>
+
+  
 
 </body>
 

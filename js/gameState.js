@@ -57,6 +57,7 @@ function setupNotificationListener() {
   });
 }
 
+
 // =======================================================
 // === UTILITÁRIOS GLOBAIS DE SOM E ESTADO ===
 // =======================================================
@@ -76,18 +77,12 @@ function triggerSound(soundId) {
   });
 }
 
+
 // =======================================================
 // === AÇÕES DE CARTAS E BARALHO ===
 // =======================================================
 
-// --- SEGURANÇA DE AÇÕES ADMINISTRATIVAS ---
 function resetTable(newConfig = null) {
-  // Verificação extra de segurança no lado do cliente
-  if (myPlayerId !== null && !isLocalPlayerHost()) {
-    alert("Apenas o Host pode resetar a mesa.");
-    return;
-  }
-
   updateRoomActivity();
   console.log("Resetando a mesa...");
   triggerSound('8-bit-start');
@@ -401,38 +396,24 @@ function joinGame() {
 }
 
 function initializeGame() {
-  // Flag para ignorar o som que já estava gravado no Firebase ao entrar
-  let isFirstLoad = true;
-
   gameStateRef.on('value', (snapshot) => {
     const state = snapshot.val();
     if (state) {
-      // 1. Sincronização de sons (Evita o "susto" ao entrar ou dar F5)
-      if (state.lastSFX) {
-        if (isFirstLoad) {
-          // Apenas sincroniza o tempo no primeiro carregamento sem tocar áudio
-          lastSoundTimestamp = state.lastSFX.timestamp;
-          isFirstLoad = false;
-        } else if (state.lastSFX.timestamp > lastSoundTimestamp) {
-          // Toca apenas sons gerados após a conexão do jogador
-          lastSoundTimestamp = state.lastSFX.timestamp;
-          playSound(state.lastSFX.id);
-        }
+      if (state.lastSFX && state.lastSFX.timestamp > lastSoundTimestamp) {
+        lastSoundTimestamp = state.lastSFX.timestamp;
+        playSound(state.lastSFX.id);
       }
-
-      // 2. Atualização do Estado e Renderização Reativa
       localGameState = state;
+
       if (typeof renderAll === "function") {
-        renderAll(); // Garante que bots e ações apareçam instantaneamente para todos
+        renderAll();
       }
     }
   });
 
-  // 3. Inicialização de conexões e listeners
   joinGame();
   setupNotificationListener();
 
-  // 4. Configuração única da Interface (Chamadas uma única vez)
   if (typeof setupUI === "function") setupUI();
   if (typeof setupDropzones === "function") setupDropzones();
   if (typeof setupAutoScroll === "function") setupAutoScroll();
