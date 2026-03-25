@@ -4,18 +4,32 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Coup Master - Lobby</title>
+
+    <title>Lobby | Coup Master - Jogue Coup Online com Amigos</title>
+
+    <meta name="description"
+        content="Entre no lobby do Coup Master. Crie salas privadas ou junte-se a partidas online de Coup com seus amigos. O melhor jogo de blefe direto no navegador.">
+    <meta name="keywords"
+        content="coup online, lobby coup master, jogar coup com amigos, salas de coup, jogo de blefe online, coup multiplayer">
+    <meta name="author" content="Gabriel Barbosa">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gabrielbarbosa0.github.io/Coup-Master/lobby.html">
+    <meta property="og:title" content="Entre no Lobby do Coup Master">
+    <meta property="og:description"
+        content="Crie sua sala e convide seus amigos para uma partida de Coup online agora mesmo!">
+    <meta property="og:image" content="https://gabrielbarbosa0.github.io/Coup-Master/img/asilo.png">
+
     <link rel="shortcut icon" href="img/coup.png" type="image/x-icon">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
+    <link rel="preload" href="fonts/tilda-script-bold.woff2" as="font" type="font/woff2" crossorigin>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
-    <link rel="preload" href="fonts/tilda-script-bold.woff2" as="font" type="font/woff2" crossorigin>
 
     <link rel="stylesheet" href="css/lobby.css">
 </head>
@@ -63,7 +77,8 @@
             <h2 style="margin-bottom: 5px;">Aprenda & Apoie</h2>
             <p class="muted" style="margin-top: 0;">Domine o jogo e ajude o projeto!</p>
 
-            <div class="video-container" style="margin: 15px 0; border-radius: 8px; overflow: hidden; border: 2px solid #ffffff22;">
+            <div class="video-container"
+                style="margin: 15px 0; border-radius: 8px; overflow: hidden; border: 2px solid #ffffff22;">
                 <iframe width="100%" height="215" src="https://www.youtube.com/embed/9iZ2sfepYWY?si=RzFeSeRFhcvabaW4"
                     title="Como Jogar Coup" frameborder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -74,7 +89,8 @@
             <div class="community-links" style="display: flex; flex-direction: column; gap: 10px;">
                 <a href="https://patreon.com/gabrielbarbosa0" target="_blank" class="link-btn patreon"
                     style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    <img src="img/patreon.svg" alt="Patreon" style="width: 20px; height: 20px; filter: brightness(0) invert(1);">
+                    <img src="img/patreon.svg" alt="Patreon"
+                        style="width: 20px; height: 20px; filter: brightness(0) invert(1);">
                     Apoie no Patreon
                 </a>
             </div>
@@ -82,7 +98,7 @@
         </div>
     </div>
 
-    
+
 
     <script src="js/firebase.js" defer></script>
     <script src="js/lobby.js" defer></script>
