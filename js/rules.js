@@ -18,15 +18,27 @@ const CARD_TYPES = [
   { type: 'bispo', color: '#0db4c3' },
   { type: 'tesoureiro_da_coroa', color: '#f9c700' },
   { type: 'diplomata', color: '#001aff' },
-  { type: 'marionetista', color: '#4d047e' }
+  { type: 'marionetista', color: '#4d047e' },
+
+  { type: 'pistoleiro', color: '#ff0000' },
+  { type: 'magnata', color: '#733d0b' },
+  { type: 'estrategista', color: '#3737dc' },
+  { type: 'ladrao', color: '#047e4d' },
+  { type: 'vigarista', color: '#ff8000' },
+  { type: 'xerife', color: '#0b43fb' },
 ];
 
+// --- NOVAS CARTAS: SOMBRAS DO ASILO ---
 function createDefaultDeckConfig() {
   return {
     'duque': 5, 'capitao': 5, 'assassino': 5, 'embaixador': 5, 'condessa': 5,
     'inquisidor': 5, 'benfeitor': 0, 'bufao': 0, 'burgues': 0, 'burocrata': 0,
     'vigilante': 0, 'mercenario': 0, 'bispo': 0, 'tesoureiro_da_coroa': 0,
-    'diplomata': 0, 'marionetista': 0
+    'diplomata': 0, 'marionetista': 0,
+
+    'pistoleiro': 0, 'magnata': 0,
+    'estrategista': 0, 'ladrao': 0,
+    'vigarista': 0, 'xerife': 0
   };
 }
 

@@ -179,7 +179,9 @@ function renderAll() {
 
     avatarImg.src = player.photo || 'img/coup.png';
     nameTxt.textContent = player.name || `Jogador ${pid}`;
-    playerEl.style.opacity = player.online ? '1' : '0.5';
+
+    // remove alteração de opacidade por status online
+    // playerEl.style.opacity = player.online ? '1' : '0.5';
 
     const religionEl = playerEl.querySelector('.religion-status');
     if (religionEl) {
@@ -442,28 +444,48 @@ function setupUI() {
   let currentRuleImages = [];
   let currentRuleIndex = 0;
 
+
+
+
+  /**
+   * Gerencia a fila de imagens das cartas de ajuda (regras) baseada na composição atual do deck.
+   * Verifica a presença de personagens de diferentes DLCs (Promo, Revolução e Sombras do Asilo)
+   * para exibir apenas os guias de ações pertinentes aos jogadores na partida.
+   */
+
   function calculateRuleImages() {
     const config = localGameState.deckConfig || {};
     let images = [];
+
+    // Definição dos grupos de cartas
+    const promoChars = ['bufao', 'benfeitor', 'burgues', 'burocrata'];
+    const revolutionChars = ['marionetista', 'diplomata', 'mercenario', 'bispo', 'tesoureiro_da_coroa', 'vigilante'];
+    const shadowsChars = ['pistoleiro', 'magnata', 'estrategista', 'ladrao', 'vigarista', 'xerife'];
+
+    // Verifica se há alguma carta de cada expansão no set atual
     const hasPromo = promoChars.some(card => (config[card] || 0) > 0);
     const hasRevolution = revolutionChars.some(card => (config[card] || 0) > 0);
+    const hasShadows = shadowsChars.some(card => (config[card] || 0) > 0);
 
+    // 1. Carta Base (Alternativa se houver Revolução)
     if (hasRevolution) {
       images.push('img/front-actions-alternative.png');
     } else {
       images.push('img/front-actions.png');
     }
 
-    if (hasPromo) {
-      images.push('img/dlc-actions.png');
-    }
-    if (hasRevolution) {
-      images.push('img/dlc2-actions.png');
-    }
+    // 2. Adiciona as cartas de regras das DLCs detectadas
+    if (hasPromo) images.push('img/dlc-actions.png');
+    if (hasRevolution) images.push('img/dlc2-actions.png');
+    if (hasShadows) images.push('img/dlc3-actions.png'); // Nova carta de regras
+
+    // 3. Verso das cartas de ajuda
     images.push('img/back-actions.png');
 
     return images;
   }
+
+
 
   if (infoBtn && infoModal) {
     infoBtn.onclick = () => {
