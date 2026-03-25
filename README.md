@@ -1,6 +1,6 @@
-# Coup Master - Multiplayer Online Beta v0.4
+# Coup Master - Multiplayer Online Beta v0.5
 
-![Status](https://img.shields.io/badge/Status-Beta_v0.4-blue) ![Firebase](https://img.shields.io/badge/Firebase-Auth_%26_Database-orange)
+![Status](https://img.shields.io/badge/Status-Beta_v0.5-blue) ![Firebase](https://img.shields.io/badge/Firebase-Auth_%26_Database-orange)
 
 ## 📖 Sobre o Projeto
 
@@ -31,6 +31,17 @@ com foco em escalabilidade e consistência de estado.
 
 ---
 
+## ✨ Novidades da Versão Beta (v0.5)
+
+### 🌑 Expansão: Sombras do Asilo (DLC 3)
+* **Novas Influências:** Adição de 6 personagens inéditos com mecânicas avançadas: Pistoleiro, Magnata, Estrategista, Ladrão, Vigarista e Xerife.
+* **Regras Dinâmicas:** O manual de ajuda (Flip Card) agora detecta automaticamente quais DLCs estão ativas no deck e exibe a carta de regras correspondente (`dlc3-actions.jpg`).
+
+### 🔍 Otimização de Descoberta (SEO & Indexação)
+* **Google Search Console:** Integração e verificação de propriedade para permitir que o jogo seja encontrado em buscas por "Coup Online".
+* **Meta Tags Avançadas:** Implementação de títulos dinâmicos, descrições ricas e suporte a **Open Graph** para visualização profissional em compartilhamentos no WhatsApp e Discord.
+
+---
 
 ## ✨ Novidades da Versão Beta (v0.4)
 
