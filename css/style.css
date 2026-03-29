@@ -599,21 +599,26 @@ header p {
 
 /* Container da imagem do Asilo com suporte a efeitos e interatividade */
 .asylum-image-wrapper {
-    width: 64px; /* Tamanho padrão para telas intermediárias */
+    width: 64px;
+    /* Tamanho padrão para telas intermediárias */
     height: 64px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto;
     border-radius: 8px;
-    transition: all 0.3s ease; /* Transição suave para o efeito de brilho */
+    transition: all 0.3s ease;
+    /* Transição suave para o efeito de brilho */
 }
 
 /* Efeito de brilho dourado (neon gold) ao passar o mouse */
 .asylum-image-wrapper:hover {
-    transform: scale(1.05); /* Leve aumento para feedback visual */
-    box-shadow: 0 0 20px 5px #ffb92c; /* Brilho dourado intenso */
-    cursor: pointer; /* Indica que o elemento é clicável (atalho de saque) */
+    transform: scale(1.05);
+    /* Leve aumento para feedback visual */
+    box-shadow: 0 0 20px 5px #ffb92c;
+    /* Brilho dourado intenso */
+    cursor: pointer;
+    /* Indica que o elemento é clicável (atalho de saque) */
 }
 
 /* Garante que a imagem preencha o wrapper sem distorções */
@@ -1378,5 +1383,336 @@ body.hide-religion .decks-wrapper {
     .asylum-image-wrapper {
         width: 60px;
         height: 60px;
+    }
+}
+
+
+
+/* =======================================================
+   === VERSÃO RESPONSIVA COMPACTA (ALTURA REDUZIDA) ===
+   ======================================================= */
+
+@media (max-height: 450px) {
+
+    /* --- 1. ESTRUTURA GLOBAL E HEADER --- */
+
+    .board {
+        padding: 12px;
+    }
+
+    .center-area {
+        gap: 4px;
+        /* Reduzido para aproximar os elementos */
+    }
+
+    /* --- 2. ÁREA DOS JOGADORES (PLAYERS) --- */
+    /* .player-hands-container {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        gap: 4px;
+        padding-bottom: 4px;
+    } */
+
+    .player-hands-container {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 4px;
+    }
+
+    .player-area {
+        min-width: 140px;
+        flex-shrink: 0;
+    }
+
+    .player-header {
+        gap: 2px;
+    }
+
+    .player-title {
+        font-size: 8px;
+        margin-bottom: 2px;
+    }
+
+
+    .player-avatar {
+        width: 14px;
+        height: 14px;
+    }
+
+    .points .plus,
+    .points .minus {
+        width: 14px !important;
+        height: 14px !important;
+        font-size: 12px !important;
+        line-height: 14px !important;
+    }
+
+    /* ADICIONE ESTE TRECHO NO LUGAR: */
+    .religion-status {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 1px !important;
+        font-size: 8px !important;
+        padding: 2px 8px !important;
+        width: 79px !important;
+        height: 18px !important;
+        border-radius: 4px;
+        text-transform: uppercase;
+    }
+
+    .religion-icon {
+        width: 11px !important;
+        height: 11px !important;
+        margin: 0 !important;
+    }
+
+    /* --- 3. CARTAS, SLOTS E DECK --- */
+    .card,
+    .slot,
+    .deck-container {
+        width: 41px !important;
+        height: 58px !important;
+    }
+
+    .card {
+        border-radius: 6px !important;
+        border: 1px solid #3b5898 !important;
+    }
+
+    .player-stack {
+        grid-template-columns: repeat(auto-fit, 40px);
+        gap: 4px;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        padding: 3px !important;
+        width: 100%;
+    }
+
+    .remove-player {
+        width: 10px;
+        height: 10px;
+    }
+
+    .points {
+        margin: 0px 0;
+    }
+
+    /* --- 4. CONTROLES E BOTÕES DE AÇÃO --- */
+    .controls button,
+    .resetBtn,
+    .spectatorBtn,
+    .dividaBtn,
+    .controleBtn,
+    .infoBtn,
+    .shuffleBtn,
+    .configBtn,
+    .musicBtn,
+    .altRulesBtn {
+        width: 24px !important;
+        height: 24px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        border-radius: 5px;
+    }
+
+    /* Ícones internos padronizados em 16px */
+    .controls button img,
+    .resetBtn img,
+    .spectatorBtn img,
+    .altRulesBtn img,
+    .infoBtn img,
+    .configBtn img,
+    .musicBtn img {
+        width: 16px !important;
+        height: 16px !important;
+        margin: 0 !important;
+        display: block;
+    }
+
+    /* Ícones específicos de Dívida/Controle (12px para melhor respiro) */
+    .dividaBtn img,
+    .controleBtn img {
+        width: 12px !important;
+        height: 12px !important;
+    }
+
+    /* --- 5. TABULEIRO INFERIOR (DECK, ASILO E CEMITÉRIO) --- */
+    .bottom-table-container {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: stretch !important;
+        /* Força todos a terem a mesma altura (thickness) */
+        gap: 8px;
+        width: 100%;
+    }
+
+    .asylum-area .muted {
+        font-size: 10px;
+        font-weight: bold;
+    }
+
+    /* Padronização de "Grossura" (Padding e Gap) para Deck e Asilo */
+    .deck-area,
+    .asylum-area {
+        padding: 4px 15px !important;
+        gap: 4px !important;
+        min-width: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .asylum-image-wrapper {
+        width: 42px;
+        height: 42px;
+    }
+
+    /* Ajuste específico do Cemitério (Free Area) para espelhar Deck/Asilo */
+    .free-area {
+        flex-grow: 1 !important;
+        padding: 4px 15px !important;
+        min-height: 60px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-start;
+        align-items: center;
+        position: relative;
+    }
+
+    .deck {
+        width: 43px;
+        height: 62px;
+        border-radius: 7px;
+    }
+
+    /* Mantém o cemitério alinhado à direita se preferir ou estendido */
+    #grave {
+        position: absolute;
+        right: 0;
+        top: 0;
+        left: auto;
+        transform: none;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    /* Elementos Internos do Asilo */
+    .asylum-image {
+        width: 28px !important;
+        height: 28px !important;
+        margin: 0 auto;
+    }
+
+    .asylum-points button {
+        width: 14px !important;
+        height: 14px !important;
+        font-size: 12px !important;
+        line-height: 18px !important;
+    }
+
+
+    #grave {
+        position: relative !important;
+        right: auto !important;
+        display: flex;
+        justify-content: center;
+        flex: 1 !important;
+    }
+
+    .free-area {
+        flex-grow: 0 !important;
+        width: 100% !important;
+        padding: 4px 15px !important;
+        gap: 4px !important;
+        min-height: 60px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 1. Redução Geral do Container do Modal */
+    .modal-content {
+        padding: 10px 20px !important;
+        max-height: 75vh !important;
+        overflow-y: auto !important;
+        width: 30% !important;
+    }
+
+
+    .spectator-target-btn {
+        padding: 8px;
+        border-radius: 8px;
+    }
+
+    .spectator-target-btn img {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* 2. Ajuste de Títulos e Textos Internos */
+    .modal-content h2 {
+        font-size: 14px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .modal-content p,
+    .setting-row label {
+        font-size: 11px !important;
+    }
+
+    /* 3. Ícones e Botões dentro do Modal */
+    .modal-content .icon-btn {
+        padding: 4px 8px !important;
+        gap: 6px !important;
+    }
+
+    .modal-content .icon-btn img {
+        width: 14px !important;
+        /* Ícones internos menores */
+        height: 14px !important;
+    }
+
+    /* 4. Ajuste do Botão de Fechar (X) */
+    .close-btn {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 16px !important;
+        line-height: 20px !important;
+        top: 5px !important;
+        right: 5px !important;
+    }
+
+    /* 1. Redução Global do Flip Card (Ações e Regras Alt) */
+    .flip-card {
+        width: 180px !important;
+        height: 270px !important;
+        perspective: 800px !important;
+        margin: 0 auto !important;
+    }
+
+    /* 2. Ajuste das imagens dentro do card para não distorcer */
+    .flip-card-front img,
+    .flip-card-back img {
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 12px !important;
+    }
+
+    /* 3. Ajuste do container interno de transição */
+    .flip-card-inner {
+        transition: transform 0.6s !important;
+    }
+
+    /* 4. Padding do modal de regras para centralizar verticalmente */
+    .modal-actions-and-rules {
+        padding: 5px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+
     }
 }
