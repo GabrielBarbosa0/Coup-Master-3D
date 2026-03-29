@@ -52,8 +52,9 @@ p {
     padding: 0;
 }
 
-h2{
-    margin-top: 0; /* Adicione esta linha para remover o espaço no topo */
+h2 {
+    margin-top: 0;
+    /* Adicione esta linha para remover o espaço no topo */
 }
 
 .container {
@@ -595,6 +596,34 @@ header p {
 }
 
 
+/* Container da imagem do Asilo com suporte a efeitos e interatividade */
+.asylum-image-wrapper {
+    width: 64px; /* Tamanho padrão para telas intermediárias */
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    border-radius: 8px;
+    transition: all 0.3s ease; /* Transição suave para o efeito de brilho */
+}
+
+/* Efeito de brilho dourado (neon gold) ao passar o mouse */
+.asylum-image-wrapper:hover {
+    transform: scale(1.05); /* Leve aumento para feedback visual */
+    box-shadow: 0 0 20px 5px #ffb92c; /* Brilho dourado intenso */
+    cursor: pointer; /* Indica que o elemento é clicável (atalho de saque) */
+}
+
+/* Garante que a imagem preencha o wrapper sem distorções */
+.asylum-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+
+
 /* =======================================================
        === REGRAS PARA O MODO: OCULTAR RELIGIÃO E ASILO ===
        ======================================================= */
@@ -1089,16 +1118,22 @@ body.hide-religion .decks-wrapper {
         justify-content: center;
     }
 
-    .asylum-image {
+    /* .asylum-image {
         width: 36px;
         height: 36px;
         border-radius: 6px;
-    }
+    } */
 
     .asylum-points button {
         width: 16px;
         height: 16px;
         font-size: 20px;
+    }
+
+    .asylum-image-wrapper {
+        width: 44px;
+        height: 44px;
+        border-radius: 6px;
     }
 
     .deck {
@@ -1334,8 +1369,13 @@ body.hide-religion .decks-wrapper {
         border: 3px solid #3b5998;
     }
 
-    .asylum-image {
+    /* .asylum-image {
         width: 45px;
         height: 45px;
+    } */
+
+    .asylum-image-wrapper {
+        width: 60px;
+        height: 60px;
     }
 }

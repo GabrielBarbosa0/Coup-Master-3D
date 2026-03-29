@@ -90,6 +90,30 @@ function setupNotificationListener() {
 }
 
 
+/**
+ * Coleta todas as moedas do Asilo e as entrega ao jogador local
+ */
+function withdrawAsylumCoins() {
+  if (!myPlayerId) return;
+
+  const asylumRef = db.ref(`salas/${roomCode}/gameState/asylumScore`);
+  
+  asylumRef.once('value', (snapshot) => {
+    const currentAsylumCoins = snapshot.val() || 0;
+    
+    if (currentAsylumCoins > 0) {
+      // 1. Zera o Asilo no Firebase
+      asylumRef.set(0);
+      
+      // 2. Adiciona o montante ao saldo do jogador que clicou
+      updateScore(myPlayerId, currentAsylumCoins);
+      
+      // 3. Feedback sonoro de moedas para todos na sala
+      triggerSound('coin');
+    }
+  });
+}
+
 // =======================================================
 // === UTILITÁRIOS GLOBAIS DE SOM E ESTADO ===
 // =======================================================

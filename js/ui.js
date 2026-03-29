@@ -349,6 +349,20 @@ function setupUI() {
     };
   }
 
+
+
+// Atalho de Gesto: Clique duplo APENAS na imagem do Asilo
+const asylumArea = document.getElementById('asylumArea');
+if (asylumArea) {
+    // Seleciona a imagem dentro da área do asilo
+    const asylumImage = asylumArea.querySelector('.asylum-image-wrapper img'); //
+    if (asylumImage) {
+        asylumImage.ondblclick = () => {
+            withdrawAsylumCoins(); // Chama a função de saque rápido
+        };
+    }
+}
+
   // 2. Lógica dos botões INTERNOS do modal [cite: 9, 10]
   const confirmBtn = document.getElementById('confirmResetBtn');
   const cancelBtn = document.getElementById('cancelResetBtn');
@@ -357,8 +371,8 @@ function setupUI() {
   if (confirmBtn) {
     confirmBtn.onclick = () => {
       // CORREÇÃO: O nome da função correta é resetTable() 
-      resetTable(); 
-      
+      resetTable();
+
       if (resetModal) resetModal.style.display = 'none';
     };
   }
@@ -478,27 +492,27 @@ function setupUI() {
   /**
  * Gerencia a exibição do tutorial inicial
  */
-function checkTutorial() {
-  const tutorialModal = document.getElementById('tutorialModal');
-  const closeBtn = document.getElementById('closeTutorialBtn');
-  const startBtn = document.getElementById('startPlayBtn');
+  function checkTutorial() {
+    const tutorialModal = document.getElementById('tutorialModal');
+    const closeBtn = document.getElementById('closeTutorialBtn');
+    const startBtn = document.getElementById('startPlayBtn');
 
-  // Verifica se o tutorial já foi visto nesta sessão de navegador
-  const tutorialSeen = sessionStorage.getItem('tutorialSeen');
+    // Verifica se o tutorial já foi visto nesta sessão de navegador
+    const tutorialSeen = sessionStorage.getItem('tutorialSeen');
 
-  if (!tutorialSeen) {
-    if (tutorialModal) tutorialModal.style.display = 'flex';
+    if (!tutorialSeen) {
+      if (tutorialModal) tutorialModal.style.display = 'flex';
+    }
+
+    const closeAction = () => {
+      if (tutorialModal) tutorialModal.style.display = 'none';
+      sessionStorage.setItem('tutorialSeen', 'true'); // Salva para não mostrar de novo
+      playSound('pop');
+    };
+
+    if (closeBtn) closeBtn.onclick = closeAction;
+    if (startBtn) startBtn.onclick = closeAction;
   }
-
-  const closeAction = () => {
-    if (tutorialModal) tutorialModal.style.display = 'none';
-    sessionStorage.setItem('tutorialSeen', 'true'); // Salva para não mostrar de novo
-    playSound('pop');
-  };
-
-  if (closeBtn) closeBtn.onclick = closeAction;
-  if (startBtn) startBtn.onclick = closeAction;
-}
 
 
 

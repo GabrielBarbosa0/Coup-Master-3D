@@ -211,7 +211,9 @@
 
             <div class="asylum-area" id="asylumArea">
               <div class="muted">Asilo</div>
-              <div class="asylum-image">
+              <div class="asylum-image-wrapper">
+                <img src="img/asilo.png" alt="Asilo" style="width: 100%; border-radius: 4px;"
+                  title="Clique duplo para sacar tudo">
               </div>
               <div class="asylum-points">
                 <button id="asylum-minus" title="Remover Moeda do Asilo">-</button>
@@ -511,14 +513,14 @@
 
 
   <div id="tutorialModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 320px; text-align: left;">
+    <div class="modal-content" style="max-width: 300px; text-align: left;">
       <button id="closeTutorialBtn" class="close-btn">&times;</button>
       <h2 class="config-title" style="text-align: center; margin-bottom: 20px;">Comandos do Mestre</h2>
 
       <div style="display: flex; flex-direction: column; gap: 15px; font-size: 14px;">
         <div style="display: flex; align-items: center; gap: 10px;">
           <img src="img/playing_cards.svg" style="width: 24px; filter: brightness(0) invert(1);">
-          <p><strong>Desenhar:</strong> Clique no Deck para puxar uma carta para sua mão.</p>
+          <p><strong>Puxar:</strong> Clique no Deck para puxar uma carta para sua mão.</p>
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -538,8 +540,11 @@
 
         <div style="display: flex; align-items: center; gap: 10px;">
           <img src="img/paid.svg" style="width: 24px; filter: brightness(0) invert(1);">
-          <p><strong>Economia:</strong> Use <strong style="font-size: 20px;">+</strong> e <strong style="font-size: 20px;">-</strong> para gerir moedas de jogadores e do
-            Asilo.</p>
+          <p>
+            <strong>Economia:</strong> Use <strong style="font-size: 20px;">+</strong> / <strong
+              style="font-size: 20px;">-</strong> para gerir moedas ou <strong>2 cliques</strong> no Asilo para sacar
+            tudo de uma vez.
+          </p>
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
