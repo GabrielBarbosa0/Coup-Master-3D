@@ -531,7 +531,6 @@ if (asylumArea) {
     const closeAction = () => {
       if (tutorialModal) tutorialModal.style.display = 'none';
       sessionStorage.setItem('tutorialSeen', 'true'); // Salva para não mostrar de novo
-      playSound('pop');
     };
 
     if (closeBtn) closeBtn.onclick = closeAction;
