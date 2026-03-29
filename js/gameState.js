@@ -26,32 +26,64 @@ let isDrawingCard = false;
 let lastSoundTimestamp = 0;
 
 
-// Solicitar para espectar
+/**
+ * Envia o pedido de espectador e abre o modal de espera
+ */
 function requestSpectate(targetPid) {
   const targetPlayer = localGameState.players[targetPid];
   if (!targetPlayer || !targetPlayer.uid) return;
 
-  // Envia uma notificação/solicitação via Firebase
+  // Envia a notificação via Firebase
   db.ref(`salas/${roomCode}/notifications/${targetPlayer.uid}`).set({
     fromName: currentUser.name,
     fromPid: myPlayerId,
     type: 'SPECTATE_REQUEST',
     timestamp: Date.now()
   });
-  alert("Solicitação enviada! Aguardando aprovação...");
+
+  // Abre o modal de espera em vez do alert()
+  const waitModal = document.getElementById('waitSpectateModal');
+  if (waitModal) {
+    waitModal.style.display = 'flex';
+  }
+
+  // Configura o botão de fechar do modal
+  const closeBtn = document.getElementById('closeWaitModalBtn');
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      waitModal.style.display = 'none';
+    };
+  }
 }
 
-// Ouvinte de notificações (Colocar dentro do initializeGame)
+/**
+ * Escuta solicitações de espectadores e abre o modal de confirmação 
+ */
 function setupNotificationListener() {
   db.ref(`salas/${roomCode}/notifications/${currentUser.uid}`).on('value', (snapshot) => {
     const data = snapshot.val();
     if (data && data.type === 'SPECTATE_REQUEST') {
-      const accept = confirm(`${data.fromName} deseja te espectar. Aceitar?`);
-      if (accept) {
-        // Adiciona o espectador na lista do jogador
-        db.ref(`salas/${roomCode}/gameState/players/${myPlayerId}/spectators/${data.fromPid}`).set(data.fromName);
+      const modal = document.getElementById('spectateRequestModal');
+      const text = document.getElementById('spectateRequestText');
+      
+      if (modal && text) {
+        // Preenche o nome de quem está pedindo 
+        text.innerText = `${data.fromName} deseja te assistir. Aceitar?`;
+        modal.style.display = 'flex';
+        playSound('pop'); // Feedback sonoro ao receber o pedido 
+
+        // Configura o botão de Aceitar 
+        document.getElementById('acceptSpectateBtn').onclick = () => {
+          db.ref(`salas/${roomCode}/gameState/players/${myPlayerId}/spectators/${data.fromPid}`).set(data.fromName);
+          modal.style.display = 'none';
+        };
+
+        // Configura o botão de Recusar 
+        document.getElementById('denySpectateBtn').onclick = () => {
+          modal.style.display = 'none';
+        };
       }
-      // Limpa a notificação
+      // Limpa a notificação do Firebase para não repetir 
       snapshot.ref.remove();
     }
   });
