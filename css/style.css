@@ -1397,12 +1397,25 @@ body.hide-religion .decks-wrapper {
     /* --- 1. ESTRUTURA GLOBAL E HEADER --- */
 
     .board {
-        padding: 12px;
+        padding: 10px;
     }
 
     .center-area {
         gap: 4px;
         /* Reduzido para aproximar os elementos */
+    }
+
+    #roomHeader {
+        margin-top: 2px;
+        padding: 4px 18px;
+    }
+
+    header h1 {
+        font-size: 14px;
+    }
+
+    .copy-instruction {
+        font-size: 8px !important;
     }
 
     /* --- 2. ÁREA DOS JOGADORES (PLAYERS) --- */
@@ -1415,7 +1428,11 @@ body.hide-religion .decks-wrapper {
     } */
 
     .player-hands-container {
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(5, 1fr);
+        gap: 4px;
+    }
+
+    .decks-wrapper {
         gap: 4px;
     }
 
@@ -1546,8 +1563,7 @@ body.hide-religion .decks-wrapper {
         display: flex !important;
         flex-direction: row !important;
         align-items: stretch !important;
-        /* Força todos a terem a mesma altura (thickness) */
-        gap: 8px;
+        gap: 4px;
         width: 100%;
     }
 
@@ -1639,7 +1655,7 @@ body.hide-religion .decks-wrapper {
         padding: 10px 20px !important;
         max-height: 75vh !important;
         overflow-y: auto !important;
-        width: 30% !important;
+        width: 40% !important;
     }
 
 
