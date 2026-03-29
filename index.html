@@ -510,6 +510,51 @@
   </div>
 
 
+  <div id="tutorialModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 320px; text-align: left;">
+      <button id="closeTutorialBtn" class="close-btn">&times;</button>
+      <h2 class="config-title" style="text-align: center; margin-bottom: 20px;">Comandos do Mestre</h2>
+
+      <div style="display: flex; flex-direction: column; gap: 15px; font-size: 14px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="img/playing_cards.svg" style="width: 24px; filter: brightness(0) invert(1);">
+          <p><strong>Desenhar:</strong> Clique no Deck para puxar uma carta para sua mão.</p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="img/grid_view.svg" style="width: 24px; filter: brightness(0) invert(1);">
+          <p><strong>Mover:</strong> Clique e segure para arrastar cartas entre jogadores, deck ou cemitério.</p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="img/skull.svg" style="width: 24px; filter: brightness(0) invert(1);">
+          <p><strong>Revelar:</strong> Arraste uma carta para o cemitério para torná-la visível a todos.</p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="img/cached.svg" style="width: 24px; filter: brightness(0) invert(1);">
+          <p><strong>Atalho Deck:</strong> 2 cliques rápidos em uma carta a devolvem direto para o deck.</p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="img/paid.svg" style="width: 24px; filter: brightness(0) invert(1);">
+          <p><strong>Economia:</strong> Use <strong style="font-size: 20px;">+</strong> e <strong style="font-size: 20px;">-</strong> para gerir moedas de jogadores e do
+            Asilo.</p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="img/shield-cross.svg" style="width: 24px; filter: brightness(0) invert(1);">
+          <p><strong>Religião:</strong> Clique no badge de religião para alternar entre Católico e Protestante.</p>
+        </div>
+      </div>
+
+      <button id="startPlayBtn" class="icon-btn"
+        style="background: var(--accent); color: white; width: 100%; justify-content: center; font-weight: bold; border: none; margin-top: 25px; padding: 12px;">ENTENDI,
+        VAMOS JOGAR!</button>
+    </div>
+  </div>
+
+
   <audio id="bgmAudio" loop autoplay>
     <source src="audio/bgm.mp3" type="audio/mpeg">
   </audio>

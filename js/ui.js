@@ -475,6 +475,31 @@ function setupUI() {
   let currentRuleIndex = 0;
 
 
+  /**
+ * Gerencia a exibição do tutorial inicial
+ */
+function checkTutorial() {
+  const tutorialModal = document.getElementById('tutorialModal');
+  const closeBtn = document.getElementById('closeTutorialBtn');
+  const startBtn = document.getElementById('startPlayBtn');
+
+  // Verifica se o tutorial já foi visto nesta sessão de navegador
+  const tutorialSeen = sessionStorage.getItem('tutorialSeen');
+
+  if (!tutorialSeen) {
+    if (tutorialModal) tutorialModal.style.display = 'flex';
+  }
+
+  const closeAction = () => {
+    if (tutorialModal) tutorialModal.style.display = 'none';
+    sessionStorage.setItem('tutorialSeen', 'true'); // Salva para não mostrar de novo
+    playSound('pop');
+  };
+
+  if (closeBtn) closeBtn.onclick = closeAction;
+  if (startBtn) startBtn.onclick = closeAction;
+}
+
 
 
   /**
@@ -514,7 +539,6 @@ function setupUI() {
 
     return images;
   }
-
 
 
   if (infoBtn && infoModal) {
@@ -621,7 +645,13 @@ function setupUI() {
     document.getElementById('asylum-plus').onclick = () => updateAsylumScore(1);
     document.getElementById('asylum-minus').onclick = () => updateAsylumScore(-1);
   }
+
+
+  checkTutorial();
 }
+
+
+
 
 // =======================================================
 // === INICIALIZAÇÃO E EVENTOS DE HEADER ===
