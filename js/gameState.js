@@ -65,7 +65,7 @@ function setupNotificationListener() {
     if (data && data.type === 'SPECTATE_REQUEST') {
       const modal = document.getElementById('spectateRequestModal');
       const text = document.getElementById('spectateRequestText');
-      
+
       if (modal && text) {
         // Preenche o nome de quem está pedindo 
         text.innerText = `${data.fromName} deseja te assistir. Aceitar?`;
@@ -97,17 +97,17 @@ function withdrawAsylumCoins() {
   if (!myPlayerId) return;
 
   const asylumRef = db.ref(`salas/${roomCode}/gameState/asylumScore`);
-  
+
   asylumRef.once('value', (snapshot) => {
     const currentAsylumCoins = snapshot.val() || 0;
-    
+
     if (currentAsylumCoins > 0) {
       // 1. Zera o Asilo no Firebase
       asylumRef.set(0);
-      
+
       // 2. Adiciona o montante ao saldo do jogador que clicou
       updateScore(myPlayerId, currentAsylumCoins);
-      
+
       // 3. Feedback sonoro de moedas para todos na sala
       triggerSound('coin');
     }
@@ -281,15 +281,39 @@ function burnTopCard() {
 // === AÇÕES DE MESA (PONTOS, KICK, ETC) ===
 // =======================================================
 
-function kickPlayer(pid) {
-  if (!confirm(`Tem certeza que deseja remover o Jogador ${pid}?`)) return;
-  triggerSound('impact');
 
-  if (pid === myPlayerId) {
+// Variável global para controle do modal
+//
+let pendingKickPid = null; // Armazena quem será removido
+
+/**
+ * Abre o modal de remoção e prepara os dados 
+ */
+function kickPlayer(pid) {
+  pendingKickPid = pid;
+  const modal = document.getElementById('kickPlayerModal');
+  const text = document.getElementById('kickPlayerText');
+  const player = localGameState.players[pid];
+
+  if (text && player) {
+    text.innerText = `Tem certeza que deseja remover ${player.name || 'o Jogador ' + pid}?`;
+  }
+  if (modal) modal.style.display = 'flex';
+}
+
+/**
+ * Executa a remoção real no Firebase
+ */
+function confirmKickAction() {
+  if (!pendingKickPid) return;
+  
+  triggerSound('impact'); // Som de impacto
+
+  if (pendingKickPid === myPlayerId) {
     window.location.href = 'lobby.html';
   }
 
-  db.ref(`salas/${roomCode}/gameState/players/${pid}`).update({
+  db.ref(`salas/${roomCode}/gameState/players/${pendingKickPid}`).update({
     online: false,
     uid: null,
     name: null,
@@ -297,7 +321,15 @@ function kickPlayer(pid) {
     hand: [],
     score: 2
   });
+  
+  pendingKickPid = null;
 }
+
+
+
+
+
+
 
 function updateScore(pid, amount) {
   triggerSound('coin');

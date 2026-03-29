@@ -363,6 +363,26 @@ if (asylumArea) {
     }
 }
 
+
+// 4. Lógica do Modal de Remoção (Kick) 
+  const kickModal = document.getElementById('kickPlayerModal');
+  const confirmKickBtn = document.getElementById('confirmKickBtn');
+  const cancelKickBtn = document.getElementById('cancelKickBtn');
+
+  if (confirmKickBtn) {
+    confirmKickBtn.onclick = () => {
+      confirmKickAction(); // Chama a função de remoção no gameState.js
+      if (kickModal) kickModal.style.display = 'none';
+    };
+  }
+
+  if (cancelKickBtn) {
+    cancelKickBtn.onclick = () => {
+      if (kickModal) kickModal.style.display = 'none';
+    };
+  }
+  
+
   // 2. Lógica dos botões INTERNOS do modal [cite: 9, 10]
   const confirmBtn = document.getElementById('confirmResetBtn');
   const cancelBtn = document.getElementById('cancelResetBtn');
@@ -382,6 +402,10 @@ if (asylumArea) {
       if (resetModal) resetModal.style.display = 'none';
     };
   }
+
+
+
+  
 
 
   // 3. Outras configurações de UI (Áudio, etc)
