@@ -159,7 +159,8 @@ header p {
 .shuffleBtn,
 .configBtn,
 .musicBtn,
-.altRulesBtn {
+.altRulesBtn,
+.fullscreenBtn {
     /* Adicionado aqui */
     width: 36px;
     height: 36px;

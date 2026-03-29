@@ -349,22 +349,39 @@ function setupUI() {
     };
   }
 
+  // Lógica do Fullscreen
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
 
+  if (fullscreenBtn) {
+    fullscreenBtn.onclick = () => {
+      playSound('click'); // Feedback sonoro padrão
 
-// Atalho de Gesto: Clique duplo APENAS na imagem do Asilo
-const asylumArea = document.getElementById('asylumArea');
-if (asylumArea) {
+      if (!document.fullscreenElement) {
+        // Entra em tela cheia (pega o documento inteiro)
+        document.documentElement.requestFullscreen().catch(err => {
+          console.error(`Erro ao tentar ativar tela cheia: ${err.message}`);
+        });
+      } else {
+        // Sai da tela cheia
+        document.exitFullscreen();
+      }
+    };
+  }
+
+  // Atalho de Gesto: Clique duplo APENAS na imagem do Asilo
+  const asylumArea = document.getElementById('asylumArea');
+  if (asylumArea) {
     // Seleciona a imagem dentro da área do asilo
     const asylumImage = asylumArea.querySelector('.asylum-image-wrapper img'); //
     if (asylumImage) {
-        asylumImage.ondblclick = () => {
-            withdrawAsylumCoins(); // Chama a função de saque rápido
-        };
+      asylumImage.ondblclick = () => {
+        withdrawAsylumCoins(); // Chama a função de saque rápido
+      };
     }
-}
+  }
 
 
-// 4. Lógica do Modal de Remoção (Kick) 
+  // 4. Lógica do Modal de Remoção (Kick) 
   const kickModal = document.getElementById('kickPlayerModal');
   const confirmKickBtn = document.getElementById('confirmKickBtn');
   const cancelKickBtn = document.getElementById('cancelKickBtn');
@@ -381,7 +398,7 @@ if (asylumArea) {
       if (kickModal) kickModal.style.display = 'none';
     };
   }
-  
+
 
   // 2. Lógica dos botões INTERNOS do modal [cite: 9, 10]
   const confirmBtn = document.getElementById('confirmResetBtn');
@@ -405,7 +422,7 @@ if (asylumArea) {
 
 
 
-  
+
 
 
   // 3. Outras configurações de UI (Áudio, etc)
