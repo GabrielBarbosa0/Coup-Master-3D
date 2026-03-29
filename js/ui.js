@@ -339,8 +339,38 @@ function setupAutoScroll() {
 // =======================================================
 
 function setupUI() {
-  if (resetBtn) resetBtn.onclick = () => { if (confirm("Resetar mesa?")) resetTable(); };
+  // 1. Configuração do Botão de Reset Principal 
+  if (resetBtn) {
+    resetBtn.onclick = () => {
+      const resetModal = document.getElementById('resetModal');
+      if (resetModal) {
+        resetModal.style.display = 'flex';
+      }
+    };
+  }
 
+  // 2. Lógica dos botões INTERNOS do modal [cite: 9, 10]
+  const confirmBtn = document.getElementById('confirmResetBtn');
+  const cancelBtn = document.getElementById('cancelResetBtn');
+  const resetModal = document.getElementById('resetModal');
+
+  if (confirmBtn) {
+    confirmBtn.onclick = () => {
+      // CORREÇÃO: O nome da função correta é resetTable() 
+      resetTable(); 
+      
+      if (resetModal) resetModal.style.display = 'none';
+    };
+  }
+
+  if (cancelBtn) {
+    cancelBtn.onclick = () => {
+      if (resetModal) resetModal.style.display = 'none';
+    };
+  }
+
+
+  // 3. Outras configurações de UI (Áudio, etc)
   const musicBtn = document.getElementById('musicBtn');
   const bgmAudio = document.getElementById('bgmAudio');
   if (bgmAudio) bgmAudio.volume = 0.1;
