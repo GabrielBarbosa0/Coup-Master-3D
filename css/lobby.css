@@ -1,7 +1,7 @@
 @font-face {
     font-family: 'Tilda Script';
     src: url('../fonts/tilda-script-bold.woff2') format('woff2'),
-         url('../fonts/tilda-script-bold.woff') format('woff');
+        url('../fonts/tilda-script-bold.woff') format('woff');
     font-weight: bold;
     font-style: normal;
     font-display: swap;
@@ -199,13 +199,35 @@ h2 {
     padding: 20px;
     background: var(--panel);
     border-radius: 10px;
-    color: white; /* Garante que o texto fique branco */
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); /* Dá um leve destaque da tela de fundo */
+    color: white;
+    /* Garante que o texto fique branco */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    /* Dá um leve destaque da tela de fundo */
 }
 
+/* Localize e substitua em lobby.css */
 .modal-content h2 {
+    font-family: 'Cinzel', serif !important;
+    font-weight: bold;
+    /* Força a fonte padrão de jogo */
     text-align: center;
     margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 24px;
+    /* Tamanho padrão para títulos de modal */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Garante que o texto de erro também use a tipografia correta */
+#errorModalText {
+    font-family: 'Cinzel', serif !important;
+    line-height: 1.4;
+}
+
+#closeErrorModalBtn {
+    margin-top: 0px;
+    /* Adiciona espaço acima do botão OK */
 }
 
 
@@ -227,8 +249,10 @@ h2 {
     cursor: pointer;
     line-height: 30px;
     text-align: center;
-    padding: 0; /* Garante que o texto fique bem centralizado */
-    transition: background 0.2s; /* Adiciona uma transição suave pro hover */
+    padding: 0;
+    /* Garante que o texto fique bem centralizado */
+    transition: background 0.2s;
+    /* Adiciona uma transição suave pro hover */
 }
 
 .close-btn:hover {
@@ -280,7 +304,8 @@ h2 {
 }
 
 .link-btn.patreon {
-    background: #ff4e37; /* Cor exata da sua variável --accent2 */
+    background: #ff4e37;
+    /* Cor exata da sua variável --accent2 */
 }
 
 .link-btn.patreon:hover {

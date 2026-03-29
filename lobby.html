@@ -11,14 +11,17 @@
 
     <link rel="canonical" href="https://gabrielbarbosa0.github.io/Coup-Master/" />
 
-    <meta name="description"content="Entre no lobby do Coup Master. Crie salas privadas para jogar com seus amigos. O melhor jogo de blefe direto no navegador.">
-    <meta name="keywords"content="coup online, lobby coup master, jogar coup com amigos, salas de coup, jogo de blefe online, coup multiplayer">
+    <meta name="description"
+        content="Entre no lobby do Coup Master. Crie salas privadas para jogar com seus amigos. O melhor jogo de blefe direto no navegador.">
+    <meta name="keywords"
+        content="coup online, lobby coup master, jogar coup com amigos, salas de coup, jogo de blefe online, coup multiplayer">
     <meta name="author" content="Gabriel Barbosa">
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://gabrielbarbosa0.github.io/Coup-Master/lobby.html">
     <meta property="og:title" content="Entre no Lobby do Coup Master">
-    <meta property="og:description"content="Crie sua sala e convide seus amigos para uma partida de Coup online agora mesmo!">
+    <meta property="og:description"
+        content="Crie sua sala e convide seus amigos para uma partida de Coup online agora mesmo!">
     <meta property="og:image" content="https://gabrielbarbosa0.github.io/Coup-Master/img/ico-coup-master.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -95,6 +98,18 @@
             <p class="muted" style="font-size: 10px; margin-top: 20px;">Beta v0.5 • Desenvolvido com ❤️</p>
         </div>
     </div> -->
+
+    <div id="errorModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content"
+        style="max-width: 300px; text-align: center; background: var(--panel); border: 1px solid #ffffff1a;">
+        <h2 style="margin-top: 0; color: #ffffff;">Atenção</h2>
+        <p id="errorModalText" style="margin-bottom: 25px; font-size: 14px; color: #e6eef6cc;">
+            O código da sala deve ter 4 caracteres.
+        </p>
+        <button id="closeErrorModalBtn"
+            style="background: #1e90ff; color: white; border: 0; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; font-family: 'Cinzel', serif;">OK</button>
+    </div>
+</div>
 
 
     <script src="js/firebase.js" defer></script>

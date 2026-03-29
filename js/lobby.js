@@ -11,6 +11,29 @@ const roomCodeInput = document.getElementById('room-code-input');
 const joinRoomBtn = document.getElementById('join-room-btn');
 const createRoomBtn = document.getElementById('create-room-btn');
 
+
+
+/**
+ * Exibe mensagens de erro em um modal customizado
+ */
+function showError(message) {
+    const modal = document.getElementById('errorModal');
+    const text = document.getElementById('errorModalText');
+    if (modal && text) {
+        text.innerText = message;
+        modal.style.display = 'flex';
+    }
+}
+
+// Configuração do botão de fechar o modal de erro
+const closeErrorBtn = document.getElementById('closeErrorModalBtn');
+if (closeErrorBtn) {
+    closeErrorBtn.onclick = () => {
+        document.getElementById('errorModal').style.display = 'none';
+    };
+}
+
+
 // ===================================
 // FUNÇÕES DE AUTENTICAÇÃO
 // ===================================
@@ -18,7 +41,7 @@ if (loginBtn) {
     loginBtn.onclick = () => {
         const provider = new firebase.auth.GoogleAuthProvider();
         auth.signInWithPopup(provider).catch(error => {
-            alert("Erro ao fazer login: " + error.message);
+            showError("Erro ao fazer login: " + error.message);
         });
     };
 }
@@ -75,14 +98,14 @@ if (joinRoomBtn) {
     joinRoomBtn.onclick = () => {
         const code = roomCodeInput.value.trim().toUpperCase();
         if (code.length !== 4) {
-            alert("O código da sala deve ter 4 caracteres.");
+            showError("O código da sala deve ter 4 caracteres.");
             return;
         }
         db.ref(`salas/${code}`).once('value', (snapshot) => {
             if (snapshot.exists()) {
                 window.location.href = `index.html?room=${code}`;
             } else {
-                alert(`A sala "${code}" não existe.`);
+                showError(`A sala "${code}" não existe.`);
             }
         });
     };
@@ -110,7 +133,7 @@ if (createRoomBtn) {
             db.ref(`salas/${newCode}`).set(initialData).then(() => {
                 window.location.href = `index.html?room=${newCode}`;
             }).catch(error => {
-                alert("Erro ao criar sala: " + error.message);
+                showError("Erro ao criar sala: " + error.message);
             });
         });
     };
