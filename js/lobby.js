@@ -1,6 +1,6 @@
-// ===================================
-// DOM Elements
-// ===================================
+// =======================================================
+// === ELEMENTOS DO DOM (REFERÊNCIAS) ===
+// =======================================================
 const loginBtn = document.getElementById('google-login-btn');
 const logoutBtn = document.getElementById('logout-btn');
 const userInfoDiv = document.getElementById('user-info');
@@ -11,10 +11,13 @@ const roomCodeInput = document.getElementById('room-code-input');
 const joinRoomBtn = document.getElementById('join-room-btn');
 const createRoomBtn = document.getElementById('create-room-btn');
 
-
+// =======================================================
+// === SISTEMA DE TRATAMENTO DE ERROS (MODAL) ===
+// =======================================================
 
 /**
- * Exibe mensagens de erro em um modal customizado
+ * Exibe mensagens de erro em um modal customizado.
+ * @param {string} message - A mensagem de erro a ser exibida.
  */
 function showError(message) {
     const modal = document.getElementById('errorModal');
@@ -25,18 +28,22 @@ function showError(message) {
     }
 }
 
-// Configuração do botão de fechar o modal de erro
+// Configuração do evento de fechamento do modal de erro
 const closeErrorBtn = document.getElementById('closeErrorModalBtn');
 if (closeErrorBtn) {
     closeErrorBtn.onclick = () => {
-        document.getElementById('errorModal').style.display = 'none';
+        const modal = document.getElementById('errorModal');
+        if (modal) modal.style.display = 'none';
     };
 }
 
+// =======================================================
+// === FUNÇÕES DE AUTENTICAÇÃO (FIREBASE AUTH) ===
+// =======================================================
 
-// ===================================
-// FUNÇÕES DE AUTENTICAÇÃO
-// ===================================
+/**
+ * Gerencia o fluxo de Login via Google Popup.
+ */
 if (loginBtn) {
     loginBtn.onclick = () => {
         const provider = new firebase.auth.GoogleAuthProvider();
@@ -46,19 +53,27 @@ if (loginBtn) {
     };
 }
 
+/**
+ * Realiza o Logout do usuário atual.
+ */
 if (logoutBtn) {
     logoutBtn.onclick = () => {
         auth.signOut();
     };
 }
 
+/**
+ * Observador de estado de autenticação.
+ * Atualiza a UI e o sessionStorage sempre que o status do usuário muda.
+ */
 auth.onAuthStateChanged(user => {
     if (user) {
-        // Logado
+        // Usuário está Logado: Ajusta visibilidade da interface
         if (loginBtn) loginBtn.style.display = 'none';
         if (userInfoDiv) userInfoDiv.style.display = 'block';
         if (roomActionsDiv) roomActionsDiv.style.display = 'block';
 
+        // Tratamento de nome (DisplayName > Email > Convidado)
         let safeName = user.displayName;
         if (!safeName && user.email) {
             safeName = user.email.split('@')[0];
@@ -68,15 +83,17 @@ auth.onAuthStateChanged(user => {
 
         const safePhoto = user.photoURL || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
 
+        // Renderiza dados do perfil
         if (userNameSpan) userNameSpan.textContent = safeName;
         if (userPhotoImg) userPhotoImg.src = safePhoto;
 
+        // Persiste dados para uso em outras páginas (ex: index.html)
         sessionStorage.setItem('currentUID', user.uid);
         sessionStorage.setItem('currentName', safeName);
         sessionStorage.setItem('currentPhoto', safePhoto);
 
     } else {
-        // Deslogado
+        // Usuário está Deslogado: Reseta interface e limpa sessão
         if (loginBtn) loginBtn.style.display = 'flex';
         if (userInfoDiv) userInfoDiv.style.display = 'none';
         if (roomActionsDiv) roomActionsDiv.style.display = 'none';
@@ -87,13 +104,20 @@ auth.onAuthStateChanged(user => {
     }
 });
 
-// ===================================
-// FUNÇÕES DE SALA
-// ===================================
+// =======================================================
+// === GERENCIAMENTO DE SALAS (JOIN & CREATE) ===
+// =======================================================
+
+/**
+ * Gera um código alfanumérico aleatório de 4 caracteres para a sala.
+ */
 function generateRoomCode() {
     return Math.random().toString(36).substring(2, 6).toUpperCase();
 }
 
+/**
+ * Lógica para entrar em uma sala existente.
+ */
 if (joinRoomBtn) {
     joinRoomBtn.onclick = () => {
         const code = roomCodeInput.value.trim().toUpperCase();
@@ -101,6 +125,7 @@ if (joinRoomBtn) {
             showError("O código da sala deve ter 4 caracteres.");
             return;
         }
+        // Verifica existência da sala no Firebase antes de redirecionar
         db.ref(`salas/${code}`).once('value', (snapshot) => {
             if (snapshot.exists()) {
                 window.location.href = `index.html?room=${code}`;
@@ -111,25 +136,29 @@ if (joinRoomBtn) {
     };
 }
 
+/**
+ * Lógica para criar uma nova sala no banco de dados.
+ */
 if (createRoomBtn) {
     createRoomBtn.onclick = () => {
         const newCode = generateRoomCode();
         db.ref(`salas/${newCode}`).once('value', (snapshot) => {
+            // Prevenção de colisão de códigos (raro)
             if (snapshot.exists()) {
-                createRoomBtn.onclick(); // Tenta de novo se colidir (raro)
+                createRoomBtn.onclick(); 
                 return;
             }
 
-            // Cria o estado inicial do jogo
+            // Define o objeto inicial da sala
             const initialData = {
                 gameState: {
                     status: 'waiting',
                     createdAt: firebase.database.ServerValue.TIMESTAMP
                 },
-                // Define a atividade inicial para evitar autodestruição precoce
-                lastActivity: Date.now()
+                lastActivity: Date.now() // Marco inicial para o sistema de limpeza
             };
 
+            // Grava no Firebase e redireciona para o jogo
             db.ref(`salas/${newCode}`).set(initialData).then(() => {
                 window.location.href = `index.html?room=${newCode}`;
             }).catch(error => {
@@ -140,13 +169,18 @@ if (createRoomBtn) {
 }
 
 // =======================================================
-// === SCRIPT DE CARREGAMENTO DE FONTES / LOADER ===
+// === COMPONENTES VISUAIS E UX (LOADER & FONTES) ===
 // =======================================================
+
+/**
+ * Gerencia o "Font Loader" para garantir que as fontes customizadas 
+ * estejam prontas antes de remover a tela de carregamento.
+ */
 document.addEventListener("DOMContentLoaded", () => {
     const loader = document.getElementById('font-loader');
 
     const hideLoader = () => {
-        if (loader) loader.style.display = 'none'; // Usando display none direto por segurança
+        if (loader) loader.style.display = 'none';
     };
 
     if (document.fonts) {
@@ -158,49 +192,52 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(hideLoader, 1000);
     }
 
+    // Timeout de segurança caso o carregamento demore muito
     setTimeout(hideLoader, 3000);
 });
 
+// =======================================================
+// === MODAL DE COMUNIDADE (APOIO E TUTORIAIS) ===
+// =======================================================
 
-// =======================================================
-// === MODAL DE COMUNIDADE (TUTORIAIS E APOIO) ===
-// =======================================================
+/**
+ * Controla a exibição e o fechamento do modal de Comunidade.
+ */
 document.addEventListener("DOMContentLoaded", () => {
     const communityBtn = document.getElementById('communityBtn');
     const communityModal = document.getElementById('communityModal');
     const closeCommunityBtn = document.getElementById('closeCommunityBtn');
 
     if (communityBtn && communityModal) {
-        // Abre o modal
+        // Abre o modal ao clicar no botão da comunidade
         communityBtn.onclick = () => {
             communityModal.style.display = 'flex';
-            // Removido o display: none daqui!
         };
 
-        // Fecha o modal pelo botão X
+        // Fecha pelo botão X
         if (closeCommunityBtn) {
             closeCommunityBtn.onclick = () => {
                 communityModal.style.display = 'none';
-                // Removido o display: block daqui!
             };
         }
 
-        // Fecha o modal clicando fora dele
+        // Fecha ao clicar fora do conteúdo (no fundo escuro)
         window.addEventListener('click', (e) => {
             if (e.target === communityModal) {
                 communityModal.style.display = 'none';
-                // Removido o display: block daqui!
             }
         });
     }
 });
 
-
+// =======================================================
+// === SISTEMA DE MANUTENÇÃO (LIMPEZA DE SALAS) ===
+// =======================================================
 
 /**
  * SISTEMA DE AUTODESTRUIÇÃO (Beta v0.4)
- * Varre todas as salas do banco de dados e remove aquelas
- * que não tiveram atividade nas últimas 24 horas.
+ * Varre o banco de dados e remove salas sem atividade por mais de 24 horas.
+ * Ajuda a economizar recursos no Firebase.
  */
 function cleanupOldRooms() {
     const roomsRef = db.ref('salas');
@@ -213,9 +250,9 @@ function cleanupOldRooms() {
 
         snapshot.forEach((roomSnap) => {
             const data = roomSnap.val();
-            // O lastActivity é atualizado pelo gameState.js em cada ação
             const lastActivity = data.lastActivity || 0;
 
+            // Se o tempo desde a última ação for maior que 24h, deleta a sala
             if (now - lastActivity > TWENTY_FOUR_HOURS) {
                 console.log(`🧹 Limpeza: Removendo sala inativa ${roomSnap.key}`);
                 roomSnap.ref.remove()
@@ -225,5 +262,5 @@ function cleanupOldRooms() {
     });
 }
 
-// Executa a limpeza sempre que alguém abrir o Lobby
+// Executa a faxina automaticamente ao entrar no Lobby
 cleanupOldRooms();

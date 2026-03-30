@@ -1,39 +1,47 @@
 // =======================================================
-// === CONTROLE DE ESTADO E FIREBASE (gameState.js) ===
+// === CONFIGURAÇÃO INICIAL E CONEXÃO (gameState.js) ===
 // =======================================================
 
-// 1. Pega o código da sala da URL (?room=XXXX)
+// 1. Extração de parâmetros da URL para identificar a partida
 const urlParams = new URLSearchParams(window.location.search);
 const roomCode = urlParams.get('room');
 
-// 2. Pega os dados do usuário logado (vindos do Lobby)
+// 2. Recuperação de credenciais do usuário da sessão atual
 const currentUser = {
   uid: sessionStorage.getItem('currentUID'),
   name: sessionStorage.getItem('currentName'),
   photo: sessionStorage.getItem('currentPhoto')
 };
 
-// 3. Segurança: Se não tem sala ou não tem user logado, manda pro Lobby
+// 3. Validação de Segurança: Redireciona se os dados obrigatórios estiverem ausentes
 if (!roomCode || !currentUser.uid) {
   window.location.href = 'lobby.html';
 }
 
+// 4. Referência ao banco de dados em tempo real (Firebase)
 const gameStateRef = db.ref(`salas/${roomCode}/gameState`);
 
+// 5. Estado Local e Variáveis de Controle
 let localGameState = {};
 let myPlayerId = null;
 let isDrawingCard = false;
 let lastSoundTimestamp = 0;
 
 
+// =======================================================
+// === SISTEMA DE ESPECTADOR (GHOST MODE) ===
+// =======================================================
+
 /**
- * Envia o pedido de espectador e abre o modal de espera
+ * SOLICITAÇÃO DE ESPECTADOR
+ * Envia uma notificação via Firebase para um jogador alvo e abre o modal 
+ * de espera para quem deseja assistir.
  */
 function requestSpectate(targetPid) {
   const targetPlayer = localGameState.players[targetPid];
   if (!targetPlayer || !targetPlayer.uid) return;
 
-  // Envia a notificação via Firebase
+  // Registra a solicitação no nó de notificações do alvo
   db.ref(`salas/${roomCode}/notifications/${targetPlayer.uid}`).set({
     fromName: currentUser.name,
     fromPid: myPlayerId,
@@ -41,13 +49,12 @@ function requestSpectate(targetPid) {
     timestamp: Date.now()
   });
 
-  // Abre o modal de espera em vez do alert()
+  // Interface: Abre o feedback visual de "aguardando resposta"
   const waitModal = document.getElementById('waitSpectateModal');
   if (waitModal) {
     waitModal.style.display = 'flex';
   }
 
-  // Configura o botão de fechar do modal
   const closeBtn = document.getElementById('closeWaitModalBtn');
   if (closeBtn) {
     closeBtn.onclick = () => {
@@ -57,7 +64,9 @@ function requestSpectate(targetPid) {
 }
 
 /**
- * Escuta solicitações de espectadores e abre o modal de confirmação 
+ * LISTENER DE NOTIFICAÇÕES
+ * Monitora solicitações de entrada e gerencia o modal de confirmação/recusa 
+ * para o jogador que está sendo solicitado para ser assistido.
  */
 function setupNotificationListener() {
   db.ref(`salas/${roomCode}/notifications/${currentUser.uid}`).on('value', (snapshot) => {
@@ -67,31 +76,36 @@ function setupNotificationListener() {
       const text = document.getElementById('spectateRequestText');
 
       if (modal && text) {
-        // Preenche o nome de quem está pedindo 
         text.innerText = `${data.fromName} deseja te assistir. Aceitar?`;
         modal.style.display = 'flex';
-        playSound('pop'); // Feedback sonoro ao receber o pedido 
+        playSound('pop'); // Alerta sonoro de solicitação
 
-        // Configura o botão de Aceitar 
+        // Resposta Positiva: Adiciona o espectador à lista do jogador
         document.getElementById('acceptSpectateBtn').onclick = () => {
           db.ref(`salas/${roomCode}/gameState/players/${myPlayerId}/spectators/${data.fromPid}`).set(data.fromName);
           modal.style.display = 'none';
         };
 
-        // Configura o botão de Recusar 
+        // Resposta Negativa: Apenas fecha o modal
         document.getElementById('denySpectateBtn').onclick = () => {
           modal.style.display = 'none';
         };
       }
-      // Limpa a notificação do Firebase para não repetir 
+      // Limpa o registro para evitar repetições indesejadas
       snapshot.ref.remove();
     }
   });
 }
 
 
+// =======================================================
+// === ECONOMIA E MECÂNICAS DE MESA ===
+// =======================================================
+
 /**
- * Coleta todas as moedas do Asilo e as entrega ao jogador local
+ * SAQUE DO ASILO
+ * Coleta todas as moedas acumuladas no Asilo, zera o contador central e 
+ * credita o valor ao saldo do jogador local.
  */
 function withdrawAsylumCoins() {
   if (!myPlayerId) return;
@@ -101,21 +115,26 @@ function withdrawAsylumCoins() {
     const currentAsylumCoins = snapshot.val() || 0;
 
     if (currentAsylumCoins > 0) {
-      asylumRef.set(0);
+      asylumRef.set(0); // Limpa o saldo central
       
-      // Chamamos a função com o parâmetro 'true' para silenciar o 'coin'
+      // Atualiza o saldo do jogador (silent=true para evitar spam de som 'coin')
       updateScore(myPlayerId, currentAsylumCoins, true); 
 
-      // Agora tocamos apenas o som da bolsa de moedas
+      // Emite o efeito sonoro de saque total
       triggerSound('bag-coins'); 
     }
   });
 }
 
+
 // =======================================================
-// === UTILITÁRIOS GLOBAIS DE SOM E ESTADO ===
+// === UTILITÁRIOS GLOBAIS DE ÁUDIO E SFX ===
 // =======================================================
 
+/**
+ * REPRODUÇÃO LOCAL
+ * Executa um arquivo de áudio presente no DOM baseado no ID fornecido.
+ */
 function playSound(id) {
   const sound = document.getElementById('audio-' + id);
   if (sound) {
@@ -124,6 +143,11 @@ function playSound(id) {
   }
 }
 
+/**
+ * SINCRONIZAÇÃO GLOBAL DE SOM
+ * Registra no Firebase um evento de som para que todos os jogadores 
+ * conectados ouçam o efeito simultaneamente.
+ */
 function triggerSound(soundId) {
   db.ref(`salas/${roomCode}/gameState/lastSFX`).set({
     id: soundId,
@@ -132,30 +156,38 @@ function triggerSound(soundId) {
 }
 
 
+
 // =======================================================
-// === AÇÕES DE CARTAS E BARALHO ===
+// === GERENCIAMENTO DO BARALHO E MESA (DECK & TABLE) ===
 // =======================================================
 
+/**
+ * RESETAR MESA
+ * Reinicia o estado global da partida, limpando cartas e moedas,
+ * mas preservando os jogadores que já estão na sala.
+ */
 function resetTable(newConfig = null) {
   updateRoomActivity();
   console.log("Resetando a mesa...");
   triggerSound('8-bit-start');
 
+  // Define a configuração de cartas (nova ou existente)
   const configToUse = newConfig || localGameState.deckConfig || createDefaultDeckConfig();
   let newDeck = createDeck(configToUse);
   let currentPlayers = localGameState.players || {};
 
   let newPlayersState = {};
 
+  // Reconstroi o estado de cada um dos 10 slots de jogadores
   for (let i = 1; i <= 10; i++) {
     newPlayersState[i] = {
       online: currentPlayers[i]?.online || false,
       uid: currentPlayers[i]?.uid || null,
       name: currentPlayers[i]?.name || null,
       photo: currentPlayers[i]?.photo || null,
-      hand: [],
-      score: 2,
-      religion: (i % 2 === 1) ? 'catolico' : 'protestante'
+      hand: [], // Limpa a mão
+      score: 2, // Moedas iniciais padrão
+      religion: (i % 2 === 1) ? 'catolico' : 'protestante' // Distribui religiões alternadas
     };
   }
 
@@ -171,6 +203,10 @@ function resetTable(newConfig = null) {
   gameStateRef.set(initialState);
 }
 
+/**
+ * COMPRAR CARTA
+ * Retira a carta do topo do deck e a entrega a um jogador específico.
+ */
 function drawCard(targetPid = null) {
   const playerToReceive = targetPid || myPlayerId;
   if (!playerToReceive) return;
@@ -187,7 +223,7 @@ function drawCard(targetPid = null) {
       return;
     }
 
-    const card = currentState.deck.pop();
+    const card = currentState.deck.pop(); // Remove do topo
     card.owner = playerToReceive;
     card.location = 'player-' + playerToReceive;
     card.visible = false;
@@ -203,6 +239,10 @@ function drawCard(targetPid = null) {
   });
 }
 
+/**
+ * DEVOLVER CARTA AO DECK
+ * Remove uma carta de sua localização atual, devolve ao baralho e o embaralha.
+ */
 function returnCardToDeck(cardId) {
   triggerSound('shuffle');
   gameStateRef.transaction((currentState) => {
@@ -214,15 +254,22 @@ function returnCardToDeck(cardId) {
     card.owner = null;
     card.location = 'deck';
     card.visible = false;
+    
     if (!currentState.deck) currentState.deck = [];
     currentState.deck.push(card);
-    shuffle(currentState.deck);
+    shuffle(currentState.deck); // Embaralhamento automático após devolução
     return currentState;
   });
 }
 
+/**
+ * MOVIMENTAÇÃO DE CARTAS
+ * Função genérica para mover cartas entre mãos de jogadores, deck ou área livre (cemitério).
+ */
 function moveCard(cardId, targetLocation, targetPlayerId = null) {
   updateRoomActivity();
+  
+  // Feedback sonoro baseado no destino
   if (targetLocation === 'player') triggerSound('card-slide');
   if (targetLocation === 'free') triggerSound('knife');
   if (targetLocation === 'deck') triggerSound('shuffle');
@@ -232,6 +279,7 @@ function moveCard(cardId, targetLocation, targetPlayerId = null) {
     const card = findCardById(currentState, cardId);
     if (!card) return currentState;
 
+    // Lógica para mover para a mão de um jogador
     if (targetLocation === 'player') {
       removeCardFromLocation(currentState, cardId);
       card.owner = targetPlayerId;
@@ -240,6 +288,7 @@ function moveCard(cardId, targetLocation, targetPlayerId = null) {
       if (!currentState.players[targetPlayerId].hand) currentState.players[targetPlayerId].hand = [];
       currentState.players[targetPlayerId].hand.push(card);
     }
+    // Lógica para mover para o cemitério (aberta para todos)
     else if (targetLocation === 'free') {
       removeCardFromLocation(currentState, cardId);
       card.owner = null;
@@ -248,6 +297,7 @@ function moveCard(cardId, targetLocation, targetPlayerId = null) {
       if (!currentState.freeCards) currentState.freeCards = [];
       currentState.freeCards.push(card);
     }
+    // Lógica para devolver ao baralho
     else if (targetLocation === 'deck') {
       removeCardFromLocation(currentState, cardId);
       card.owner = null;
@@ -261,6 +311,10 @@ function moveCard(cardId, targetLocation, targetPlayerId = null) {
   });
 }
 
+/**
+ * REVELAR CARTA DO TOPO (BURN)
+ * Retira a carta do topo do deck e a move diretamente para a área livre, revelando-a.
+ */
 function burnTopCard() {
   triggerSound('card-slide');
   gameStateRef.transaction((currentState) => {
@@ -276,16 +330,14 @@ function burnTopCard() {
 }
 
 // =======================================================
-// === AÇÕES DE MESA (PONTOS, KICK, ETC) ===
+// === MODERAÇÃO E GESTÃO DE JOGADORES (ADMIN) ===
 // =======================================================
 
-
-// Variável global para controle do modal
-//
-let pendingKickPid = null; // Armazena quem será removido
+let pendingKickPid = null; // Memória temporária para o ID de quem será expulso
 
 /**
- * Abre o modal de remoção e prepara os dados 
+ * ABRIR MODAL DE EXPULSÃO
+ * Prepara a interface de confirmação para remover um jogador ou bot da sala.
  */
 function kickPlayer(pid) {
   pendingKickPid = pid;
@@ -300,17 +352,20 @@ function kickPlayer(pid) {
 }
 
 /**
- * Executa a remoção real no Firebase
+ * CONFIRMAR EXPULSÃO
+ * Efetiva a remoção do jogador no banco de dados e limpa seu slot.
  */
 function confirmKickAction() {
   if (!pendingKickPid) return;
 
-  triggerSound('impact'); // Som de impacto
+  triggerSound('impact');
 
+  // Se o próprio jogador for o expulso, redireciona para o lobby
   if (pendingKickPid === myPlayerId) {
     window.location.href = 'lobby.html';
   }
 
+  // Limpa os dados do jogador no Firebase para deixar o slot vago
   db.ref(`salas/${roomCode}/gameState/players/${pendingKickPid}`).update({
     online: false,
     uid: null,
@@ -324,27 +379,33 @@ function confirmKickAction() {
 }
 
 
-
-
-
-
+// =======================================================
+// === GESTÃO DE PONTUAÇÃO E RELIGIÃO ===
+// =======================================================
 
 /**
- * Atualiza o score e emite som (a menos que 'silent' seja true)
+ * ATUALIZA MOEDAS DO JOGADOR
+ * Adiciona ou remove moedas de um jogador específico no Firebase.
+ * @param {string} pid - ID do jogador.
+ * @param {number} amount - Quantidade a somar (pode ser negativa).
+ * @param {boolean} silent - Se true, não dispara o som de moeda.
  */
 function updateScore(pid, amount, silent = false) {
-  // Só dispara o som se NÃO for um saque silencioso
   if (!silent) triggerSound('coin'); 
   
   updateRoomActivity();
   const scoreRef = db.ref(`salas/${roomCode}/gameState/players/${pid}/score`);
   scoreRef.once('value', (snapshot) => {
     let newScore = (snapshot.val() || 0) + amount;
-    if (newScore < 0) newScore = 0;
+    if (newScore < 0) newScore = 0; // Impede saldo negativo
     scoreRef.set(newScore);
   });
 }
 
+/**
+ * ATUALIZA MOEDAS DO ASILO
+ * Gerencia o saldo acumulado no centro do tabuleiro (Asilo).
+ */
 function updateAsylumScore(amount) {
   triggerSound('coin');
   updateRoomActivity();
@@ -356,6 +417,10 @@ function updateAsylumScore(amount) {
   });
 }
 
+/**
+ * ALTERNAR RELIGIÃO
+ * Troca a afiliação do jogador entre Católico e Protestante via transação atômica.
+ */
 function toggleReligion(pid) {
   triggerSound('paper');
   const religionRef = db.ref(`salas/${roomCode}/gameState/players/${pid}/religion`);
@@ -364,16 +429,20 @@ function toggleReligion(pid) {
   });
 }
 
-
+// =======================================================
+// === SISTEMA DE INTELIGÊNCIA ARTIFICIAL (BOTS) ===
+// =======================================================
 
 /**
- * Tenta adicionar um BOT em um slot vazio e exibe modal se a sala estiver cheia
+ * ADICIONAR BOT
+ * Procura um slot vazio na sala e insere um jogador controlado por IA.
+ * Caso a sala esteja cheia, exibe um modal de aviso.
  */
 function addBot() {
   playSound('click');
   let botSlot = null;
 
-  // Percorre os slots para encontrar um espaço disponível
+  // Percorre os 10 slots para encontrar um espaço disponível
   for (let i = 1; i <= 10; i++) {
     const p = localGameState.players[i];
     if (!p.uid && !p.online) {
@@ -383,7 +452,7 @@ function addBot() {
   }
 
   if (botSlot) {
-    // Conta quantos bots já existem para definir o nome (ex: BOT 2)
+    // Define o nome sequencial (BOT 1, BOT 2, etc.)
     let botCount = 0;
     for (let i = 1; i <= 10; i++) {
       if (localGameState.players[i].name && localGameState.players[i].name.startsWith('BOT')) {
@@ -392,7 +461,6 @@ function addBot() {
     }
     const botName = `BOT ${botCount + 1}`;
 
-    // Atualiza o Firebase com os dados do novo Bot
     db.ref(`salas/${roomCode}/gameState/players/${botSlot}`).update({
       online: true,
       uid: 'bot-' + Date.now(),
@@ -403,7 +471,7 @@ function addBot() {
       religion: (botSlot % 2 === 1) ? 'catolico' : 'protestante'
     });
   } else {
-    // SUBSTITUÍDO: Abre o modal customizado em vez do alert()
+    // Feedback visual para sala lotada
     const fullRoomModal = document.getElementById('fullRoomModal');
     if (fullRoomModal) {
       fullRoomModal.style.display = 'flex';
@@ -411,23 +479,28 @@ function addBot() {
   }
 }
 
-
-
-
-
 // =======================================================
 // === SISTEMA DE CONEXÃO E INICIALIZAÇÃO ===
 // =======================================================
 
+/**
+ * TRATAMENTO DE DESCONEXÃO
+ * Garante que o status 'online' mude para false se o jogador fechar o navegador.
+ */
 function setupDisconnectHandler(pid) {
   db.ref(`salas/${roomCode}/gameState/players/${pid}/online`).onDisconnect().set(false);
 }
 
+/**
+ * ENTRAR NA PARTIDA
+ * Gerencia a entrada do usuário em um slot vago ou a reentrada em um slot já ocupado por ele.
+ */
 function joinGame() {
   const loadingOverlay = document.getElementById('loadingOverlay');
   if (loadingOverlay) loadingOverlay.style.display = 'flex';
 
   gameStateRef.transaction((currentState) => {
+    // Inicialização de sala nova
     if (!currentState || !currentState.players) {
       const defaultConfig = createDefaultDeckConfig();
       let newDeck = createDeck(defaultConfig);
@@ -443,16 +516,13 @@ function joinGame() {
 
       for (let i = 1; i <= 10; i++) {
         initialState.players[i] = {
-          online: false,
-          hand: [],
-          score: 2,
+          online: false, hand: [], score: 2,
           religion: (i % 2 === 1) ? 'catolico' : 'protestante',
-          uid: null,
-          name: null,
-          photo: null
+          uid: null, name: null, photo: null
         };
       }
 
+      // O criador da sala ocupa sempre o Slot 1 inicialmente
       initialState.players[1].uid = currentUser.uid;
       initialState.players[1].name = currentUser.name;
       initialState.players[1].photo = currentUser.photo;
@@ -462,6 +532,7 @@ function joinGame() {
       return initialState;
     }
 
+    // Lógica de reentrada
     for (let i = 1; i <= 10; i++) {
       if (currentState.players[i] && currentState.players[i].uid === currentUser.uid) {
         currentState.players[i].online = true;
@@ -472,6 +543,7 @@ function joinGame() {
       }
     }
 
+    // Ocupação de novo slot disponível
     for (let i = 1; i <= 10; i++) {
       if (!currentState.players[i].uid) {
         currentState.players[i].uid = currentUser.uid;
@@ -485,61 +557,65 @@ function joinGame() {
       }
     }
 
-    return;
+    return; // Sala cheia
 
-  }, (error, committed, snapshot) => {
+  }, (error, committed) => {
     if (committed) {
-      console.log(`Conectado com sucesso no Slot ${myPlayerId}`);
+      console.log(`Conectado no Slot ${myPlayerId}`);
       setupDisconnectHandler(myPlayerId);
       if (loadingOverlay) loadingOverlay.style.display = 'none';
     } else if (error) {
-      console.error("Erro na transação:", error);
-      alert("Erro de conexão. Tentando novamente...");
       window.location.reload();
     } else {
-      alert("Sala cheia! Todos os slots têm donos.");
       window.location.href = 'lobby.html';
     }
   });
 }
 
+/**
+ * INICIALIZAÇÃO GLOBAL DO JOGO
+ * Configura os listeners do Firebase e ativa os sistemas de interface e áudio.
+ */
 function initializeGame() {
   gameStateRef.on('value', (snapshot) => {
     const state = snapshot.val();
     if (state) {
+      // Sincronização de efeitos sonoros globais
       if (state.lastSFX && state.lastSFX.timestamp > lastSoundTimestamp) {
         lastSoundTimestamp = state.lastSFX.timestamp;
         playSound(state.lastSFX.id);
       }
       localGameState = state;
 
-      if (typeof renderAll === "function") {
-        renderAll();
-      }
+      if (typeof renderAll === "function") renderAll();
     }
   });
 
   joinGame();
   setupNotificationListener();
 
+  // Ativação dos módulos auxiliares
   if (typeof setupUI === "function") setupUI();
   if (typeof setupDropzones === "function") setupDropzones();
   if (typeof setupAutoScroll === "function") setupAutoScroll();
 }
 
-// Inicia o jogo quando o Firebase Auth confirmar o login
+/**
+ * LISTENER DE AUTENTICAÇÃO
+ * Ponto de entrada do script após a validação do login.
+ */
 auth.onAuthStateChanged((user) => {
   if (user) {
-    console.log("Login confirmado. Iniciando jogo...");
     initializeGame();
   } else {
-    console.log("Usuário não logado. Redirecionando...");
     window.location.href = 'lobby.html';
   }
 });
 
-
-// Sistema de Autodestruição: Registra a última interação na sala
+/**
+ * SISTEMA DE ATIVIDADE
+ * Registra interações para evitar que a sala seja considerada inativa.
+ */
 function updateRoomActivity() {
   if (roomCode) {
     db.ref(`salas/${roomCode}/lastActivity`).set(Date.now());

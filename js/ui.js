@@ -17,41 +17,67 @@ const asylumMinusBtn = document.getElementById('asylum-minus');
 // === FUNÇÕES DE RENDERIZAÇÃO ===
 // =======================================================
 
+/**
+ * LIMPEZA DO DOM (RESET VISUAL)
+ * Remove todos os elementos dinâmicos do tabuleiro antes de uma nova renderização.
+ * Isso evita a duplicação de cartas e slots ao atualizar o estado do jogo.
+ */
 function clearDOM() {
+  // Limpa o conteúdo das mãos de todos os jogadores
   document.querySelectorAll('[data-hand]').forEach(h => h.innerHTML = '');
+  
+  // Remove cartas espalhadas na área livre (cemitério)
   freeArea.querySelectorAll('.card').forEach(n => n.remove());
+  
+  // Remove slots vazios remanescentes
   document.querySelectorAll('.slot').forEach(n => n.remove());
+  
+  // Remove a marcação visual de "jogador local" para reatribuição
   document.querySelectorAll('.player-area.local-player')
     .forEach(el => el.classList.remove('local-player'));
 }
 
+/**
+ * LÓGICA DE VISIBILIDADE DE CARTAS
+ * Determina se uma carta deve exibir o seu verso (back) ou a sua face frontal.
+ * Leva em conta a localização da carta e permissões de espectador (Ghost Mode).
+ */
 function shouldShowBack(card) {
+  // Cartas no deck sempre mostram o verso
   if (card.location === 'deck') return true;
+  
+  // Cartas na área livre (reveladas) sempre mostram a frente
   if (card.location === 'free') return false;
 
+  // Lógica para cartas em posse de jogadores
   if (card.location?.startsWith('player-')) {
     const ownerId = card.owner;
     const owner = localGameState.players ? localGameState.players[ownerId] : null;
 
-    // Verifica se o dono da carta permitiu que VOCÊ (myPlayerId) o espectasse
+    // Verifica se o dono da carta permitiu que o usuário atual (espectador) veja sua mão
     const isSpectatingThisOwner = owner && owner.spectators && owner.spectators[myPlayerId];
 
+    // Se você for o dono ou um espectador autorizado, vê a frente; caso contrário, vê o verso
     if (ownerId === myPlayerId || isSpectatingThisOwner) {
-      return false; // Vejo a frente
+      return false; // Exibe a frente
     }
-    return true; // Vejo o verso
+    return true; // Exibe o verso
   }
   return false;
 }
 
-
-
+/**
+ * CRIAÇÃO DE ELEMENTO DE CARTA
+ * Gera o elemento HTML para uma carta, define sua aparência (frente/verso), 
+ * configura os eventos de Drag & Drop e aplica efeitos visuais.
+ */
 function createCardElement(card) {
   const el = document.createElement('div');
   el.className = 'card';
-  el.draggable = true;
+  el.draggable = true; // Habilita o arrastar da carta
   el.dataset.cardId = card.id;
 
+  // Define a aparência baseada na função de visibilidade
   if (shouldShowBack(card)) {
     el.classList.add('back');
   } else {
@@ -59,10 +85,13 @@ function createCardElement(card) {
     el.style.backgroundImage = `url('${imageUrl}')`;
   }
 
+  // --- EVENTOS DE ARRASTAR (DRAG & DROP) ---
   el.addEventListener('dragstart', (ev) => {
     ev.dataTransfer.setData('text/plain', card.id);
     ev.dataTransfer.effectAllowed = "move";
-    el.classList.add('lifting');
+    el.classList.add('lifting'); // Efeito visual de "levantar" a carta
+    
+    // Pequeno atraso para aplicar a classe de arrasto sem bugar o "ghost image" do browser
     setTimeout(() => {
       el.classList.remove('lifting');
       el.classList.add('is-dragging');
@@ -74,20 +103,29 @@ function createCardElement(card) {
     el.classList.remove('is-dragging');
   });
 
+  // --- INTERAÇÕES ADICIONAIS ---
+  // Clique duplo devolve a carta automaticamente para o deck
   el.addEventListener('dblclick', () => {
     returnCardToDeck(card.id);
   });
 
+  // Aplica o efeito visual de inclinação (Balatro Style)
   attachBalatroEffect(el);
 
   return el;
 }
 
+
+/**
+ * FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO
+ * Sincroniza o estado do Firebase com todos os elementos visuais do jogo.
+ */
 function renderAll() {
   const state = localGameState;
   if (!state || !state.players) return;
 
-  // --- LÓGICA DO BOTÃO FANTASMA (ESPECTADOR) ---
+  // --- 1. LÓGICA DO SISTEMA DE ESPECTADOR (GHOST MODE) ---
+  // Gerencia a exibição do botão de "fantasma" e a lista de jogadores para assistir.
   const spectatorBtn = document.getElementById('spectatorBtn');
   const spectatorModal = document.getElementById('spectatorModal');
   const spectatorList = document.getElementById('spectator-list');
@@ -96,15 +134,15 @@ function renderAll() {
   if (spectatorBtn && spectatorModal) {
     const myHand = state.players[myPlayerId]?.hand || [];
 
-    // O ícone SÓ aparece se a mão estiver vazia
+    // O ícone de espectador SÓ aparece se o jogador local estiver sem cartas na mão.
     if (myHand.length === 0) {
       spectatorBtn.style.display = 'block';
     } else {
       spectatorBtn.style.display = 'none';
-      // Caso o modal esteja aberto e o jogador receba uma carta, fecha o modal
-      spectatorModal.style.display = 'none';
+      spectatorModal.style.display = 'none'; // Fecha se o jogador voltar ao jogo.
     }
 
+    // Configura a abertura da lista de jogadores disponíveis para assistir.
     spectatorBtn.onclick = () => {
       playSound('click');
       spectatorList.innerHTML = '';
@@ -120,7 +158,7 @@ function renderAll() {
           `;
           btn.onclick = () => {
             playSound('pop');
-            requestSpectate(i);
+            requestSpectate(i); // Envia pedido via Firebase.
             spectatorModal.style.display = 'none';
           };
           spectatorList.appendChild(btn);
@@ -141,14 +179,18 @@ function renderAll() {
     }
   }
 
+  // Limpa o tabuleiro antes de desenhar o novo estado.
   clearDOM();
 
+  // --- 2. RENDERIZAÇÃO DOS SLOTS DE JOGADORES (1 a 10) ---
+  // Percorre cada slot para atualizar nomes, avatares, religião e cartas.
   for (let pid = 1; pid <= 10; pid++) {
     const playerEl = document.getElementById(`player-${pid}`);
     if (!playerEl) continue;
 
     const player = state.players[pid] || { online: false, hand: [], score: 0, religion: 'catolico', uid: null };
 
+    // Define se o slot do jogador deve estar visível ou oculto.
     if (player.online || player.uid) {
       playerEl.style.display = 'flex';
     } else {
@@ -158,10 +200,12 @@ function renderAll() {
 
     const handContainer = document.querySelector(`#player-${pid} [data-hand]`);
 
+    // Adiciona classe de destaque para o jogador que está usando este navegador.
     if (pid === myPlayerId) {
       playerEl.classList.add('local-player');
     }
 
+    // Gerencia a criação e atualização do cabeçalho (Avatar e Nome).
     let headerEl = playerEl.querySelector('.player-header');
     if (!headerEl) {
       const titleDiv = playerEl.querySelector('.player-title');
@@ -180,9 +224,7 @@ function renderAll() {
     avatarImg.src = player.photo || 'img/coup.png';
     nameTxt.textContent = player.name || `Jogador ${pid}`;
 
-    // remove alteração de opacidade por status online
-    // playerEl.style.opacity = player.online ? '1' : '0.5';
-
+    // Atualiza o status de Religião e altera os ícones e classes CSS correspondentes.
     const religionEl = playerEl.querySelector('.religion-status');
     if (religionEl) {
       let iconFile = player.religion === 'protestante' ? 'shield-sword.svg' : 'shield-cross.svg';
@@ -198,6 +240,7 @@ function renderAll() {
       }
     }
 
+    // Renderiza as cartas na mão do jogador atual.
     player.hand?.forEach((card) => {
       const slot = document.createElement('div');
       slot.className = 'slot small';
@@ -207,23 +250,26 @@ function renderAll() {
       handContainer.appendChild(slot);
     });
 
+    // Garante que exista pelo menos um slot visual mesmo se o jogador não tiver cartas.
     if (!player.hand || player.hand.length === 0) {
       const slot = document.createElement('div');
       slot.className = 'slot small';
       handContainer.appendChild(slot);
     }
 
+    // Atualiza o contador de moedas.
     const scoreEl = document.querySelector(`#player-${pid} .score`);
-    scoreEl.textContent = player.score || 0;
+    if (scoreEl) scoreEl.textContent = player.score || 0;
   }
 
-  // --- [ADICIONE O INDICADOR AQUI] ---
+  // --- 3. INDICADOR VISUAL DE QUEM VOCÊ ESTÁ ASSISTINDO ---
+  // Aplica um brilho azul no jogador que permitiu o seu acesso de espectador.
   for (let pid = 1; pid <= 10; pid++) {
     const player = state.players[pid];
     const playerEl = document.getElementById(`player-${pid}`);
 
     if (playerEl && player?.spectators && player.spectators[myPlayerId]) {
-      playerEl.style.boxShadow = "0 0 8px #1e90ff"; // Brilho azul de espectador
+      playerEl.style.boxShadow = "0 0 8px #1e90ff"; 
       playerEl.style.border = "2px solid #1e90ff";
     } else if (playerEl) {
       playerEl.style.boxShadow = "";
@@ -231,21 +277,32 @@ function renderAll() {
     }
   }
 
+  // --- 4. RENDERIZAÇÃO DO TABULEIRO CENTRAL (ÁREA LIVRE / DECK) ---
+  // Exibe as cartas que estão abertas no cemitério e atualiza contadores.
   state.freeCards?.forEach(card => {
     const el = createCardElement(card);
     el.classList.add('small');
     freeArea.appendChild(el);
   });
 
-  deckCountEl.textContent = state.deck?.length || 0;
+  if (deckCountEl) deckCountEl.textContent = state.deck?.length || 0;
   if (asylumScoreEl) asylumScoreEl.textContent = state.asylumScore || 0;
 }
 
+
+
 // =======================================================
-// === EVENTOS DRAG & DROP ===
+// === CONFIGURAÇÃO DE INTERAÇÕES (DRAG & DROP) ===
 // =======================================================
 
+/**
+ * CONFIGURAÇÃO DE ZONAS DE DEPÓSITO (DROPZONES)
+ * Define como o Deck, as Áreas de Jogadores e o Cemitério (Free Area) reagem ao 
+ * arrasto e soltura de cartas ou ações de compra.
+ */
 function setupDropzones() {
+  // --- CONFIGURAÇÃO DO DECK (BARALHO) ---
+  // Inicia a ação de compra ao arrastar o Deck
   deckEl.addEventListener('dragstart', (e) => {
     e.dataTransfer.setData('text/plain', 'DECK_DRAW_ACTION');
   });
@@ -254,11 +311,14 @@ function setupDropzones() {
   deckEl.ondrop = ev => {
     ev.preventDefault();
     const id = ev.dataTransfer.getData('text/plain');
+    // Se soltar uma carta no Deck, ela volta para o baralho
     if (id !== 'DECK_DRAW_ACTION') moveCard(id, 'deck');
   };
 
+  // Clique simples no Deck compra uma carta para o jogador local
   deckEl.onclick = () => drawCard();
 
+  // --- CONFIGURAÇÃO DAS ÁREAS DOS JOGADORES ---
   document.querySelectorAll('.player-area').forEach(area => {
     area.ondragover = ev => ev.preventDefault();
     area.ondrop = ev => {
@@ -266,31 +326,41 @@ function setupDropzones() {
       const data = ev.dataTransfer.getData('text/plain');
       const pid = parseInt(area.dataset.player);
 
+      // Se o dado for a ação do Deck, compra uma carta para aquele jogador específico
       if (data === 'DECK_DRAW_ACTION') {
         drawCard(pid);
       } else {
+        // Caso contrário, move a carta arrastada para a mão do jogador
         moveCard(data, 'player', pid);
       }
     };
   });
 
+  // --- CONFIGURAÇÃO DA ÁREA LIVRE (CEMITÉRIO/TABULEIRO) ---
   freeArea.ondragover = ev => ev.preventDefault();
   freeArea.ondrop = ev => {
     ev.preventDefault();
     const data = ev.dataTransfer.getData('text/plain');
 
+    // Se arrastar do Deck para o meio, "queima" (revela) a carta do topo
     if (data === 'DECK_DRAW_ACTION') {
       burnTopCard();
     } else {
+      // Move a carta arrastada para ficar visível a todos no centro
       moveCard(data, 'free');
     }
   };
 }
 
 // =======================================================
-// === EFEITOS VISUAIS ===
+// === EFEITOS VISUAIS E EXPERIÊNCIA (UX) ===
 // =======================================================
 
+/**
+ * EFEITO BALATRO (INCLINAÇÃO 3D)
+ * Aplica um efeito de profundidade e sombra dinâmica ao elemento baseado 
+ * na posição do mouse, simulando o movimento de cartas físicas.
+ */
 function attachBalatroEffect(element, isDeck = false) {
   if (!element) return;
 
@@ -298,63 +368,74 @@ function attachBalatroEffect(element, isDeck = false) {
 
   element.addEventListener('mousemove', (e) => {
     const rect = element.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = e.clientX - rect.left; // Posição X dentro do elemento
+    const y = e.clientY - rect.top;  // Posição Y dentro do elemento
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    const sensitivity = 5;
+    const sensitivity = 5; // Define a força da inclinação
 
     const rotateX = -(y - centerY) / sensitivity;
     const rotateY = (x - centerX) / sensitivity;
 
-    let shadowColor;
-    if (isDeck) {
-      shadowColor = 'rgba(0, 191, 255, 0.2)';
-    } else {
-      shadowColor = 'rgba(0, 191, 255, 0.2)';
-    }
+    // Define a cor da sombra baseada no tipo de elemento
+    let shadowColor = 'rgba(0, 191, 255, 0.2)';
 
+    // Aplica a transformação de perspectiva e a sombra dinâmica
     element.style.transform = `perspective(300px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.08)`;
     element.style.boxShadow = `${-rotateY * 1.5}px ${rotateX * 1.5}px 40px ${shadowColor}`;
   });
 
+  // Reseta o elemento para o estado original quando o mouse sai
   element.addEventListener('mouseleave', () => {
     element.style.transform = 'perspective(300px) rotateX(0) rotateY(0) scale(1)';
     element.style.boxShadow = '';
   });
 }
 
+/**
+ * ROLAGEM AUTOMÁTICA DURANTE DRAG
+ * Permite que a página role para cima ou para baixo automaticamente quando 
+ * o jogador arrasta uma carta para as extremidades da tela.
+ */
 function setupAutoScroll() {
-  const threshold = 80; const speed = 15;
+  const threshold = 80; // Distância da borda para ativar o scroll
+  const speed = 15;     // Velocidade da rolagem
+  
   window.addEventListener('dragover', (e) => {
-    const y = e.clientY; const viewportHeight = window.innerHeight;
+    const y = e.clientY; 
+    const viewportHeight = window.innerHeight;
+    
+    // Rola para cima se estiver perto do topo
     if (y < threshold) window.scrollBy(0, -speed);
+    // Rola para baixo se estiver perto da base
     else if (y > (viewportHeight - threshold)) window.scrollBy(0, speed);
   });
 }
 
-// =======================================================
-// === INICIALIZAÇÃO DA INTERFACE (Botões, Modais) ===
-// =======================================================
 
 
+
+/**
+ * INICIALIZAÇÃO DOS COMPONENTES DA INTERFACE
+ * Configura listeners de clique, estados iniciais de modais e controles de áudio/vídeo.
+ */
 function setupUI() {
 
-// Ouvinte para o botão de fechar limite máximo de jogadores:
-const fullRoomModal = document.getElementById('fullRoomModal');
-const closeFullRoomBtn = document.getElementById('closeFullRoomBtn');
+  // --- 1. MODAIS DE AVISO E SISTEMA ---
 
-if (closeFullRoomBtn && fullRoomModal) {
-  closeFullRoomBtn.onclick = () => {
-    playSound('click');
-    fullRoomModal.style.display = 'none';
-  };
-}
+  // Gerenciamento do Modal de Sala Cheia (Aviso de limite de Bots)
+  const fullRoomModal = document.getElementById('fullRoomModal');
+  const closeFullRoomBtn = document.getElementById('closeFullRoomBtn');
 
+  if (closeFullRoomBtn && fullRoomModal) {
+    closeFullRoomBtn.onclick = () => {
+      playSound('click');
+      fullRoomModal.style.display = 'none';
+    };
+  }
 
-
-  // 1. Configuração do Botão de Reset Principal 
+  // Configuração do Botão de Reset Principal (Abre confirmação)
   if (resetBtn) {
     resetBtn.onclick = () => {
       const resetModal = document.getElementById('resetModal');
@@ -364,46 +445,75 @@ if (closeFullRoomBtn && fullRoomModal) {
     };
   }
 
-  // Lógica do Fullscreen
-  const fullscreenBtn = document.getElementById('fullscreenBtn');
 
+  // --- 2. CONTROLES DE AMBIENTE E TELA ---
+
+  // Alternância de Tela Cheia (Fullscreen)
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
   if (fullscreenBtn) {
     fullscreenBtn.onclick = () => {
-      playSound('click'); // Feedback sonoro padrão
-
+      playSound('click');
       if (!document.fullscreenElement) {
-        // Entra em tela cheia (pega o documento inteiro)
         document.documentElement.requestFullscreen().catch(err => {
-          console.error(`Erro ao tentar ativar tela cheia: ${err.message}`);
+          console.error(`Erro ao ativar tela cheia: ${err.message}`);
         });
       } else {
-        // Sai da tela cheia
         document.exitFullscreen();
       }
     };
   }
 
-  // Atalho de Gesto: Clique duplo APENAS na imagem do Asilo
+  // Configuração de Áudio (BGM e Volume)
+  const musicBtn = document.getElementById('musicBtn');
+  const bgmAudio = document.getElementById('bgmAudio');
+  const volumeSlider = document.getElementById('volumeSlider');
+  
+  if (bgmAudio) bgmAudio.volume = 0.1;
+
+  if (musicBtn && bgmAudio) {
+    bgmAudio.play()
+      .then(() => musicBtn.classList.remove('muted'))
+      .catch(() => musicBtn.classList.add('muted'));
+
+    musicBtn.onclick = () => {
+      if (bgmAudio.paused) { 
+        bgmAudio.play().then(() => musicBtn.classList.remove('muted')); 
+      } else { 
+        bgmAudio.pause(); 
+        musicBtn.classList.add('muted'); 
+      }
+    };
+  }
+
+  if (volumeSlider && bgmAudio) {
+    volumeSlider.value = bgmAudio.volume;
+    volumeSlider.addEventListener('input', (e) => { 
+      bgmAudio.volume = e.target.value; 
+    });
+  }
+
+
+  // --- 3. INTERAÇÕES DE JOGO (ASILO, KICK, BOTS) ---
+
+  // Atalho de Gesto: Saque rápido do Asilo via clique duplo na imagem
   const asylumArea = document.getElementById('asylumArea');
   if (asylumArea) {
-    // Seleciona a imagem dentro da área do asilo
-    const asylumImage = asylumArea.querySelector('.asylum-image-wrapper img'); //
+    const asylumImage = asylumArea.querySelector('.asylum-image-wrapper img');
     if (asylumImage) {
       asylumImage.ondblclick = () => {
-        withdrawAsylumCoins(); // Chama a função de saque rápido
+        withdrawAsylumCoins(); // Função no gameState.js
       };
     }
   }
 
-
-  // 4. Lógica do Modal de Remoção (Kick) 
+  // Modal de Remoção de Jogador (Kick)
   const kickModal = document.getElementById('kickPlayerModal');
   const confirmKickBtn = document.getElementById('confirmKickBtn');
   const cancelKickBtn = document.getElementById('cancelKickBtn');
 
   if (confirmKickBtn) {
     confirmKickBtn.onclick = () => {
-      confirmKickAction(); // Chama a função de remoção no gameState.js
+      confirmKickAction(); // Executa a remoção no Firebase
       if (kickModal) kickModal.style.display = 'none';
     };
   }
@@ -414,17 +524,14 @@ if (closeFullRoomBtn && fullRoomModal) {
     };
   }
 
-
-  // 2. Lógica dos botões INTERNOS do modal [cite: 9, 10]
+  // Modal Interno de Confirmação de Reset de Mesa
   const confirmBtn = document.getElementById('confirmResetBtn');
   const cancelBtn = document.getElementById('cancelResetBtn');
   const resetModal = document.getElementById('resetModal');
 
   if (confirmBtn) {
     confirmBtn.onclick = () => {
-      // CORREÇÃO: O nome da função correta é resetTable() 
-      resetTable();
-
+      resetTable(); // Reinicia o estado global da partida
       if (resetModal) resetModal.style.display = 'none';
     };
   }
@@ -435,53 +542,38 @@ if (closeFullRoomBtn && fullRoomModal) {
     };
   }
 
-
-
-
-
-
-  // 3. Outras configurações de UI (Áudio, etc)
-  const musicBtn = document.getElementById('musicBtn');
-  const bgmAudio = document.getElementById('bgmAudio');
-  if (bgmAudio) bgmAudio.volume = 0.1;
-
-  if (musicBtn && bgmAudio) {
-    bgmAudio.play().then(() => musicBtn.classList.remove('muted')).catch(() => musicBtn.classList.add('muted'));
-    musicBtn.onclick = () => {
-      if (bgmAudio.paused) { bgmAudio.play().then(() => musicBtn.classList.remove('muted')); }
-      else { bgmAudio.pause(); musicBtn.classList.add('muted'); }
-    };
-  }
-
-  const settingsBtn = document.getElementById('settingsBtn');
-  const settingsModal = document.getElementById('settingsModal');
-  const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-  const volumeSlider = document.getElementById('volumeSlider');
-  const toggleHeaderBtn = document.getElementById('toggleHeaderBtn');
-  const openDeckConfigBtn = document.getElementById('openDeckConfigBtn');
+  // Botão de Adicionar Bot (Menu de Configurações)
   const addBotBtn = document.getElementById('addBotBtn');
-
   if (addBotBtn) {
     addBotBtn.onclick = () => { addBot(); };
   }
 
+
+  // --- 4. CONFIGURAÇÕES VISUAIS E CUSTOMIZAÇÃO ---
+
+  // Menu de Configurações (Abertura/Fechamento)
+  const settingsBtn = document.getElementById('settingsBtn');
+  const settingsModal = document.getElementById('settingsModal');
+  const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+
   if (settingsBtn && settingsModal) {
-    settingsBtn.onclick = () => { playSound('click'); settingsModal.style.display = 'flex'; };
-    if (closeSettingsBtn) closeSettingsBtn.onclick = () => { playSound('click'); settingsModal.style.display = 'none'; };
+    settingsBtn.onclick = () => { 
+      playSound('click'); 
+      settingsModal.style.display = 'flex'; 
+    };
+    if (closeSettingsBtn) {
+      closeSettingsBtn.onclick = () => { 
+        playSound('click'); 
+        settingsModal.style.display = 'none'; 
+      };
+    }
   }
 
-  if (volumeSlider && bgmAudio) {
-    volumeSlider.value = bgmAudio.volume;
-    volumeSlider.addEventListener('input', (e) => { bgmAudio.volume = e.target.value; });
-  }
-
+  // Controle de Visibilidade do Header (Código da Sala)
+  const toggleHeaderBtn = document.getElementById('toggleHeaderBtn');
   if (toggleHeaderBtn) {
     const header = document.querySelector('header');
     const spanText = toggleHeaderBtn.querySelector('span');
-
-    toggleHeaderBtn.querySelector('img').src = 'img/eye.svg';
-    toggleHeaderBtn.style.opacity = '1';
-    if (spanText) spanText.textContent = "Visível";
 
     toggleHeaderBtn.onclick = () => {
       playSound('click');
@@ -499,37 +591,63 @@ if (closeFullRoomBtn && fullRoomModal) {
     };
   }
 
-
+  // Configuração de Efeitos Balatro no Deck Central
   const deckContainer = document.getElementById('deck');
   attachBalatroEffect(deckContainer, true);
 
-  const configModal = document.getElementById('configModal');
-  const closeConfigModalBtn = document.getElementById('closeConfigModalBtn');
-  if (openDeckConfigBtn && configModal) {
-    openDeckConfigBtn.onclick = () => { playSound('click'); settingsModal.style.display = 'none'; configModal.style.display = 'flex'; };
-    if (closeConfigModalBtn) closeConfigModalBtn.onclick = () => { playSound('click'); configModal.style.display = 'none'; settingsModal.style.display = 'flex'; };
-  }
 
+  // --- 5. CONFIGURAÇÃO DE BARALHO (HOST APENAS) ---
+
+  const configModal = document.getElementById('configModal');
+  const openDeckConfigBtn = document.getElementById('openDeckConfigBtn');
+  const closeConfigModalBtn = document.getElementById('closeConfigModalBtn');
   const applyDeckConfigBtn = document.getElementById('applyDeckConfigBtn');
   const configInputs = document.querySelectorAll('.card-config-item input');
-  configInputs.forEach(input => { if (myPlayerId !== 1) input.disabled = true; });
+
+  // Navegação para o Modal de Baralho
+  if (openDeckConfigBtn && configModal) {
+    openDeckConfigBtn.onclick = () => { 
+      playSound('click'); 
+      settingsModal.style.display = 'none'; 
+      configModal.style.display = 'flex'; 
+    };
+    if (closeConfigModalBtn) {
+      closeConfigModalBtn.onclick = () => { 
+        playSound('click'); 
+        configModal.style.display = 'none'; 
+        settingsModal.style.display = 'flex'; 
+      };
+    }
+  }
+
+  // Lógica de Permissão e Aplicação da Configuração (Apenas para o Host)
+  configInputs.forEach(input => { 
+    if (myPlayerId !== 1) input.disabled = true; 
+  });
+
   if (applyDeckConfigBtn) {
     if (myPlayerId !== 1) {
-      applyDeckConfigBtn.disabled = true; applyDeckConfigBtn.style.background = '#555'; applyDeckConfigBtn.textContent = 'Apenas o Host pode aplicar';
+      applyDeckConfigBtn.disabled = true; 
+      applyDeckConfigBtn.style.background = '#555'; 
+      applyDeckConfigBtn.textContent = 'Apenas o Host pode aplicar';
     } else {
       applyDeckConfigBtn.onclick = () => {
         playSound('click');
         const newConfig = {};
         configInputs.forEach(input => {
           let val = parseInt(input.value);
-          if (isNaN(val) || val < 0) val = 0; if (val > 10) val = 10;
+          if (isNaN(val) || val < 0) val = 0; 
+          if (val > 10) val = 10;
           newConfig[input.dataset.card] = val;
         });
-        resetTable(newConfig);
+        resetTable(newConfig); // Aplica e reinicia partida
         configModal.style.display = 'none';
       };
     }
   }
+
+
+  // --- 6. MODAL DE INFORMAÇÕES E REGRAS ---
 
   const infoBtn = document.getElementById('infoBtn');
   const infoModal = document.getElementById('infoModal');
@@ -538,11 +656,30 @@ if (closeFullRoomBtn && fullRoomModal) {
   const frontImg = flipCard ? flipCard.querySelector('.flip-card-front img') : null;
   const backImg = flipCard ? flipCard.querySelector('.flip-card-back img') : null;
 
-  const promoChars = ['bufao', 'benfeitor', 'burgues', 'burocrata'];
-  const revolutionChars = ['marionetista', 'diplomata', 'mercenario', 'bispo', 'tesoureiro_da_coroa', 'vigilante'];
-
   let currentRuleImages = [];
   let currentRuleIndex = 0;
+
+  if (infoBtn && infoModal) {
+    infoBtn.onclick = () => {
+      playSound('click');
+      currentRuleImages = calculateRuleImages(); // Lógica de DLCs
+      infoModal.style.display = 'flex';
+
+      if (flipCard) {
+        currentRuleIndex = 0;
+        flipCard.classList.remove('is-flipped');
+        frontImg.src = currentRuleImages[0];
+        backImg.src = currentRuleImages.length > 1 ? currentRuleImages[1] : currentRuleImages[0];
+      }
+    };
+
+    if (closeInfoBtn) {
+      closeInfoBtn.onclick = () => {
+        playSound('click');
+        infoModal.style.display = 'none';
+      };
+    }
+  }
 
 
   /**
@@ -721,38 +858,57 @@ if (closeFullRoomBtn && fullRoomModal) {
 
 
 
-
 // =======================================================
 // === INICIALIZAÇÃO E EVENTOS DE HEADER ===
 // =======================================================
 
+/**
+ * CONFIGURAÇÃO DO EXIBIDOR DE CÓDIGO DA SALA
+ * Define o texto do código da sala no cabeçalho e gerencia a funcionalidade 
+ * de copiar para a área de transferência ao clicar.
+ */
 const roomHeader = document.getElementById('roomHeader');
 const roomCodeDisplay = document.getElementById('roomCodeDisplay');
 
+// Define o código da sala se o elemento e a variável existirem
 if (roomCodeDisplay && typeof roomCode !== 'undefined' && roomCode) {
   roomCodeDisplay.textContent = roomCode;
 }
 
+// Configura o evento de clique para copiar o código da sala
 if (roomHeader) {
   roomHeader.onclick = () => {
     navigator.clipboard.writeText(roomCode).then(() => {
-      playSound('pop');
+      playSound('pop'); // Som de confirmação
       roomHeader.classList.add('copied');
+      
       const originalText = roomHeader.querySelector('p').textContent;
       roomHeader.querySelector('p').textContent = "CÓDIGO COPIADO!";
+      
+      // Reseta o estado visual do botão após 1.2 segundos
       setTimeout(() => {
         roomHeader.classList.remove('copied');
         roomHeader.querySelector('p').textContent = originalText;
       }, 1200);
     }).catch(err => {
       console.error('Erro ao copiar:', err);
+      // Fallback em caso de falha na API de clipboard
       alert("Código da sala: " + roomCode);
     });
   };
 }
 
+// =======================================================
+// === SISTEMA DE VISIBILIDADE DE RELIGIÃO ===
+// =======================================================
+
 const toggleReligionBtn = document.getElementById('toggleReligionBtn');
 
+/**
+ * APLICA A VISIBILIDADE DA RELIGIÃO
+ * Controla as classes do body, textos do botão e ícones para ocultar ou 
+ * mostrar as afiliações religiosas (Católico/Protestante) no tabuleiro.
+ */
 const applyReligionVisibility = (shouldHide) => {
   const body = document.body;
 
@@ -761,29 +917,40 @@ const applyReligionVisibility = (shouldHide) => {
     const span = toggleReligionBtn.querySelector('span');
 
     if (shouldHide) {
+      // Estado OCULTO
       body.classList.add('hide-religion');
-      span.textContent = "Oculto";
+      if (span) span.textContent = "Oculto";
       toggleReligionBtn.style.opacity = '0.6';
       if (img) img.src = 'img/visibility_off.svg';
     } else {
+      // Estado VISÍVEL
       body.classList.remove('hide-religion');
-      span.textContent = "Visível";
+      if (span) span.textContent = "Visível";
       toggleReligionBtn.style.opacity = '1';
       if (img) img.src = 'img/eye.svg';
     }
-  } else if (shouldHide) {
-    body.classList.add('hide-religion');
   } else {
-    body.classList.remove('hide-religion');
+    // Fallback caso o botão não exista mas a configuração precise ser aplicada
+    if (shouldHide) body.classList.add('hide-religion');
+    else body.classList.remove('hide-religion');
   }
+  
+  // Persiste a preferência do usuário localmente
   localStorage.setItem('hideReligion', shouldHide);
 };
 
+/**
+ * INICIALIZAÇÃO E LISTENER DE VISIBILIDADE
+ * Carrega a preferência salva no navegador e configura o botão de alternância.
+ */
 if (toggleReligionBtn) {
+  // Busca valor salvo ou define como 'true' (oculto) por padrão
   const storedValue = localStorage.getItem('hideReligion');
   const storedReligionSetting = storedValue === null ? true : (storedValue === 'true');
+  
   applyReligionVisibility(storedReligionSetting);
 
+  // Alterna o estado ao clicar no botão
   toggleReligionBtn.onclick = () => {
     playSound('click');
     const isCurrentlyHidden = document.body.classList.contains('hide-religion');
