@@ -361,9 +361,16 @@ function toggleReligion(pid) {
   });
 }
 
+
+
+/**
+ * Tenta adicionar um BOT em um slot vazio e exibe modal se a sala estiver cheia
+ */
 function addBot() {
   playSound('click');
   let botSlot = null;
+
+  // Percorre os slots para encontrar um espaço disponível
   for (let i = 1; i <= 10; i++) {
     const p = localGameState.players[i];
     if (!p.uid && !p.online) {
@@ -373,6 +380,7 @@ function addBot() {
   }
 
   if (botSlot) {
+    // Conta quantos bots já existem para definir o nome (ex: BOT 2)
     let botCount = 0;
     for (let i = 1; i <= 10; i++) {
       if (localGameState.players[i].name && localGameState.players[i].name.startsWith('BOT')) {
@@ -381,6 +389,7 @@ function addBot() {
     }
     const botName = `BOT ${botCount + 1}`;
 
+    // Atualiza o Firebase com os dados do novo Bot
     db.ref(`salas/${roomCode}/gameState/players/${botSlot}`).update({
       online: true,
       uid: 'bot-' + Date.now(),
@@ -391,9 +400,17 @@ function addBot() {
       religion: (botSlot % 2 === 1) ? 'catolico' : 'protestante'
     });
   } else {
-    alert("A sala está cheia! Não é possível adicionar bots.");
+    // SUBSTITUÍDO: Abre o modal customizado em vez do alert()
+    const fullRoomModal = document.getElementById('fullRoomModal');
+    if (fullRoomModal) {
+      fullRoomModal.style.display = 'flex';
+    }
   }
 }
+
+
+
+
 
 // =======================================================
 // === SISTEMA DE CONEXÃO E INICIALIZAÇÃO ===

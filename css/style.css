@@ -1385,44 +1385,16 @@ body.hide-religion .decks-wrapper {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* =======================================================
    === VERSÃO RESPONSIVA COMPACTA (ALTURA REDUZIDA) ===
    ======================================================= */
 
 @media (max-height: 450px) {
+
+    .player-hands-container {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 4px;
+    }
 
     /* --- 1. ESTRUTURA GLOBAL E HEADER --- */
 
@@ -1449,11 +1421,6 @@ body.hide-religion .decks-wrapper {
     }
 
     /* --- 2. ÁREA DOS JOGADORES (PLAYERS) --- */
-
-    .player-hands-container {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 4px;
-    }
 
     .asylum-image-wrapper {
         width: 40px;

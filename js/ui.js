@@ -338,7 +338,22 @@ function setupAutoScroll() {
 // === INICIALIZAÇÃO DA INTERFACE (Botões, Modais) ===
 // =======================================================
 
+
 function setupUI() {
+
+// Ouvinte para o botão de fechar limite máximo de jogadores:
+const fullRoomModal = document.getElementById('fullRoomModal');
+const closeFullRoomBtn = document.getElementById('closeFullRoomBtn');
+
+if (closeFullRoomBtn && fullRoomModal) {
+  closeFullRoomBtn.onclick = () => {
+    playSound('click');
+    fullRoomModal.style.display = 'none';
+  };
+}
+
+
+
   // 1. Configuração do Botão de Reset Principal 
   if (resetBtn) {
     resetBtn.onclick = () => {
