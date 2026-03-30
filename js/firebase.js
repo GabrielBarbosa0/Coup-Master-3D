@@ -9,7 +9,7 @@
  */
 
 (function () {
-    // Ofuscação de strings via Base64 para evitar leitura direta por humanos
+    // Função de decodificação Base64
     const _0x4f22 = (s) => atob(s);
 
     const firebaseConfig = {
@@ -27,15 +27,15 @@
     if (!firebase.apps.length) {
         if (!firebaseConfig.apiKey) {
             console.error("Firebase config is missing!");
-            alert("Erro: configuração do Firebase ausente.");
         } else {
             firebase.initializeApp(firebaseConfig);
         }
     }
 
     // 2. Disponibiliza o Banco de Dados e a Autenticação globalmente
+    // Isso é essencial para que o lobby.js e o gameState.js funcionem!
     window.db = firebase.database();
     window.auth = firebase.auth();
 
-    console.log("🔥 Firebase inicializado com sucesso via firebase.js");
+    console.log("🔥 Firebase inicializado com sucesso via firebase.js (Nova Chave)");
 })();
