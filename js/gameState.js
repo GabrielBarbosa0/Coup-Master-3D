@@ -97,19 +97,17 @@ function withdrawAsylumCoins() {
   if (!myPlayerId) return;
 
   const asylumRef = db.ref(`salas/${roomCode}/gameState/asylumScore`);
-
   asylumRef.once('value', (snapshot) => {
     const currentAsylumCoins = snapshot.val() || 0;
 
     if (currentAsylumCoins > 0) {
-      // 1. Zera o Asilo no Firebase
       asylumRef.set(0);
+      
+      // Chamamos a função com o parâmetro 'true' para silenciar o 'coin'
+      updateScore(myPlayerId, currentAsylumCoins, true); 
 
-      // 2. Adiciona o montante ao saldo do jogador que clicou
-      updateScore(myPlayerId, currentAsylumCoins);
-
-      // 3. Feedback sonoro de moedas para todos na sala
-      triggerSound('coin');
+      // Agora tocamos apenas o som da bolsa de moedas
+      triggerSound('bag-coins'); 
     }
   });
 }
@@ -306,7 +304,7 @@ function kickPlayer(pid) {
  */
 function confirmKickAction() {
   if (!pendingKickPid) return;
-  
+
   triggerSound('impact'); // Som de impacto
 
   if (pendingKickPid === myPlayerId) {
@@ -321,7 +319,7 @@ function confirmKickAction() {
     hand: [],
     score: 2
   });
-  
+
   pendingKickPid = null;
 }
 
@@ -331,8 +329,13 @@ function confirmKickAction() {
 
 
 
-function updateScore(pid, amount) {
-  triggerSound('coin');
+/**
+ * Atualiza o score e emite som (a menos que 'silent' seja true)
+ */
+function updateScore(pid, amount, silent = false) {
+  // Só dispara o som se NÃO for um saque silencioso
+  if (!silent) triggerSound('coin'); 
+  
   updateRoomActivity();
   const scoreRef = db.ref(`salas/${roomCode}/gameState/players/${pid}/score`);
   scoreRef.once('value', (snapshot) => {
