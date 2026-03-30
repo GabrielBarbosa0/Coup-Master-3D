@@ -1124,12 +1124,6 @@ body.hide-religion .decks-wrapper {
         justify-content: center;
     }
 
-    /* .asylum-image {
-        width: 36px;
-        height: 36px;
-        border-radius: 6px;
-    } */
-
     .asylum-points button {
         width: 16px;
         height: 16px;
@@ -1388,6 +1382,42 @@ body.hide-religion .decks-wrapper {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* =======================================================
    === VERSÃO RESPONSIVA COMPACTA (ALTURA REDUZIDA) ===
    ======================================================= */
@@ -1419,21 +1449,24 @@ body.hide-religion .decks-wrapper {
     }
 
     /* --- 2. ÁREA DOS JOGADORES (PLAYERS) --- */
-    /* .player-hands-container {
-        display: flex !important;
-        flex-wrap: nowrap !important;
-        overflow-x: auto;
-        gap: 4px;
-        padding-bottom: 4px;
-    } */
 
     .player-hands-container {
         grid-template-columns: repeat(5, 1fr);
         gap: 4px;
     }
 
+    .asylum-image-wrapper {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* Decks e Asilo */
     .decks-wrapper {
+        margin-top: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 4px;
+        width: 280px;
     }
 
     .player-area {
@@ -1559,12 +1592,12 @@ body.hide-religion .decks-wrapper {
     }
 
     /* --- 5. TABULEIRO INFERIOR (DECK, ASILO E CEMITÉRIO) --- */
+
     .bottom-table-container {
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: stretch !important;
+        display: grid;
+        grid-template-columns: 1fr auto;
         gap: 4px;
-        width: 100%;
+        align-items: stretch;
     }
 
     .asylum-area .muted {
@@ -1572,34 +1605,13 @@ body.hide-religion .decks-wrapper {
         font-weight: bold;
     }
 
-    /* Padronização de "Grossura" (Padding e Gap) para Deck e Asilo */
-    .deck-area,
-    .asylum-area {
-        padding: 4px 15px !important;
-        gap: 4px !important;
-        min-width: 80px;
-        display: flex;
-        flex-direction: column;
+    .asylum-area,
+    .deck-area {
+        min-height: 110px;
+        padding: 8px;
         justify-content: center;
-        align-items: center;
     }
 
-    .asylum-image-wrapper {
-        width: 42px;
-        height: 42px;
-    }
-
-    /* Ajuste específico do Cemitério (Free Area) para espelhar Deck/Asilo */
-    .free-area {
-        flex-grow: 1 !important;
-        padding: 4px 15px !important;
-        min-height: 60px !important;
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: flex-start;
-        align-items: center;
-        position: relative;
-    }
 
     .deck {
         width: 43px;
@@ -1642,12 +1654,9 @@ body.hide-religion .decks-wrapper {
     }
 
     .free-area {
-        flex-grow: 0 !important;
-        width: 100% !important;
-        padding: 4px 15px !important;
-        gap: 4px !important;
-        min-height: 60px !important;
-        box-sizing: border-box !important;
+        min-height: 80px;
+        align-content: center;
+        justify-content: center;
     }
 
     /* 1. Redução Geral do Container do Modal */
