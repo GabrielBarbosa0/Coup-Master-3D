@@ -2,6 +2,12 @@
 // === FIREBASE CONFIGURATION & INITIALIZATION ===
 // =======================================================
 
+/**
+ * NOTA DE SEGURANÇA: As chaves do Firebase para Web são identificadores públicos.
+ * A segurança deste projeto é garantida via Firebase Security Rules (RTDB),
+ * impedindo acessos não autorizados mesmo com a chave exposta.
+ */
+
 const firebaseConfig = {
     apiKey: "AIzaSyDQwhYeLEvJW4p9Ml4pKjmr520CeKnZa60",
     authDomain: "coup-master.firebaseapp.com",

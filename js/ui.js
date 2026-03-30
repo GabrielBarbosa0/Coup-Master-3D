@@ -25,13 +25,13 @@ const asylumMinusBtn = document.getElementById('asylum-minus');
 function clearDOM() {
   // Limpa o conteúdo das mãos de todos os jogadores
   document.querySelectorAll('[data-hand]').forEach(h => h.innerHTML = '');
-  
+
   // Remove cartas espalhadas na área livre (cemitério)
   freeArea.querySelectorAll('.card').forEach(n => n.remove());
-  
+
   // Remove slots vazios remanescentes
   document.querySelectorAll('.slot').forEach(n => n.remove());
-  
+
   // Remove a marcação visual de "jogador local" para reatribuição
   document.querySelectorAll('.player-area.local-player')
     .forEach(el => el.classList.remove('local-player'));
@@ -45,7 +45,7 @@ function clearDOM() {
 function shouldShowBack(card) {
   // Cartas no deck sempre mostram o verso
   if (card.location === 'deck') return true;
-  
+
   // Cartas na área livre (reveladas) sempre mostram a frente
   if (card.location === 'free') return false;
 
@@ -90,7 +90,7 @@ function createCardElement(card) {
     ev.dataTransfer.setData('text/plain', card.id);
     ev.dataTransfer.effectAllowed = "move";
     el.classList.add('lifting'); // Efeito visual de "levantar" a carta
-    
+
     // Pequeno atraso para aplicar a classe de arrasto sem bugar o "ghost image" do browser
     setTimeout(() => {
       el.classList.remove('lifting');
@@ -269,7 +269,7 @@ function renderAll() {
     const playerEl = document.getElementById(`player-${pid}`);
 
     if (playerEl && player?.spectators && player.spectators[myPlayerId]) {
-      playerEl.style.boxShadow = "0 0 8px #1e90ff"; 
+      playerEl.style.boxShadow = "0 0 8px #1e90ff";
       playerEl.style.border = "2px solid #1e90ff";
     } else if (playerEl) {
       playerEl.style.boxShadow = "";
@@ -401,11 +401,11 @@ function attachBalatroEffect(element, isDeck = false) {
 function setupAutoScroll() {
   const threshold = 80; // Distância da borda para ativar o scroll
   const speed = 15;     // Velocidade da rolagem
-  
+
   window.addEventListener('dragover', (e) => {
-    const y = e.clientY; 
+    const y = e.clientY;
     const viewportHeight = window.innerHeight;
-    
+
     // Rola para cima se estiver perto do topo
     if (y < threshold) window.scrollBy(0, -speed);
     // Rola para baixo se estiver perto da base
@@ -467,7 +467,7 @@ function setupUI() {
   const musicBtn = document.getElementById('musicBtn');
   const bgmAudio = document.getElementById('bgmAudio');
   const volumeSlider = document.getElementById('volumeSlider');
-  
+
   if (bgmAudio) bgmAudio.volume = 0.1;
 
   if (musicBtn && bgmAudio) {
@@ -476,19 +476,19 @@ function setupUI() {
       .catch(() => musicBtn.classList.add('muted'));
 
     musicBtn.onclick = () => {
-      if (bgmAudio.paused) { 
-        bgmAudio.play().then(() => musicBtn.classList.remove('muted')); 
-      } else { 
-        bgmAudio.pause(); 
-        musicBtn.classList.add('muted'); 
+      if (bgmAudio.paused) {
+        bgmAudio.play().then(() => musicBtn.classList.remove('muted'));
+      } else {
+        bgmAudio.pause();
+        musicBtn.classList.add('muted');
       }
     };
   }
 
   if (volumeSlider && bgmAudio) {
     volumeSlider.value = bgmAudio.volume;
-    volumeSlider.addEventListener('input', (e) => { 
-      bgmAudio.volume = e.target.value; 
+    volumeSlider.addEventListener('input', (e) => {
+      bgmAudio.volume = e.target.value;
     });
   }
 
@@ -557,14 +557,14 @@ function setupUI() {
   const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 
   if (settingsBtn && settingsModal) {
-    settingsBtn.onclick = () => { 
-      playSound('click'); 
-      settingsModal.style.display = 'flex'; 
+    settingsBtn.onclick = () => {
+      playSound('click');
+      settingsModal.style.display = 'flex';
     };
     if (closeSettingsBtn) {
-      closeSettingsBtn.onclick = () => { 
-        playSound('click'); 
-        settingsModal.style.display = 'none'; 
+      closeSettingsBtn.onclick = () => {
+        playSound('click');
+        settingsModal.style.display = 'none';
       };
     }
   }
@@ -606,29 +606,29 @@ function setupUI() {
 
   // Navegação para o Modal de Baralho
   if (openDeckConfigBtn && configModal) {
-    openDeckConfigBtn.onclick = () => { 
-      playSound('click'); 
-      settingsModal.style.display = 'none'; 
-      configModal.style.display = 'flex'; 
+    openDeckConfigBtn.onclick = () => {
+      playSound('click');
+      settingsModal.style.display = 'none';
+      configModal.style.display = 'flex';
     };
     if (closeConfigModalBtn) {
-      closeConfigModalBtn.onclick = () => { 
-        playSound('click'); 
-        configModal.style.display = 'none'; 
-        settingsModal.style.display = 'flex'; 
+      closeConfigModalBtn.onclick = () => {
+        playSound('click');
+        configModal.style.display = 'none';
+        settingsModal.style.display = 'flex';
       };
     }
   }
 
   // Lógica de Permissão e Aplicação da Configuração (Apenas para o Host)
-  configInputs.forEach(input => { 
-    if (myPlayerId !== 1) input.disabled = true; 
+  configInputs.forEach(input => {
+    if (myPlayerId !== 1) input.disabled = true;
   });
 
   if (applyDeckConfigBtn) {
     if (myPlayerId !== 1) {
-      applyDeckConfigBtn.disabled = true; 
-      applyDeckConfigBtn.style.background = '#555'; 
+      applyDeckConfigBtn.disabled = true;
+      applyDeckConfigBtn.style.background = '#555';
       applyDeckConfigBtn.textContent = 'Apenas o Host pode aplicar';
     } else {
       applyDeckConfigBtn.onclick = () => {
@@ -636,7 +636,7 @@ function setupUI() {
         const newConfig = {};
         configInputs.forEach(input => {
           let val = parseInt(input.value);
-          if (isNaN(val) || val < 0) val = 0; 
+          if (isNaN(val) || val < 0) val = 0;
           if (val > 10) val = 10;
           newConfig[input.dataset.card] = val;
         });
@@ -881,10 +881,10 @@ if (roomHeader) {
     navigator.clipboard.writeText(roomCode).then(() => {
       playSound('pop'); // Som de confirmação
       roomHeader.classList.add('copied');
-      
+
       const originalText = roomHeader.querySelector('p').textContent;
       roomHeader.querySelector('p').textContent = "CÓDIGO COPIADO!";
-      
+
       // Reseta o estado visual do botão após 1.2 segundos
       setTimeout(() => {
         roomHeader.classList.remove('copied');
@@ -934,7 +934,7 @@ const applyReligionVisibility = (shouldHide) => {
     if (shouldHide) body.classList.add('hide-religion');
     else body.classList.remove('hide-religion');
   }
-  
+
   // Persiste a preferência do usuário localmente
   localStorage.setItem('hideReligion', shouldHide);
 };
@@ -947,7 +947,7 @@ if (toggleReligionBtn) {
   // Busca valor salvo ou define como 'true' (oculto) por padrão
   const storedValue = localStorage.getItem('hideReligion');
   const storedReligionSetting = storedValue === null ? true : (storedValue === 'true');
-  
+
   applyReligionVisibility(storedReligionSetting);
 
   // Alterna o estado ao clicar no botão

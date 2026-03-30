@@ -5,7 +5,7 @@
 /**
  * LISTA MESTRE DE PERSONAGENS
  * Define todos os tipos de cartas disponíveis no jogo, incluindo expansões
- * como "Promo", "Revolução" e "Sombras do Asilo", com suas respectivas cores.
+ * como "Sombras do Palácio (Promo)", "A Revolução" e "Sombras do Asilo", com suas respectivas cores.
  */
 const CARD_TYPES = [
   { type: 'duque', color: '#ff66c4' },
@@ -48,11 +48,8 @@ function createDefaultDeckConfig() {
     'duque': 5, 'capitao': 5, 'assassino': 5, 'embaixador': 5, 'condessa': 5,
     'inquisidor': 5, 'benfeitor': 0, 'bufao': 0, 'burgues': 0, 'burocrata': 0,
     'vigilante': 0, 'mercenario': 0, 'bispo': 0, 'tesoureiro_da_coroa': 0,
-    'diplomata': 0, 'marionetista': 0,
-
-    'pistoleiro': 0, 'magnata': 0,
-    'estrategista': 0, 'ladrao': 0,
-    'vigarista': 0, 'xerife': 0
+    'diplomata': 0, 'marionetista': 0, 'pistoleiro': 0, 'magnata': 0,
+    'estrategista': 0, 'ladrao': 0, 'vigarista': 0, 'xerife': 0
   };
 }
 
@@ -86,7 +83,7 @@ function createDeck(config) {
       }
     }
   }
-  
+
   shuffle(newDeck); // Embaralha antes de retornar
   return newDeck;
 }
@@ -117,10 +114,10 @@ function findCardById(state, id) {
   // Busca em áreas comuns
   let card = state.deck?.find(c => c.id === id);
   if (card) return card;
-  
+
   card = state.freeCards?.find(c => c.id === id);
   if (card) return card;
-  
+
   card = state.grave?.find(c => c.id === id);
   if (card) return card;
 
@@ -129,7 +126,7 @@ function findCardById(state, id) {
     card = state.players?.[p]?.hand?.find(c => c.id === id);
     if (card) return card;
   }
-  
+
   return null;
 }
 

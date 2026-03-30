@@ -116,12 +116,12 @@ function withdrawAsylumCoins() {
 
     if (currentAsylumCoins > 0) {
       asylumRef.set(0); // Limpa o saldo central
-      
+
       // Atualiza o saldo do jogador (silent=true para evitar spam de som 'coin')
-      updateScore(myPlayerId, currentAsylumCoins, true); 
+      updateScore(myPlayerId, currentAsylumCoins, true);
 
       // Emite o efeito sonoro de saque total
-      triggerSound('bag-coins'); 
+      triggerSound('bag-coins');
     }
   });
 }
@@ -254,7 +254,7 @@ function returnCardToDeck(cardId) {
     card.owner = null;
     card.location = 'deck';
     card.visible = false;
-    
+
     if (!currentState.deck) currentState.deck = [];
     currentState.deck.push(card);
     shuffle(currentState.deck); // Embaralhamento automático após devolução
@@ -268,7 +268,7 @@ function returnCardToDeck(cardId) {
  */
 function moveCard(cardId, targetLocation, targetPlayerId = null) {
   updateRoomActivity();
-  
+
   // Feedback sonoro baseado no destino
   if (targetLocation === 'player') triggerSound('card-slide');
   if (targetLocation === 'free') triggerSound('knife');
@@ -391,8 +391,8 @@ function confirmKickAction() {
  * @param {boolean} silent - Se true, não dispara o som de moeda.
  */
 function updateScore(pid, amount, silent = false) {
-  if (!silent) triggerSound('coin'); 
-  
+  if (!silent) triggerSound('coin');
+
   updateRoomActivity();
   const scoreRef = db.ref(`salas/${roomCode}/gameState/players/${pid}/score`);
   scoreRef.once('value', (snapshot) => {
