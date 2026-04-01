@@ -121,9 +121,38 @@ function createCardElement(card) {
  * FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO
  * Sincroniza o estado do Firebase com a interface e aplica permissões de Host (isAdmin).
  */
+
 function renderAll() {
   const state = localGameState;
   if (!state || !state.players) return;
+
+  // --- NOVO: LÓGICA DE GRADE DINÂMICA ---
+  const container = document.querySelector('.player-hands-container');
+  if (container) {
+    // Conta quantos jogadores estão ativos no momento
+    let activeCount = 0;
+    for (let i = 1; i <= 10; i++) {
+      const p = state.players[i];
+      if (p && (p.online || p.uid)) activeCount++;
+    }
+
+    // Define o número de colunas com base na sua lógica
+    let cols = 5; // Padrão
+    if (activeCount === 1) cols = 1;
+    else if (activeCount === 2) cols = 2;
+    else if (activeCount === 3) cols = 3;
+    else if (activeCount === 4) cols = 2;
+    else if (activeCount === 5 || activeCount === 6) cols = 3;
+    else if (activeCount === 7 || activeCount === 8) cols = 4;
+    else cols = 5; // Para 9 ou 10 jogadores
+
+    // Aplica apenas em telas de PC (conforme seu @media 1200px)
+    if (window.innerWidth >= 1200) {
+      container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    } else {
+      container.style.gridTemplateColumns = ''; // Reseta para o CSS padrão no mobile
+    }
+  }
 
   // --- 1. TRAVAS DE ADMINISTRADOR (HOST) ---
   // Referências aos elementos de controle global

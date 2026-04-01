@@ -613,8 +613,10 @@ header p {
 
 /* Efeito de brilho dourado suavizado ao passar o mouse */
 .asylum-image-wrapper:hover {
-    transform: scale(1.03); /* Reduzido levemente o aumento de 1.05 para 1.03 */
-    box-shadow: 0 0 12px 2px rgba(255, 185, 44, 0.6); /* Brilho reduzido e com transparência */
+    transform: scale(1.03);
+    /* Reduzido levemente o aumento de 1.05 para 1.03 */
+    box-shadow: 0 0 12px 2px rgba(255, 185, 44, 0.6);
+    /* Brilho reduzido e com transparência */
     cursor: pointer;
 }
 
@@ -1226,7 +1228,7 @@ body.hide-religion .decks-wrapper {
 
     /* --- 1. ESTRUTURA GLOBAL E HEADER --- */
     .container {
-        max-width: 90vw;
+        max-width: 70vw;
         padding: 5px;
     }
 
@@ -1373,6 +1375,13 @@ body.hide-religion .decks-wrapper {
     .asylum-image-wrapper {
         width: 60px;
         height: 60px;
+    }
+
+    /* No seu style.css */
+    .player-hands-container {
+        display: grid;
+        transition: grid-template-columns 0.3s ease;
+        /* Suaviza a mudança de layout */
     }
 }
 
