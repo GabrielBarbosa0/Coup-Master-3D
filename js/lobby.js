@@ -139,26 +139,27 @@ if (joinRoomBtn) {
 /**
  * Lógica para criar uma nova sala no banco de dados.
  */
+// [lobby.js]
 if (createRoomBtn) {
     createRoomBtn.onclick = () => {
         const newCode = generateRoomCode();
+        const currentUID = sessionStorage.getItem('currentUID'); //
+
         db.ref(`salas/${newCode}`).once('value', (snapshot) => {
-            // Prevenção de colisão de códigos (raro)
             if (snapshot.exists()) {
-                createRoomBtn.onclick(); 
+                createRoomBtn.onclick();
                 return;
             }
 
-            // Define o objeto inicial da sala
             const initialData = {
+                hostUID: currentUID, // Define o dono eterno da sala via UID
                 gameState: {
                     status: 'waiting',
                     createdAt: firebase.database.ServerValue.TIMESTAMP
                 },
-                lastActivity: Date.now() // Marco inicial para o sistema de limpeza
+                lastActivity: Date.now()
             };
 
-            // Grava no Firebase e redireciona para o jogo
             db.ref(`salas/${newCode}`).set(initialData).then(() => {
                 window.location.href = `index.html?room=${newCode}`;
             }).catch(error => {

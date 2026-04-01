@@ -116,16 +116,49 @@ function createCardElement(card) {
 }
 
 
+
 /**
  * FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO
- * Sincroniza o estado do Firebase com todos os elementos visuais do jogo.
+ * Sincroniza o estado do Firebase com a interface e aplica permissões de Host (isAdmin).
  */
 function renderAll() {
   const state = localGameState;
   if (!state || !state.players) return;
 
+  // --- 1. TRAVAS DE ADMINISTRADOR (HOST) ---
+  // Referências aos elementos de controle global
+  const resetBtn = document.getElementById('resetBtn');
+  const addBotBtn = document.getElementById('addBotBtn');
+  const applyDeckBtn = document.getElementById('applyDeckConfigBtn');
+  const configInputs = document.querySelectorAll('.card-config-item input');
+
+  // Visibilidade dos botões Reset e Adicionar Bot
+  if (resetBtn) resetBtn.style.display = isAdmin ? 'flex' : 'none';
+  if (addBotBtn) {
+    const botRow = addBotBtn.closest('.setting-row');
+    if (botRow) botRow.style.display = isAdmin ? 'flex' : 'none';
+  }
+
+  // Habilita ou desabilita os campos de texto do baralho em tempo real
+  configInputs.forEach(input => {
+    input.disabled = !isAdmin;
+  });
+
+  // Configuração visual e funcional do botão de aplicar baralho
+  if (applyDeckBtn) {
+    if (!isAdmin) {
+      applyDeckBtn.disabled = true;
+      applyDeckBtn.style.background = '#555'; // Cinza para indicar bloqueio
+      applyDeckBtn.textContent = 'Apenas o Host pode aplicar';
+    } else {
+      applyDeckBtn.disabled = false;
+      applyDeckBtn.style.background = ''; // Reseta para a cor original do CSS
+      applyDeckBtn.textContent = 'Aplicar e Resetar Jogo';
+    }
+  }
+
+
   // --- 1. LÓGICA DO SISTEMA DE ESPECTADOR (GHOST MODE) ---
-  // Gerencia a exibição do botão de "fantasma" e a lista de jogadores para assistir.
   const spectatorBtn = document.getElementById('spectatorBtn');
   const spectatorModal = document.getElementById('spectatorModal');
   const spectatorList = document.getElementById('spectator-list');
@@ -134,15 +167,13 @@ function renderAll() {
   if (spectatorBtn && spectatorModal) {
     const myHand = state.players[myPlayerId]?.hand || [];
 
-    // O ícone de espectador SÓ aparece se o jogador local estiver sem cartas na mão.
     if (myHand.length === 0) {
       spectatorBtn.style.display = 'block';
     } else {
       spectatorBtn.style.display = 'none';
-      spectatorModal.style.display = 'none'; // Fecha se o jogador voltar ao jogo.
+      spectatorModal.style.display = 'none';
     }
 
-    // Configura a abertura da lista de jogadores disponíveis para assistir.
     spectatorBtn.onclick = () => {
       playSound('click');
       spectatorList.innerHTML = '';
@@ -158,7 +189,7 @@ function renderAll() {
           `;
           btn.onclick = () => {
             playSound('pop');
-            requestSpectate(i); // Envia pedido via Firebase.
+            requestSpectate(i);
             spectatorModal.style.display = 'none';
           };
           spectatorList.appendChild(btn);
@@ -183,7 +214,6 @@ function renderAll() {
   clearDOM();
 
   // --- 2. RENDERIZAÇÃO DOS SLOTS DE JOGADORES (1 a 10) ---
-  // Percorre cada slot para atualizar nomes, avatares, religião e cartas.
   for (let pid = 1; pid <= 10; pid++) {
     const playerEl = document.getElementById(`player-${pid}`);
     if (!playerEl) continue;
@@ -198,21 +228,33 @@ function renderAll() {
       continue;
     }
 
-    const handContainer = document.querySelector(`#player-${pid} [data-hand]`);
 
-    // Adiciona classe de destaque para o jogador que está usando este navegador.
+
+
+    // --- 2.1 IDENTIFICAÇÃO E CONTROLE DE MODERAÇÃO ---
+    // Adiciona classe de destaque para o jogador local
     if (pid === myPlayerId) {
       playerEl.classList.add('local-player');
     }
 
-    // Gerencia a criação e atualização do cabeçalho (Avatar e Nome).
+    // Controle de Moderação: Botão de expulsar (X) visível apenas para o Host
+    const removeBtn = playerEl.querySelector('.remove-player');
+    if (removeBtn) {
+      removeBtn.style.display = isAdmin ? 'block' : 'none';
+    }
+
+    // --- 2.2 CABEÇALHO DO JOGADOR (AVATAR E NOME) ---
+    // Garante que a estrutura do cabeçalho exista para suporte a fotos de perfil
     let headerEl = playerEl.querySelector('.player-header');
     if (!headerEl) {
       const titleDiv = playerEl.querySelector('.player-title');
       headerEl = document.createElement('div');
       headerEl.className = 'player-header';
+
       const img = document.createElement('img');
       img.className = 'player-avatar';
+
+      // Injeta o cabeçalho antes do título e reorganiza o DOM
       playerEl.insertBefore(headerEl, titleDiv);
       headerEl.appendChild(img);
       headerEl.appendChild(titleDiv);
@@ -221,61 +263,59 @@ function renderAll() {
     const avatarImg = headerEl.querySelector('.player-avatar');
     const nameTxt = headerEl.querySelector('.player-title');
 
-    avatarImg.src = player.photo || 'img/coup.png';
-    nameTxt.textContent = player.name || `Jogador ${pid}`;
+    if (avatarImg) avatarImg.src = player.photo || 'img/coup.png';
+    if (nameTxt) nameTxt.textContent = player.name || `Jogador ${pid}`;
 
-    // Atualiza o status de Religião e altera os ícones e classes CSS correspondentes.
+    // --- 2.3 STATUS DE RELIGIÃO ---
+    // Atualiza ícones e classes CSS baseados na afiliação atual
     const religionEl = playerEl.querySelector('.religion-status');
     if (religionEl) {
-      let iconFile = player.religion === 'protestante' ? 'shield-sword.svg' : 'shield-cross.svg';
-      let religionText = player.religion === 'protestante' ? 'Protestante' : 'Católico';
-      religionEl.innerHTML = `<img src="img/${iconFile}" class="religion-icon"> ${religionText}`;
+      const isProtestante = player.religion === 'protestante';
+      const iconFile = isProtestante ? 'shield-sword.svg' : 'shield-cross.svg';
+      const religionText = isProtestante ? 'Protestante' : 'Católico';
 
-      if (player.religion === 'protestante') {
-        religionEl.classList.remove('catolico');
-        religionEl.classList.add('protestante');
-      } else {
-        religionEl.classList.remove('protestante');
-        religionEl.classList.add('catolico');
+      religionEl.innerHTML = `<img src="img/${iconFile}" class="religion-icon"> ${religionText}`;
+      religionEl.className = `religion-status ${player.religion}`; // Aplica classe dinâmica
+    }
+
+    // --- 2.4 RENDERIZAÇÃO DA MÃO E PONTUAÇÃO ---
+    const handContainer = playerEl.querySelector('[data-hand]');
+    if (handContainer) {
+      // Renderiza cada carta presente na mão do jogador
+      player.hand?.forEach((card) => {
+        const slot = document.createElement('div');
+        slot.className = 'slot small';
+        const el = createCardElement(card);
+        el.classList.add('small');
+        slot.appendChild(el);
+        handContainer.appendChild(slot);
+      });
+
+      // Mantém um slot vazio por estética se não houver cartas
+      if (!player.hand || player.hand.length === 0) {
+        const slot = document.createElement('div');
+        slot.className = 'slot small';
+        handContainer.appendChild(slot);
       }
     }
 
-    // Renderiza as cartas na mão do jogador atual.
-    player.hand?.forEach((card) => {
-      const slot = document.createElement('div');
-      slot.className = 'slot small';
-      const el = createCardElement(card);
-      el.classList.add('small');
-      slot.appendChild(el);
-      handContainer.appendChild(slot);
-    });
-
-    // Garante que exista pelo menos um slot visual mesmo se o jogador não tiver cartas.
-    if (!player.hand || player.hand.length === 0) {
-      const slot = document.createElement('div');
-      slot.className = 'slot small';
-      handContainer.appendChild(slot);
-    }
-
-    // Atualiza o contador de moedas.
-    const scoreEl = document.querySelector(`#player-${pid} .score`);
+    // --- RENDERIZAÇÃO DA MÃO E PONTUAÇÃO (Fim do Trecho 2) ---
+    const scoreEl = playerEl.querySelector('.score');
     if (scoreEl) scoreEl.textContent = player.score || 0;
-  }
 
-  // --- 3. INDICADOR VISUAL DE QUEM VOCÊ ESTÁ ASSISTINDO ---
-  // Aplica um brilho azul no jogador que permitiu o seu acesso de espectador.
-  for (let pid = 1; pid <= 10; pid++) {
-    const player = state.players[pid];
-    const playerEl = document.getElementById(`player-${pid}`);
-
-    if (playerEl && player?.spectators && player.spectators[myPlayerId]) {
+    // --- INTEGRAÇÃO DO TRECHO 3 (INDICADOR DE ESPECTADOR) ---
+    // Em vez de um novo loop, fazemos a checagem aqui mesmo, aproveitando o 'pid' atual.
+    if (player?.spectators && player.spectators[myPlayerId]) {
       playerEl.style.boxShadow = "0 0 8px #1e90ff";
       playerEl.style.border = "2px solid #1e90ff";
-    } else if (playerEl) {
+    } else {
       playerEl.style.boxShadow = "";
       playerEl.style.border = "";
     }
   }
+
+
+
 
   // --- 4. RENDERIZAÇÃO DO TABULEIRO CENTRAL (ÁREA LIVRE / DECK) ---
   // Exibe as cartas que estão abertas no cemitério e atualiza contadores.
@@ -288,7 +328,6 @@ function renderAll() {
   if (deckCountEl) deckCountEl.textContent = state.deck?.length || 0;
   if (asylumScoreEl) asylumScoreEl.textContent = state.asylumScore || 0;
 }
-
 
 
 // =======================================================
@@ -608,9 +647,28 @@ function setupUI() {
   if (openDeckConfigBtn && configModal) {
     openDeckConfigBtn.onclick = () => {
       playSound('click');
-      settingsModal.style.display = 'none';
+
+      // --- NOVO: Sincroniza os inputs com a configuração salva no Firebase ---
+      // Busca a configuração atual do estado local (ou a padrão se não existir)
+      const currentConfig = localGameState.deckConfig;
+
+      if (currentConfig) {
+        // Percorre todos os inputs do modal
+        configInputs.forEach(input => {
+          const cardType = input.dataset.card; // Pega o tipo da carta (ex: 'duque')
+
+          // Se o banco tiver um valor para essa carta, atualiza o campo de texto
+          if (currentConfig[cardType] !== undefined) {
+            input.value = currentConfig[cardType];
+          }
+        });
+      }
+
+      // Fecha o menu de configurações e abre o de baralho
+      if (settingsModal) settingsModal.style.display = 'none';
       configModal.style.display = 'flex';
     };
+
     if (closeConfigModalBtn) {
       closeConfigModalBtn.onclick = () => {
         playSound('click');
@@ -622,28 +680,28 @@ function setupUI() {
 
   // Lógica de Permissão e Aplicação da Configuração (Apenas para o Host)
   configInputs.forEach(input => {
-    if (myPlayerId !== 1) input.disabled = true;
+    input.disabled = !isAdmin;
   });
 
   if (applyDeckConfigBtn) {
-    if (myPlayerId !== 1) {
-      applyDeckConfigBtn.disabled = true;
-      applyDeckConfigBtn.style.background = '#555';
-      applyDeckConfigBtn.textContent = 'Apenas o Host pode aplicar';
-    } else {
-      applyDeckConfigBtn.onclick = () => {
-        playSound('click');
-        const newConfig = {};
-        configInputs.forEach(input => {
-          let val = parseInt(input.value);
-          if (isNaN(val) || val < 0) val = 0;
-          if (val > 10) val = 10;
-          newConfig[input.dataset.card] = val;
-        });
-        resetTable(newConfig); // Aplica e reinicia partida
-        configModal.style.display = 'none';
-      };
-    }
+    applyDeckConfigBtn.onclick = () => {
+      // Verificação extra de segurança
+      if (!isAdmin) return;
+
+      playSound('click');
+      const newConfig = {};
+      const configInputs = document.querySelectorAll('.card-config-item input');
+
+      configInputs.forEach(input => {
+        let val = parseInt(input.value);
+        if (isNaN(val) || val < 0) val = 0;
+        if (val > 10) val = 10;
+        newConfig[input.dataset.card] = val;
+      });
+
+      resetTable(newConfig); // Aplica e reinicia a partida
+      if (configModal) configModal.style.display = 'none';
+    };
   }
 
 

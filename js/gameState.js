@@ -576,17 +576,29 @@ function joinGame() {
  * INICIALIZAÇÃO GLOBAL DO JOGO
  * Configura os listeners do Firebase e ativa os sistemas de interface e áudio.
  */
+let hostUID = null;
+let isAdmin = false;
+
 function initializeGame() {
+  // 1. Identifica o Administrador via UID fixo no banco
+  db.ref(`salas/${roomCode}/hostUID`).on('value', (snapshot) => {
+    hostUID = snapshot.val();
+    isAdmin = (currentUser.uid === hostUID);
+    console.log("Admin Status:", isAdmin);
+    if (typeof renderAll === "function") renderAll();
+  });
+
+  // 2. Sincroniza o estado do jogo
   gameStateRef.on('value', (snapshot) => {
     const state = snapshot.val();
     if (state) {
-      // Sincronização de efeitos sonoros globais
+      // SINCRONIZAÇÃO DE SONS (Isso estava faltando!)
       if (state.lastSFX && state.lastSFX.timestamp > lastSoundTimestamp) {
         lastSoundTimestamp = state.lastSFX.timestamp;
         playSound(state.lastSFX.id);
       }
-      localGameState = state;
 
+      localGameState = state;
       if (typeof renderAll === "function") renderAll();
     }
   });
@@ -594,7 +606,6 @@ function initializeGame() {
   joinGame();
   setupNotificationListener();
 
-  // Ativação dos módulos auxiliares
   if (typeof setupUI === "function") setupUI();
   if (typeof setupDropzones === "function") setupDropzones();
   if (typeof setupAutoScroll === "function") setupAutoScroll();
