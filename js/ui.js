@@ -1083,99 +1083,99 @@ function updateCardFlotation() {
 updateCardFlotation();
 
 
-// =======================================================
-// === SISTEMA DE PARALLAX COM CONTROLE DE ESTADO ===
-// =======================================================
+// // =======================================================
+// // === SISTEMA DE PARALLAX COM CONTROLE DE ESTADO ===
+// // =======================================================
 
-let targetX = 0;
-let targetY = 0;
-let currentX = 0;
-let currentY = 0;
-let parallaxEnabled = true; // Estado global controlado pelas configurações
+// let targetX = 0;
+// let targetY = 0;
+// let currentX = 0;
+// let currentY = 0;
+// let parallaxEnabled = true; // Estado global controlado pelas configurações
 
-const smoothing = 0.05; // Suavidade do movimento (estilo Godot)
-const maxOffset = 12;   // Deslocamento máximo em pixels
+// const smoothing = 0.05; // Suavidade do movimento (estilo Godot)
+// const maxOffset = 12;   // Deslocamento máximo em pixels
 
-const toggleParallaxBtn = document.getElementById('toggleParallaxBtn');
+// const toggleParallaxBtn = document.getElementById('toggleParallaxBtn');
 
-/**
- * MOUSE TRACKER
- * Calcula a posição alvo baseada na movimentação do cursor.
- */
-window.addEventListener('mousemove', (e) => {
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
+// /**
+//  * MOUSE TRACKER
+//  * Calcula a posição alvo baseada na movimentação do cursor.
+//  */
+// window.addEventListener('mousemove', (e) => {
+//     const centerX = window.innerWidth / 2;
+//     const centerY = window.innerHeight / 2;
 
-    // Calcula o offset normalizado (-1 a 1)
-    const offsetX = (e.clientX - centerX) / centerX;
-    const offsetY = (e.clientY - centerY) / centerY;
+//     // Calcula o offset normalizado (-1 a 1)
+//     const offsetX = (e.clientX - centerX) / centerX;
+//     const offsetY = (e.clientY - centerY) / centerY;
 
-    targetX = -offsetX * maxOffset;
-    targetY = -offsetY * maxOffset;
-});
+//     targetX = -offsetX * maxOffset;
+//     targetY = -offsetY * maxOffset;
+// });
 
-/**
- * LOOP DE ANIMAÇÃO (60 FPS)
- * Só aplica a transformação ao DOM se o parallax estiver ativado.
- */
-function updateParallax() {
-    // A interpolação linear (LERP) continua para manter a fluidez se reativado
-    currentX += (targetX - currentX) * smoothing;
-    currentY += (targetY - currentY) * smoothing;
+// /**
+//  * LOOP DE ANIMAÇÃO (60 FPS)
+//  * Só aplica a transformação ao DOM se o parallax estiver ativado.
+//  */
+// function updateParallax() {
+//     // A interpolação linear (LERP) continua para manter a fluidez se reativado
+//     currentX += (targetX - currentX) * smoothing;
+//     currentY += (targetY - currentY) * smoothing;
 
-    const mainUI = document.querySelector('.container');
+//     const mainUI = document.querySelector('.container');
 
-    // CONDIÇÃO CRÍTICA: Só manipula o estilo se permitido pelo usuário
-    if (mainUI && parallaxEnabled) {
-        mainUI.style.transform = `translate(${currentX}px, ${currentY}px)`;
-    }
+//     // CONDIÇÃO CRÍTICA: Só manipula o estilo se permitido pelo usuário
+//     if (mainUI && parallaxEnabled) {
+//         mainUI.style.transform = `translate(${currentX}px, ${currentY}px)`;
+//     }
 
-    requestAnimationFrame(updateParallax);
-}
+//     requestAnimationFrame(updateParallax);
+// }
 
-/**
- * GERENCIADOR DE ESTADO E INTERFACE
- * Sincroniza o botão, o salvamento local e a aplicação visual.
- */
-const applyParallaxState = (isEnabled) => {
-    parallaxEnabled = isEnabled;
-    const img = toggleParallaxBtn?.querySelector('img');
-    const span = toggleParallaxBtn?.querySelector('span');
-    const mainUI = document.querySelector('.container');
+// /**
+//  * GERENCIADOR DE ESTADO E INTERFACE
+//  * Sincroniza o botão, o salvamento local e a aplicação visual.
+//  */
+// const applyParallaxState = (isEnabled) => {
+//     parallaxEnabled = isEnabled;
+//     const img = toggleParallaxBtn?.querySelector('img');
+//     const span = toggleParallaxBtn?.querySelector('span');
+//     const mainUI = document.querySelector('.container');
 
-    if (isEnabled) {
-        if (span) span.textContent = "Ativado";
-        if (img) img.src = 'img/eye.svg';
-        if (toggleParallaxBtn) toggleParallaxBtn.style.opacity = '1';
-    } else {
-        if (span) span.textContent = "Desativado";
-        if (img) img.src = 'img/visibility_off.svg';
-        if (toggleParallaxBtn) toggleParallaxBtn.style.opacity = '0.6';
+//     if (isEnabled) {
+//         if (span) span.textContent = "Ativado";
+//         if (img) img.src = 'img/eye.svg';
+//         if (toggleParallaxBtn) toggleParallaxBtn.style.opacity = '1';
+//     } else {
+//         if (span) span.textContent = "Desativado";
+//         if (img) img.src = 'img/visibility_off.svg';
+//         if (toggleParallaxBtn) toggleParallaxBtn.style.opacity = '0.6';
 
-        // Reseta a posição do tabuleiro imediatamente para evitar desalinhamento
-        if (mainUI) mainUI.style.transform = 'translate(0, 0)';
-    }
+//         // Reseta a posição do tabuleiro imediatamente para evitar desalinhamento
+//         if (mainUI) mainUI.style.transform = 'translate(0, 0)';
+//     }
 
-    // Salva a preferência para sessões futuras
-    localStorage.setItem('parallaxEnabled', isEnabled);
-};
+//     // Salva a preferência para sessões futuras
+//     localStorage.setItem('parallaxEnabled', isEnabled);
+// };
 
-/**
- * INICIALIZAÇÃO
- * Carrega as preferências do localStorage e inicia o loop.
- */
-if (toggleParallaxBtn) {
-    const storedParallax = localStorage.getItem('parallaxEnabled');
-    // Ativado por padrão no primeiro acesso
-    const isParallaxActive = storedParallax === null ? true : (storedParallax === 'true');
+// /**
+//  * INICIALIZAÇÃO
+//  * Carrega as preferências do localStorage e inicia o loop.
+//  */
+// if (toggleParallaxBtn) {
+//     const storedParallax = localStorage.getItem('parallaxEnabled');
+//     // Ativado por padrão no primeiro acesso
+//     const isParallaxActive = storedParallax === null ? true : (storedParallax === 'true');
 
-    applyParallaxState(isParallaxActive);
+//     applyParallaxState(isParallaxActive);
 
-    toggleParallaxBtn.onclick = () => {
-        playSound('click'); // Som de interface
-        applyParallaxState(!parallaxEnabled);
-    };
-}
+//     toggleParallaxBtn.onclick = () => {
+//         playSound('click'); // Som de interface
+//         applyParallaxState(!parallaxEnabled);
+//     };
+// }
 
-// Inicia o processo de renderização contínua
-updateParallax();
+// // Inicia o processo de renderização contínua
+// updateParallax();
