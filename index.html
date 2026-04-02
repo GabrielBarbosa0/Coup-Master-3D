@@ -433,14 +433,6 @@
         </div>
 
         <div class="setting-row">
-          <span>Efeito (VHS)</span>
-          <button id="toggleVhsBtn" class="icon-btn">
-            <img src="img/eye.svg" alt="">
-            <span>Ativado</span>
-          </button>
-        </div>
-
-        <div class="setting-row">
           <label>Adicionar Bot:</label>
           <button id="addBotBtn" class="icon-btn" title="Adicionar Jogador Fantasma">
             <img src="img/robot.svg" alt="Bot" style="width: 24px; height: 24px;">
@@ -619,22 +611,5 @@
 </body>
 
 <div class="vignette"></div>
-<div class="crt-overlay"></div>
-
-<svg style="display:none">
-  <filter id="vhs-filter">
-    <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" result="noise" />
-    <feColorMatrix in="noise" type="saturate" values="0" result="destaturatedNoise" />
-    <feComponentTransfer in="destaturatedNoise" result="fineNoise">
-      <feFuncA type="linear" slope="0.1" />
-    </feComponentTransfer>
-
-    <feOffset in="SourceGraphic" dx="2" dy="0" result="red" />
-    <feOffset in="SourceGraphic" dx="-2" dy="0" result="blue" />
-
-    <feComposite in="red" in2="SourceGraphic" operator="over" />
-    <feBlend in="fineNoise" in2="SourceGraphic" mode="overlay" />
-  </filter>
-</svg>
 
 </html>

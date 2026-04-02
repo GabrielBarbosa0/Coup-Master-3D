@@ -32,37 +32,6 @@
     --active: #00ff73;
 }
 
-
-
-/* =======================================================
-   === 1. CONFIGURAÇÕES GLOBAIS E PERFORMANCE ===
-   ======================================================= */
-
-body {
-    background-color: #050505;
-    /* Fundo escuro para destacar o brilho do monitor */
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    /* Evita barras de rolagem durante o parallax/flicker */
-    perspective: 1000px;
-    /* Base para efeitos 3D e curvatura da tela */
-}
-
-body {
-    /* Aumentamos a perspectiva para o efeito ficar mais profundo */
-    perspective: 2000px;
-    overflow: hidden;
-    background-color: #050505;
-}
-
-.board {
-    will-change: transform;
-    /* Otimização de GPU para o sistema de flutuação */
-    transition: none;
-    /* Suavidade controlada via JavaScript */
-}
-
 /* =======================================================
    === 2. AMBIENTAÇÃO E ILUMINAÇÃO (VIGNETTE) ===
    ======================================================= */
@@ -73,117 +42,30 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    /* Gradiente radial: centro claro, bordas escuras/azuladas */
+    /* O gradiente: transparente no centro, preto (ou azul escuro) nas bordas */
     background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+    /* CRÍTICO: permite clicar nos elementos que estão atrás */
     pointer-events: none;
-    /* Permite interagir com as cartas através do efeito */
     z-index: 9000;
-    /* Acima do tabuleiro, abaixo dos modais */
+    /* Abaixo dos modais, mas acima do tabuleiro */
 }
 
-/* =======================================================
-   === 3. SIMULAÇÃO DE MONITOR CRT (SCANLINES & GRILLE) ===
-   ======================================================= */
-
-/* Escondido por padrão */
-.crt-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    /* Camada dupla: Scanlines horizontais e Grade (Grille) vertical */
-    background:
-        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
-        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-    background-size: 100% 3px, 3px 100%;
-    box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.4);
-    /* Sombra interna do monitor */
-    z-index: 10000;
-    pointer-events: none;
-}
-
-.crt-overlay::before {
-    content: " ";
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    background: rgba(18, 16, 16, 0.03);
-    opacity: 0;
-    z-index: 10001;
-    animation: flicker 0.15s infinite;
-}
-
-
-
-/* Efeito de Cintilação (Flicker) */
-@keyframes flicker {
-    0% {
-        opacity: 0.97;
-    }
-
-    5% {
-        opacity: 0.95;
-    }
-
-    10% {
-        opacity: 0.99;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
-
-
-
-/* Ativa apenas quando a classe vhs-enabled estiver no body */
-body.vhs-enabled .crt-overlay {
-    display: block;
-}
-
-body.vhs-enabled .container {
-    filter: url(#vhs-filter);
-    transform: rotateX(1deg) rotateY(0deg) scale(0.98);
-    border-radius: 40px;
+body {
     overflow: hidden;
+    /* Garante que o movimento não crie barras de rolagem */
+    background: #0a0c10;
+    /* Um fundo neutro para quando o board se mover */
 }
 
-/* O fundo só fica preto absoluto se o VHS estiver ligado */
-body.vhs-enabled {
-    background-color: #050505;
-}
-
-/* =======================================================
-   === 4. PÓS-PROCESSAMENTO VHS E CURVATURA (CONTAINER) ===
-   ======================================================= */
-
-.container {
-    /* --- Efeitos Visuais (Monitor Antigo) --- */
-    filter: url(#vhs-filter);
-    /* Aplica ruído e aberração cromática */
-    border-radius: 40px;
-    /* Bordas arredondadas do monitor físico */
-    overflow: hidden;
-    /* Clipa o conteúdo nas bordas curvas */
-
-    /* --- Perspectiva de Mesa 3D --- */
-    /* rotateX(15deg): Inclina o topo para longe, criando profundidade */
-    /* scale(0.9): Ajusta o tamanho para compensar a inclinação fixa */
-    transform: rotateX(15deg) scale(0.9);
-    transform-origin: bottom center;
-    /* Fixa a base da mesa no fundo da tela */
-
-    /* --- Sincronia e Performance --- */
+.board {
     will-change: transform;
-    /* Prepara a GPU para o movimento constante */
-    transition: transform 0s !important;
-    /* Prioridade total ao movimento via JS (Parallax) */
+    /* Otimização de GPU */
+    transition: none;
+    /* O JS cuidará da suavidade, não precisamos de transition aqui */
 }
+
+
+
 
 
 /* =======================================================
