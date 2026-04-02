@@ -33,6 +33,7 @@
 }
 
 
+
 /* =======================================================
    === 1. CONFIGURAÇÕES GLOBAIS E PERFORMANCE ===
    ======================================================= */
@@ -46,6 +47,13 @@ body {
     /* Evita barras de rolagem durante o parallax/flicker */
     perspective: 1000px;
     /* Base para efeitos 3D e curvatura da tela */
+}
+
+body {
+    /* Aumentamos a perspectiva para o efeito ficar mais profundo */
+    perspective: 2000px;
+    overflow: hidden;
+    background-color: #050505;
 }
 
 .board {
@@ -155,18 +163,28 @@ body.vhs-enabled {
    ======================================================= */
 
 .container {
-    /* Aplica o filtro SVG de ruído e aberração cromática */
+    /* --- Efeitos Visuais (Monitor Antigo) --- */
     filter: url(#vhs-filter);
-
-    /* Curvatura da tela: Simula o vidro convexo de TVs antigas */
-    transform: rotateX(1deg) rotateY(0deg) scale(0.98);
+    /* Aplica ruído e aberração cromática */
     border-radius: 40px;
-
-    /* Garante que o conteúdo interno não vaze pelas bordas curvas */
+    /* Bordas arredondadas do monitor físico */
     overflow: hidden;
+    /* Clipa o conteúdo nas bordas curvas */
+
+    /* --- Perspectiva de Mesa 3D --- */
+    /* rotateX(15deg): Inclina o topo para longe, criando profundidade */
+    /* scale(0.9): Ajusta o tamanho para compensar a inclinação fixa */
+    transform: rotateX(15deg) scale(0.9);
+    transform-origin: bottom center;
+    /* Fixa a base da mesa no fundo da tela */
+
+    /* --- Sincronia e Performance --- */
+    will-change: transform;
+    /* Prepara a GPU para o movimento constante */
     transition: transform 0s !important;
-    /* Prioridade total para o sistema de Parallax */
+    /* Prioridade total ao movimento via JS (Parallax) */
 }
+
 
 /* =======================================================
    === 2. RESET GERAL E TIPOGRAFIA ===

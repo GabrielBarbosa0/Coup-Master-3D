@@ -1125,6 +1125,29 @@ function updateParallax() {
 // Inicia o loop
 updateParallax();
 
+// --- SISTEMA DE PARALLAX COM PERSPECTIVA FIXA (MESA 3D) ---
+
+function updateParallax() {
+  currentX += (targetX - currentX) * smoothing;
+  currentY += (targetY - currentY) * smoothing;
+
+  const mainUI = document.querySelector('.container');
+
+  if (mainUI) {
+    /* AQUI ESTÁ O SEGREDO: 
+       Mantemos o rotateX(15deg) fixo e somamos o movimento do parallax (currentX/Y)
+    */
+    mainUI.style.transform = `
+            rotateX(15deg) 
+            rotateY(${currentX * 0.2}deg) 
+            translate(${currentX}px, ${currentY}px) 
+            scale(0.9)
+        `;
+  }
+
+  requestAnimationFrame(updateParallax);
+}
+
 
 
 // --- SISTEMA DE ATIVAÇÃO DO EFEITO VHS/CRT ---
@@ -1136,37 +1159,37 @@ const toggleVhsBtn = document.getElementById('toggleVhsBtn');
  * Controla a classe do body e o texto do botão.
  */
 const applyVhsVisibility = (isEnabled) => {
-    const body = document.body;
-    const img = toggleVhsBtn?.querySelector('img');
-    const span = toggleVhsBtn?.querySelector('span');
+  const body = document.body;
+  const img = toggleVhsBtn?.querySelector('img');
+  const span = toggleVhsBtn?.querySelector('span');
 
-    if (isEnabled) {
-        body.classList.add('vhs-enabled');
-        if (span) span.textContent = "Ativado";
-        if (img) img.src = 'img/eye.svg';
-        if (toggleVhsBtn) toggleVhsBtn.style.opacity = '1';
-    } else {
-        body.classList.remove('vhs-enabled');
-        if (span) span.textContent = "Desativado";
-        if (img) img.src = 'img/visibility_off.svg';
-        if (toggleVhsBtn) toggleVhsBtn.style.opacity = '0.6';
-    }
+  if (isEnabled) {
+    body.classList.add('vhs-enabled');
+    if (span) span.textContent = "Ativado";
+    if (img) img.src = 'img/eye.svg';
+    if (toggleVhsBtn) toggleVhsBtn.style.opacity = '1';
+  } else {
+    body.classList.remove('vhs-enabled');
+    if (span) span.textContent = "Desativado";
+    if (img) img.src = 'img/visibility_off.svg';
+    if (toggleVhsBtn) toggleVhsBtn.style.opacity = '0.6';
+  }
 
-    // Salva a preferência
-    localStorage.setItem('vhsEnabled', isEnabled);
+  // Salva a preferência
+  localStorage.setItem('vhsEnabled', isEnabled);
 };
 
 // Inicialização e Listener
 if (toggleVhsBtn) {
-    // Carrega valor salvo ou define como 'true' por padrão
-    const storedVhs = localStorage.getItem('vhsEnabled');
-    const isVhsActive = storedVhs === null ? true : (storedVhs === 'true');
+  // Carrega valor salvo ou define como 'true' por padrão
+  const storedVhs = localStorage.getItem('vhsEnabled');
+  const isVhsActive = storedVhs === null ? true : (storedVhs === 'true');
 
-    applyVhsVisibility(isVhsActive);
+  applyVhsVisibility(isVhsActive);
 
-    toggleVhsBtn.onclick = () => {
-        playSound('click');
-        const currentlyEnabled = document.body.classList.contains('vhs-enabled');
-        applyVhsVisibility(!currentlyEnabled);
-    };
+  toggleVhsBtn.onclick = () => {
+    playSound('click');
+    const currentlyEnabled = document.body.classList.contains('vhs-enabled');
+    applyVhsVisibility(!currentlyEnabled);
+  };
 }
