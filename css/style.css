@@ -32,38 +32,95 @@
     --active: #00ff73;
 }
 
+
+/* =======================================================
+   === 1. CONFIGURAÇÕES GLOBAIS E PERFORMANCE ===
+   ======================================================= */
+
+body {
+    background-color: #050505; /* Fundo escuro para destacar o brilho do monitor */
+    margin: 0;
+    padding: 0;
+    overflow: hidden;         /* Evita barras de rolagem durante o parallax/flicker */
+    perspective: 1000px;      /* Base para efeitos 3D e curvatura da tela */
+}
+
+.board {
+    will-change: transform;   /* Otimização de GPU para o sistema de flutuação */
+    transition: none;         /* Suavidade controlada via JavaScript */
+}
+
+/* =======================================================
+   === 2. AMBIENTAÇÃO E ILUMINAÇÃO (VIGNETTE) ===
+   ======================================================= */
+
 .vignette {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    /* O gradiente: transparente no centro, preto (ou azul escuro) nas bordas */
+    /* Gradiente radial: centro claro, bordas escuras/azuladas */
     background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
-    /* CRÍTICO: permite clicar nos elementos que estão atrás */
+    pointer-events: none;     /* Permite interagir com as cartas através do efeito */
+    z-index: 9000;            /* Acima do tabuleiro, abaixo dos modais */
+}
+
+/* =======================================================
+   === 3. SIMULAÇÃO DE MONITOR CRT (SCANLINES & GRILLE) ===
+   ======================================================= */
+
+.crt-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    /* Camada dupla: Scanlines horizontais e Grade (Grille) vertical */
+    background: 
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+    background-size: 100% 3px, 3px 100%;
+    box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.4); /* Sombra interna do monitor */
+    z-index: 10000;
     pointer-events: none;
-    z-index: 9000;
-    /* Abaixo dos modais, mas acima do tabuleiro */
 }
 
-/* [style.css] */
-body {
-    overflow: hidden;
-    /* Garante que o movimento não crie barras de rolagem */
-    background: #0a0c10;
-    /* Um fundo neutro para quando o board se mover */
+/* Efeito de Cintilação (Flicker) */
+@keyframes flicker {
+    0%   { opacity: 0.97; }
+    5%   { opacity: 0.95; }
+    10%  { opacity: 0.99; }
+    100% { opacity: 1;    }
 }
 
-.board {
-    will-change: transform;
-    /* Otimização de GPU */
-    transition: none;
-    /* O JS cuidará da suavidade, não precisamos de transition aqui */
+.crt-overlay::before {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: rgba(18, 16, 16, 0.03);
+    opacity: 0;
+    z-index: 10001;
+    animation: flicker 0.15s infinite;
 }
 
+/* =======================================================
+   === 4. PÓS-PROCESSAMENTO VHS E CURVATURA (CONTAINER) ===
+   ======================================================= */
 
-
-
+.container {
+    /* Aplica o filtro SVG de ruído e aberração cromática */
+    filter: url(#vhs-filter);
+    
+    /* Curvatura da tela: Simula o vidro convexo de TVs antigas */
+    transform: rotateX(1deg) rotateY(0deg) scale(0.98);
+    border-radius: 40px; 
+    
+    /* Garante que o conteúdo interno não vaze pelas bordas curvas */
+    overflow: hidden; 
+    transition: transform 0s !important; /* Prioridade total para o sistema de Parallax */
+}
 
 /* =======================================================
    === 2. RESET GERAL E TIPOGRAFIA ===
