@@ -46,6 +46,21 @@
     /* Abaixo dos modais, mas acima do tabuleiro */
 }
 
+/* [style.css] */
+body {
+    overflow: hidden;
+    /* Garante que o movimento não crie barras de rolagem */
+    background: #0a0c10;
+    /* Um fundo neutro para quando o board se mover */
+}
+
+.board {
+    will-change: transform;
+    /* Otimização de GPU */
+    transition: none;
+    /* O JS cuidará da suavidade, não precisamos de transition aqui */
+}
+
 
 /* =======================================================
    === 2. RESET GERAL E TIPOGRAFIA ===

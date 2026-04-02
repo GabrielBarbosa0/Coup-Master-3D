@@ -1080,3 +1080,46 @@ function updateCardFlotation() {
 
 // Inicia o processo
 updateCardFlotation();
+
+
+
+// --- SISTEMA DE PARALLAX UNIFICADO (ESTILO GODOT) ---
+
+let targetX = 0;
+let targetY = 0;
+let currentX = 0;
+let currentY = 0;
+
+const smoothing = 0.05; // Um pouco mais suave para não cansar a vista
+const maxOffset = 12;   // Deslocamento máximo em pixels
+
+window.addEventListener('mousemove', (e) => {
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+
+    // Calcula o offset normalizado (-1 a 1)
+    const offsetX = (e.clientX - centerX) / centerX;
+    const offsetY = (e.clientY - centerY) / centerY;
+
+    targetX = -offsetX * maxOffset;
+    targetY = -offsetY * maxOffset;
+});
+
+function updateParallax() {
+    // Interpolação linear (LERP) para suavidade
+    currentX += (targetX - currentX) * smoothing;
+    currentY += (targetY - currentY) * smoothing;
+
+    // Alvo: .container (move Header e Board juntos)
+    const mainUI = document.querySelector('.container');
+    
+    if (mainUI) {
+        // Aplica o movimento sem quebrar o layout
+        mainUI.style.transform = `translate(${currentX}px, ${currentY}px)`;
+    }
+
+    requestAnimationFrame(updateParallax);
+}
+
+// Inicia o loop
+updateParallax();
