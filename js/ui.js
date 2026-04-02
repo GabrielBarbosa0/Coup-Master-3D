@@ -463,17 +463,18 @@ function attachBalatroEffect(element, isDeck = false) {
     const centerY = rect.height / 2;
 
     // Sensibilidade da inclinação
-    const rotateX = -(y - centerY) / 5;
-    const rotateY = (x - centerX) / 5;
+    const sensitivity = 2; // Aumente para suavizar, diminua para intensificar
+    const rotateX = -(y - centerY) / sensitivity;
+    const rotateY = (x - centerX) / sensitivity;
 
     // Se for o DECK, não precisa da variável de onda (--y-offset)
     const wave = isDeck ? "0px" : "var(--y-offset)";
 
     // A mágica: perspective + rotação + a onda atual
-    element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.1) translateY(${wave})`;
-    
+    element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.3) translateY(${wave})`;
+
     // Brilho azul neon para as cartas e deck
-    element.style.boxShadow = `${-rotateY * 1}px ${rotateX * 1}px 35px rgba(0, 191, 255, 0.4)`;
+    element.style.boxShadow = `${-rotateY * 0.5}px ${rotateX * 0.5}px 40px rgba(0, 191, 255, 0.4)`;
   });
 
   element.addEventListener('mouseleave', () => {
@@ -1094,32 +1095,35 @@ const smoothing = 0.05; // Um pouco mais suave para não cansar a vista
 const maxOffset = 12;   // Deslocamento máximo em pixels
 
 window.addEventListener('mousemove', (e) => {
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
 
-    // Calcula o offset normalizado (-1 a 1)
-    const offsetX = (e.clientX - centerX) / centerX;
-    const offsetY = (e.clientY - centerY) / centerY;
+  // Calcula o offset normalizado (-1 a 1)
+  const offsetX = (e.clientX - centerX) / centerX;
+  const offsetY = (e.clientY - centerY) / centerY;
 
-    targetX = -offsetX * maxOffset;
-    targetY = -offsetY * maxOffset;
+  targetX = -offsetX * maxOffset;
+  targetY = -offsetY * maxOffset;
 });
 
 function updateParallax() {
-    // Interpolação linear (LERP) para suavidade
-    currentX += (targetX - currentX) * smoothing;
-    currentY += (targetY - currentY) * smoothing;
+  // Interpolação linear (LERP) para suavidade
+  currentX += (targetX - currentX) * smoothing;
+  currentY += (targetY - currentY) * smoothing;
 
-    // Alvo: .container (move Header e Board juntos)
-    const mainUI = document.querySelector('.container');
-    
-    if (mainUI) {
-        // Aplica o movimento sem quebrar o layout
-        mainUI.style.transform = `translate(${currentX}px, ${currentY}px)`;
-    }
+  // Alvo: .container (move Header e Board juntos)
+  const mainUI = document.querySelector('.container');
 
-    requestAnimationFrame(updateParallax);
+  if (mainUI) {
+    // Aplica o movimento sem quebrar o layout
+    mainUI.style.transform = `translate(${currentX}px, ${currentY}px)`;
+  }
+
+  requestAnimationFrame(updateParallax);
 }
 
 // Inicia o loop
 updateParallax();
+
+
+
