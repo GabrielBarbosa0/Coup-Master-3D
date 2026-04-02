@@ -66,10 +66,12 @@ function shouldShowBack(card) {
   return false;
 }
 
+
+
 /**
- * CRIAÇÃO DE ELEMENTO DE CARTA
- * Gera o elemento HTML para uma carta, define sua aparência (frente/verso), 
- * configura os eventos de Drag & Drop e aplica efeitos visuais.
+ * CRIAÇÃO DE ELEMENTO DE CARTA (CORRIGIDA - ONDA INDIVIDUAL)
+ * Gera o elemento HTML e aplica a fase inicial da onda baseada no ID único.
+ * Agora suporta IDs alfanuméricos (Firebase) para garantir que cada carta tenha seu próprio ritmo.
  */
 function createCardElement(card) {
   const el = document.createElement('div');
@@ -77,7 +79,19 @@ function createCardElement(card) {
   el.draggable = true; // Habilita o arrastar da carta
   el.dataset.cardId = card.id;
 
-  // Define a aparência baseada na função de visibilidade
+  // --- SINCRONIZAÇÃO INSTANTÂNEA DA ONDA INDIVIDUALIZADA ---
+  // Transformamos o ID (mesmo que seja texto) em um número único para a fase.
+  // Isso evita que parseInt retorne NaN e faça todas as cartas subirem juntas.
+  const cardPhase = card.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  
+  // O cálculo usa o multiplicador 1.5 para separar bem o balanço das cartas vizinhas.
+  const initialVal = Math.sin((cardPhase * 1.5) + (animationTime * timeMultiplier));
+  const initialTranslateY = initialVal * offsetMultiplier;
+  
+  // Define a variável CSS imediatamente para a carta "nascer" na posição correta.
+  el.style.setProperty('--y-offset', `${initialTranslateY}px`);
+
+  // --- DEFINIÇÃO DE APARÊNCIA ---
   if (shouldShowBack(card)) {
     el.classList.add('back');
   } else {
@@ -89,9 +103,8 @@ function createCardElement(card) {
   el.addEventListener('dragstart', (ev) => {
     ev.dataTransfer.setData('text/plain', card.id);
     ev.dataTransfer.effectAllowed = "move";
-    el.classList.add('lifting'); // Efeito visual de "levantar" a carta
+    el.classList.add('lifting');
 
-    // Pequeno atraso para aplicar a classe de arrasto sem bugar o "ghost image" do browser
     setTimeout(() => {
       el.classList.remove('lifting');
       el.classList.add('is-dragging');
@@ -104,16 +117,16 @@ function createCardElement(card) {
   });
 
   // --- INTERAÇÕES ADICIONAIS ---
-  // Clique duplo devolve a carta automaticamente para o deck
   el.addEventListener('dblclick', () => {
     returnCardToDeck(card.id);
   });
 
-  // Aplica o efeito visual de inclinação (Balatro Style)
-  attachBalatroEffect(el);
+  // NOTA: attachBalatroEffect removido aqui para estabilizar a flutuação.
+  // Isso evita conflitos com a propriedade 'transform' no CSS das mãos.
 
   return el;
 }
+
 
 
 
@@ -1038,32 +1051,36 @@ if (toggleReligionBtn) {
   };
 }
 
-// --- SISTEMA DE MOVIMENTO SENOIDAL (JUICE) ---
+// --- SISTEMA DE MOVIMENTO SENOIDAL PERSISTENTE (JUICE) ---
 
 let animationTime = 0;
 const timeMultiplier = 0.5; // Velocidade da flutuação
 const offsetMultiplier = 4; // Altura da flutuação em pixels
 
 function updateCardFlotation() {
-  animationTime += 0.02; // Incremento de tempo constante
+  animationTime += 0.02; // Incremento constante
 
   const allCards = document.querySelectorAll('.card');
 
-  allCards.forEach((card, index) => {
-    // Se a carta estiver sendo arrastada, não aplicamos o efeito
+  allCards.forEach((card) => {
+    // Bloqueia animação se estiver interagindo (arrastando)
     if (card.classList.contains('is-dragging') || card.classList.contains('lifting')) return;
 
-    // A lógica da Godot: sin(index + tempo)
-    // O 'index * 0.5' garante que cada carta esteja em um ponto diferente da onda
-    const val = Math.sin(index * 0.5 + (animationTime * timeMultiplier));
+    // CORREÇÃO: Transforma o ID (string) em um número de fase único
+    const id = card.dataset.cardId || "";
+    const cardPhase = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+    // Multiplicamos a fase por 1.5 para garantir que cartas vizinhas 
+    // fiquem em pontos bem diferentes da onda (efeito lagarta)
+    const val = Math.sin((cardPhase * 1.5) + (animationTime * timeMultiplier));
     const translateY = val * offsetMultiplier;
 
-    // Aplicamos o movimento sem mexer no layout físico (sem quebrar o mobile)
-    card.style.transform = `translateY(${translateY}px)`;
+    // Atualiza a variável CSS definida no style.css
+    card.style.setProperty('--y-offset', `${translateY}px`);
   });
 
   requestAnimationFrame(updateCardFlotation); // Loop contínuo a 60fps
 }
 
-// Inicia o processo assim que a interface estiver pronta
+// Inicia o processo
 updateCardFlotation();

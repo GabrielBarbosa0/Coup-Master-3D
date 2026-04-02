@@ -694,12 +694,14 @@ body.hide-religion .decks-wrapper {
 
 .card {
     /* Mantém o layout original sem quebrar o grid */
-    display: block;
     position: relative;
     will-change: transform;
     /* Avisa ao navegador para usar a GPU */
     transition: transform 0.1s ease-out;
     /* Suaviza pequenas variações */
+    --y-offset: 0px;
+    /* Variável para a flutuação */
+    transform: translateY(var(--y-offset));
 }
 
 
@@ -1010,6 +1012,9 @@ body.hide-religion .decks-wrapper {
     transform-style: preserve-3d;
 }
 
+
+
+
 .deck-area,
 .card-slot,
 .card-dropzone,
@@ -1047,7 +1052,7 @@ body.hide-religion .decks-wrapper {
         padding: 4px;
         max-width: 100%;
     }
-    
+
 
     /* Áreas do Jogador */
     .player-area {
