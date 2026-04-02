@@ -126,33 +126,36 @@ function renderAll() {
   const state = localGameState;
   if (!state || !state.players) return;
 
-  // --- NOVO: LÓGICA DE GRADE DINÂMICA ---
+  // --- LÓGICA DE GRADE DINÂMICA (APENAS DESKTOP) ---
   const container = document.querySelector('.player-hands-container');
   if (container) {
-    // Conta quantos jogadores estão ativos no momento
+    // Conta jogadores ativos (online ou bots)
     let activeCount = 0;
     for (let i = 1; i <= 10; i++) {
       const p = state.players[i];
       if (p && (p.online || p.uid)) activeCount++;
     }
 
-    // Define o número de colunas com base na sua lógica
-    let cols = 5; // Padrão
-    if (activeCount === 1) cols = 1;
-    else if (activeCount === 2) cols = 2;
-    else if (activeCount === 3) cols = 3;
-    else if (activeCount === 4) cols = 2;
-    else if (activeCount === 5 || activeCount === 6) cols = 3;
-    else if (activeCount === 7 || activeCount === 8) cols = 4;
-    else cols = 5; // Para 9 ou 10 jogadores
-
-    // Aplica apenas em telas de PC (conforme seu @media 1200px)
+    // Verifica se é Desktop (>= 1200px)
     if (window.innerWidth >= 1200) {
+      let cols = 5; // Padrão
+
+      if (activeCount === 1) cols = 1;
+      else if (activeCount === 2) cols = 2;
+      else if (activeCount === 3) cols = 3;
+      else if (activeCount === 4) cols = 2;
+      else if (activeCount === 5 || activeCount === 6) cols = 3;
+      else if (activeCount === 7 || activeCount === 8) cols = 4;
+      else cols = 5;
+
+      // Aplica a grade dinâmica no Desktop
       container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
     } else {
-      container.style.gridTemplateColumns = ''; // Reseta para o CSS padrão no mobile
+      // No Mobile/Tablet, remove o estilo inline para usar as regras do CSS (@media)
+      container.style.gridTemplateColumns = '';
     }
   }
+
 
   // --- 1. TRAVAS DE ADMINISTRADOR (HOST) ---
   // Referências aos elementos de controle global
@@ -162,7 +165,6 @@ function renderAll() {
   const configInputs = document.querySelectorAll('.card-config-item input');
 
   // Visibilidade dos botões Reset e Adicionar Bot
-  if (resetBtn) resetBtn.style.display = isAdmin ? 'flex' : 'none';
   if (addBotBtn) {
     const botRow = addBotBtn.closest('.setting-row');
     if (botRow) botRow.style.display = isAdmin ? 'flex' : 'none';
@@ -188,6 +190,7 @@ function renderAll() {
 
 
   // --- 1. LÓGICA DO SISTEMA DE ESPECTADOR (GHOST MODE) ---
+
   const spectatorBtn = document.getElementById('spectatorBtn');
   const spectatorModal = document.getElementById('spectatorModal');
   const spectatorList = document.getElementById('spectator-list');
@@ -196,29 +199,33 @@ function renderAll() {
   if (spectatorBtn && spectatorModal) {
     const myHand = state.players[myPlayerId]?.hand || [];
 
+    // APLICAÇÃO DE VISIBILIDADE CRÍTICA: 
+    // O 'important' força o bloqueio mesmo em @media queries de altura/largura
     if (myHand.length === 0) {
-      spectatorBtn.style.display = 'block';
+      spectatorBtn.style.setProperty('display', 'block', 'important');
     } else {
-      spectatorBtn.style.display = 'none';
-      spectatorModal.style.display = 'none';
+      spectatorBtn.style.setProperty('display', 'none', 'important');
+      spectatorModal.style.display = 'none'; // Fecha o modal se o jogador voltar ao jogo
     }
 
+    // Abertura do Modal e Listagem de Alvos
     spectatorBtn.onclick = () => {
       playSound('click');
       spectatorList.innerHTML = '';
 
       for (let i = 1; i <= 10; i++) {
         const p = state.players[i];
+        // Só lista jogadores que possuem UID e não são o próprio usuário
         if (p && p.uid && i !== myPlayerId) {
           const btn = document.createElement('div');
           btn.className = 'spectator-target-btn';
           btn.innerHTML = `
-            <img src="${p.photo || 'img/coup.png'}" alt="">
-            <span>${p.name || 'Jogador ' + i}</span>
-          `;
+          <img src="${p.photo || 'img/coup.png'}" alt="">
+          <span>${p.name || 'Jogador ' + i}</span>
+        `;
           btn.onclick = () => {
             playSound('pop');
-            requestSpectate(i);
+            requestSpectate(i); // Solicita permissão via Firebase
             spectatorModal.style.display = 'none';
           };
           spectatorList.appendChild(btn);
@@ -231,6 +238,7 @@ function renderAll() {
       spectatorModal.style.display = 'flex';
     };
 
+    // Botão de Fechamento do Modal
     if (closeSpectatorModalBtn) {
       closeSpectatorModalBtn.onclick = () => {
         playSound('click');
@@ -503,16 +511,6 @@ function setupUI() {
     };
   }
 
-  // Configuração do Botão de Reset Principal (Abre confirmação)
-  if (resetBtn) {
-    resetBtn.onclick = () => {
-      const resetModal = document.getElementById('resetModal');
-      if (resetModal) {
-        resetModal.style.display = 'flex';
-      }
-    };
-  }
-
 
   // --- 2. CONTROLES DE AMBIENTE E TELA ---
 
@@ -597,10 +595,22 @@ function setupUI() {
   const cancelBtn = document.getElementById('cancelResetBtn');
   const resetModal = document.getElementById('resetModal');
 
+  if (resetBtn && resetModal) {
+    resetBtn.onclick = () => {
+      playSound('click');
+      resetModal.style.display = 'flex'; // Abre a janelinha de confirmação
+    };
+  }
+
   if (confirmBtn) {
     confirmBtn.onclick = () => {
-      resetTable(); // Reinicia o estado global da partida
-      if (resetModal) resetModal.style.display = 'none';
+      if (isAdmin) { // Checagem dupla de segurança
+        resetTable();
+        if (resetModal) resetModal.style.display = 'none';
+      } else {
+        if (resetModal) resetModal.style.display = 'none';
+        showError("Apenas o Host pode realizar esta ação.");
+      }
     };
   }
 
@@ -745,28 +755,6 @@ function setupUI() {
 
   let currentRuleImages = [];
   let currentRuleIndex = 0;
-
-  if (infoBtn && infoModal) {
-    infoBtn.onclick = () => {
-      playSound('click');
-      currentRuleImages = calculateRuleImages(); // Lógica de DLCs
-      infoModal.style.display = 'flex';
-
-      if (flipCard) {
-        currentRuleIndex = 0;
-        flipCard.classList.remove('is-flipped');
-        frontImg.src = currentRuleImages[0];
-        backImg.src = currentRuleImages.length > 1 ? currentRuleImages[1] : currentRuleImages[0];
-      }
-    };
-
-    if (closeInfoBtn) {
-      closeInfoBtn.onclick = () => {
-        playSound('click');
-        infoModal.style.display = 'none';
-      };
-    }
-  }
 
 
   /**

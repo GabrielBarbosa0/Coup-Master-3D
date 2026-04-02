@@ -167,27 +167,29 @@ function triggerSound(soundId) {
  * mas preservando os jogadores que já estão na sala.
  */
 function resetTable(newConfig = null) {
+  // Bloqueio de segurança: se não for admin, a função é interrompida
+  if (!isAdmin) {
+    console.error("Ação negada: Apenas o Host pode resetar a mesa.");
+    return;
+  }
+
   updateRoomActivity();
-  console.log("Resetando a mesa...");
   triggerSound('8-bit-start');
 
-  // Define a configuração de cartas (nova ou existente)
   const configToUse = newConfig || localGameState.deckConfig || createDefaultDeckConfig();
   let newDeck = createDeck(configToUse);
   let currentPlayers = localGameState.players || {};
-
   let newPlayersState = {};
 
-  // Reconstroi o estado de cada um dos 10 slots de jogadores
   for (let i = 1; i <= 10; i++) {
     newPlayersState[i] = {
       online: currentPlayers[i]?.online || false,
       uid: currentPlayers[i]?.uid || null,
       name: currentPlayers[i]?.name || null,
       photo: currentPlayers[i]?.photo || null,
-      hand: [], // Limpa a mão
-      score: 2, // Moedas iniciais padrão
-      religion: (i % 2 === 1) ? 'catolico' : 'protestante' // Distribui religiões alternadas
+      hand: [],
+      score: 2,
+      religion: (i % 2 === 1) ? 'catolico' : 'protestante'
     };
   }
 
@@ -202,6 +204,7 @@ function resetTable(newConfig = null) {
 
   gameStateRef.set(initialState);
 }
+
 
 /**
  * COMPRAR CARTA
