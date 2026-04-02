@@ -334,11 +334,11 @@ function renderAll() {
       });
 
       // Mantém um slot vazio por estética se não houver cartas
-      if (!player.hand || player.hand.length === 0) {
-        const slot = document.createElement('div');
-        slot.className = 'slot small';
-        handContainer.appendChild(slot);
-      }
+      // if (!player.hand || player.hand.length === 0) {
+      //   const slot = document.createElement('div');
+      //   slot.className = 'slot small';
+      //   handContainer.appendChild(slot);
+      // }
     }
 
     // --- RENDERIZAÇÃO DA MÃO E PONTUAÇÃO (Fim do Trecho 2) ---
@@ -1037,3 +1037,33 @@ if (toggleReligionBtn) {
     applyReligionVisibility(!isCurrentlyHidden);
   };
 }
+
+// --- SISTEMA DE MOVIMENTO SENOIDAL (JUICE) ---
+
+let animationTime = 0;
+const timeMultiplier = 0.5; // Velocidade da flutuação
+const offsetMultiplier = 4; // Altura da flutuação em pixels
+
+function updateCardFlotation() {
+  animationTime += 0.02; // Incremento de tempo constante
+
+  const allCards = document.querySelectorAll('.card');
+
+  allCards.forEach((card, index) => {
+    // Se a carta estiver sendo arrastada, não aplicamos o efeito
+    if (card.classList.contains('is-dragging') || card.classList.contains('lifting')) return;
+
+    // A lógica da Godot: sin(index + tempo)
+    // O 'index * 0.5' garante que cada carta esteja em um ponto diferente da onda
+    const val = Math.sin(index * 0.5 + (animationTime * timeMultiplier));
+    const translateY = val * offsetMultiplier;
+
+    // Aplicamos o movimento sem mexer no layout físico (sem quebrar o mobile)
+    card.style.transform = `translateY(${translateY}px)`;
+  });
+
+  requestAnimationFrame(updateCardFlotation); // Loop contínuo a 60fps
+}
+
+// Inicia o processo assim que a interface estiver pronta
+updateCardFlotation();

@@ -32,6 +32,21 @@
     --active: #00ff73;
 }
 
+.vignette {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* O gradiente: transparente no centro, preto (ou azul escuro) nas bordas */
+    background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+    /* CRÍTICO: permite clicar nos elementos que estão atrás */
+    pointer-events: none;
+    z-index: 9000;
+    /* Abaixo dos modais, mas acima do tabuleiro */
+}
+
+
 /* =======================================================
    === 2. RESET GERAL E TIPOGRAFIA ===
    ======================================================= */
@@ -677,6 +692,17 @@ body.hide-religion .decks-wrapper {
     overflow: hidden;
 }
 
+.card {
+    /* Mantém o layout original sem quebrar o grid */
+    display: block;
+    position: relative;
+    will-change: transform;
+    /* Avisa ao navegador para usar a GPU */
+    transition: transform 0.1s ease-out;
+    /* Suaviza pequenas variações */
+}
+
+
 .card:active {
     cursor: grabbing;
 }
@@ -1021,6 +1047,7 @@ body.hide-religion .decks-wrapper {
         padding: 4px;
         max-width: 100%;
     }
+    
 
     /* Áreas do Jogador */
     .player-area {
@@ -1384,8 +1411,3 @@ body.hide-religion .decks-wrapper {
         /* Suaviza a mudança de layout */
     }
 }
-
-
-
-
-
