@@ -164,6 +164,11 @@ function renderAll() {
   const applyDeckBtn = document.getElementById('applyDeckConfigBtn');
   const configInputs = document.querySelectorAll('.card-config-item input');
 
+  // NOVO: Esconde ou mostra o botão de Reset baseado no status de Admin
+  if (resetBtn) {
+    resetBtn.style.display = isAdmin ? 'flex' : 'none';
+  }
+
   // Visibilidade dos botões Reset e Adicionar Bot
   if (addBotBtn) {
     const botRow = addBotBtn.closest('.setting-row');
