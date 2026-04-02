@@ -73,25 +73,23 @@ function shouldShowBack(card) {
  * Gera o elemento HTML e aplica a fase inicial da onda baseada no ID único.
  * Agora suporta IDs alfanuméricos (Firebase) para garantir que cada carta tenha seu próprio ritmo.
  */
+/**
+ * CRIAÇÃO DE ELEMENTO DE CARTA (CORRIGIDA)
+ * Restaura o Drag & Drop e sincroniza a fase da onda individual.
+ */
 function createCardElement(card) {
   const el = document.createElement('div');
   el.className = 'card';
-  el.draggable = true; // Habilita o arrastar da carta
+  el.draggable = true;
   el.dataset.cardId = card.id;
 
-  // --- SINCRONIZAÇÃO INSTANTÂNEA DA ONDA INDIVIDUALIZADA ---
-  // Transformamos o ID (mesmo que seja texto) em um número único para a fase.
-  // Isso evita que parseInt retorne NaN e faça todas as cartas subirem juntas.
-  const cardPhase = card.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  
-  // O cálculo usa o multiplicador 1.5 para separar bem o balanço das cartas vizinhas.
+  // Sincronização da onda individual (Fase persistente pelo ID)
+  const id = card.id || "";
+  const cardPhase = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const initialVal = Math.sin((cardPhase * 1.5) + (animationTime * timeMultiplier));
-  const initialTranslateY = initialVal * offsetMultiplier;
-  
-  // Define a variável CSS imediatamente para a carta "nascer" na posição correta.
-  el.style.setProperty('--y-offset', `${initialTranslateY}px`);
+  el.style.setProperty('--y-offset', `${initialVal * offsetMultiplier}px`);
 
-  // --- DEFINIÇÃO DE APARÊNCIA ---
+  // Definição de aparência (Frente/Verso)
   if (shouldShowBack(card)) {
     el.classList.add('back');
   } else {
@@ -99,7 +97,7 @@ function createCardElement(card) {
     el.style.backgroundImage = `url('${imageUrl}')`;
   }
 
-  // --- EVENTOS DE ARRASTAR (DRAG & DROP) ---
+  // --- RESTAURAÇÃO DOS EVENTOS DE ARRASTAR (DRAG & DROP) ---
   el.addEventListener('dragstart', (ev) => {
     ev.dataTransfer.setData('text/plain', card.id);
     ev.dataTransfer.effectAllowed = "move";
@@ -116,17 +114,16 @@ function createCardElement(card) {
     el.classList.remove('is-dragging');
   });
 
-  // --- INTERAÇÕES ADICIONAIS ---
+  // Clique duplo para devolver ao deck
   el.addEventListener('dblclick', () => {
     returnCardToDeck(card.id);
   });
 
-  // NOTA: attachBalatroEffect removido aqui para estabilizar a flutuação.
-  // Isso evita conflitos com a propriedade 'transform' no CSS das mãos.
+  // Reativa o efeito 3D (Balatro)
+  attachBalatroEffect(el);
 
   return el;
 }
-
 
 
 
@@ -451,39 +448,38 @@ function setupDropzones() {
 // =======================================================
 
 /**
- * EFEITO BALATRO (INCLINAÇÃO 3D)
- * Aplica um efeito de profundidade e sombra dinâmica ao elemento baseado 
- * na posição do mouse, simulando o movimento de cartas físicas.
+ * EFEITO BALATRO (3D + BRILHO NEON AZUL + ONDA)
+ * Unifica o visual 3D com a flutuação individual, corrigindo o erro de travamento.
  */
 function attachBalatroEffect(element, isDeck = false) {
   if (!element) return;
-
   element.classList.add('balatro-effect');
 
   element.addEventListener('mousemove', (e) => {
     const rect = element.getBoundingClientRect();
-    const x = e.clientX - rect.left; // Posição X dentro do elemento
-    const y = e.clientY - rect.top;  // Posição Y dentro do elemento
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    const sensitivity = 5; // Define a força da inclinação
+    // Sensibilidade da inclinação
+    const rotateX = -(y - centerY) / 5;
+    const rotateY = (x - centerX) / 5;
 
-    const rotateX = -(y - centerY) / sensitivity;
-    const rotateY = (x - centerX) / sensitivity;
+    // Se for o DECK, não precisa da variável de onda (--y-offset)
+    const wave = isDeck ? "0px" : "var(--y-offset)";
 
-    // Define a cor da sombra baseada no tipo de elemento
-    let shadowColor = 'rgba(0, 191, 255, 0.2)';
-
-    // Aplica a transformação de perspectiva e a sombra dinâmica
-    element.style.transform = `perspective(300px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.08)`;
-    element.style.boxShadow = `${-rotateY * 1.5}px ${rotateX * 1.5}px 40px ${shadowColor}`;
+    // A mágica: perspective + rotação + a onda atual
+    element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.1) translateY(${wave})`;
+    
+    // Brilho azul neon para as cartas e deck
+    element.style.boxShadow = `${-rotateY * 1}px ${rotateX * 1}px 35px rgba(0, 191, 255, 0.4)`;
   });
 
-  // Reseta o elemento para o estado original quando o mouse sai
   element.addEventListener('mouseleave', () => {
-    element.style.transform = 'perspective(300px) rotateX(0) rotateY(0) scale(1)';
-    element.style.boxShadow = '';
+    // Ao sair, remove o estilo inline para o CSS reassumir a flutuação
+    element.style.removeProperty('transform');
+    element.style.removeProperty('box-shadow');
   });
 }
 

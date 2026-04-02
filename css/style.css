@@ -678,7 +678,9 @@ body.hide-religion .decks-wrapper {
 /* =======================================================
        === 8. ESTILOS DE CARTAS E SLOTS ===
        ======================================================= */
+/* [style.css] - Versão Unificada da Carta */
 .card {
+    /* --- Estética e Identidade --- */
     border-radius: 6px;
     border: 1px solid #3b5898;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
@@ -690,18 +692,33 @@ body.hide-religion .decks-wrapper {
     display: block;
     text-indent: -9999px;
     overflow: hidden;
-}
 
-.card {
-    /* Mantém o layout original sem quebrar o grid */
+    /* --- Layout e Performance --- */
     position: relative;
     will-change: transform;
-    /* Avisa ao navegador para usar a GPU */
+    /* Otimiza o uso da GPU para animações fluidas */
     transition: transform 0.1s ease-out;
-    /* Suaviza pequenas variações */
+    /* Suaviza a volta da carta e o hover */
+    transform-style: preserve-3d;
+    /* CRÍTICO: Habilita a profundidade real para o efeito Balatro */
+
+    /* --- Sistema de Onda (Flutuação) --- */
     --y-offset: 0px;
-    /* Variável para a flutuação */
+    /* Variável controlada pelo sistema senoidal no ui.js */
+
+    /* IMPORTANTE: Sem o !important para permitir que o JS aplique a rotação no hover */
     transform: translateY(var(--y-offset));
+}
+
+.card:active {
+    cursor: grabbing;
+}
+
+/* Garante que o container tenha perspectiva */
+.player-stack,
+.deck-area,
+.free-area {
+    perspective: 1000px;
 }
 
 
@@ -1231,7 +1248,7 @@ body.hide-religion .decks-wrapper {
 /* Tablets e Celulares Grandes (480px - 768px) */
 @media (min-width: 480px) and (max-width: 768px) {
     .player-hands-container {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 4px;
     }
 }
