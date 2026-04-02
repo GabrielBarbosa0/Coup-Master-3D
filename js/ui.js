@@ -1127,3 +1127,46 @@ updateParallax();
 
 
 
+// --- SISTEMA DE ATIVAÇÃO DO EFEITO VHS/CRT ---
+
+const toggleVhsBtn = document.getElementById('toggleVhsBtn');
+
+/**
+ * APLICA A VISIBILIDADE DO EFEITO VHS
+ * Controla a classe do body e o texto do botão.
+ */
+const applyVhsVisibility = (isEnabled) => {
+    const body = document.body;
+    const img = toggleVhsBtn?.querySelector('img');
+    const span = toggleVhsBtn?.querySelector('span');
+
+    if (isEnabled) {
+        body.classList.add('vhs-enabled');
+        if (span) span.textContent = "Ativado";
+        if (img) img.src = 'img/eye.svg';
+        if (toggleVhsBtn) toggleVhsBtn.style.opacity = '1';
+    } else {
+        body.classList.remove('vhs-enabled');
+        if (span) span.textContent = "Desativado";
+        if (img) img.src = 'img/visibility_off.svg';
+        if (toggleVhsBtn) toggleVhsBtn.style.opacity = '0.6';
+    }
+
+    // Salva a preferência
+    localStorage.setItem('vhsEnabled', isEnabled);
+};
+
+// Inicialização e Listener
+if (toggleVhsBtn) {
+    // Carrega valor salvo ou define como 'true' por padrão
+    const storedVhs = localStorage.getItem('vhsEnabled');
+    const isVhsActive = storedVhs === null ? true : (storedVhs === 'true');
+
+    applyVhsVisibility(isVhsActive);
+
+    toggleVhsBtn.onclick = () => {
+        playSound('click');
+        const currentlyEnabled = document.body.classList.contains('vhs-enabled');
+        applyVhsVisibility(!currentlyEnabled);
+    };
+}
