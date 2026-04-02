@@ -334,11 +334,11 @@ function renderAll() {
       });
 
       // Mantém um slot vazio por estética se não houver cartas
-      // if (!player.hand || player.hand.length === 0) {
-      //   const slot = document.createElement('div');
-      //   slot.className = 'slot small';
-      //   handContainer.appendChild(slot);
-      // }
+      if (!player.hand || player.hand.length === 0) {
+        const slot = document.createElement('div');
+        slot.className = 'slot small';
+        handContainer.appendChild(slot);
+      }
     }
 
     // --- RENDERIZAÇÃO DA MÃO E PONTUAÇÃO (Fim do Trecho 2) ---
