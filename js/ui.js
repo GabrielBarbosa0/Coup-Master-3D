@@ -1351,34 +1351,40 @@ const toggleTransparentBtn = document.getElementById('toggleTransparentBtn');
  * Altera a classe do body e salva a preferência.
  */
 const applyTransparentMode = (isEnabled) => {
-    const body = document.body;
-    const img = toggleTransparentBtn?.querySelector('img');
-    const span = toggleTransparentBtn?.querySelector('span');
+  const body = document.body;
+  const img = toggleTransparentBtn?.querySelector('img');
+  const span = toggleTransparentBtn?.querySelector('span');
 
-    if (isEnabled) {
-        body.classList.add('transparent-mode');
-        if (span) span.textContent = "Ativado";
-        if (img) img.src = 'img/eye.svg';
-    } else {
-        body.classList.remove('transparent-mode');
-        if (span) span.textContent = "Desativado";
-        if (img) img.src = 'img/visibility_off.svg';
-    }
+  if (isEnabled) {
+    body.classList.add('transparent-mode');
+    if (span) span.textContent = "Ativado";
+    if (img) img.src = 'img/eye.svg';
+  } else {
+    body.classList.remove('transparent-mode');
+    if (span) span.textContent = "Desativado";
+    if (img) img.src = 'img/visibility_off.svg';
+  }
 
-    localStorage.setItem('transparentModeEnabled', isEnabled);
+  localStorage.setItem('transparentModeEnabled', isEnabled);
 };
 
 // Inicialização
 if (toggleTransparentBtn) {
-    const storedMode = localStorage.getItem('transparentModeEnabled');
-    // Desativado por padrão (false) para manter o visual original
-    const isModeActive = storedMode === 'true'; 
+  const storedMode = localStorage.getItem('transparentModeEnabled');
 
-    applyTransparentMode(isModeActive);
+  /**
+   * ALTERAÇÃO AQUI:
+   * Se storedMode for null (primeiro acesso), definimos como true.
+   * Caso contrário, respeitamos a escolha salva ('true' ou 'false').
+   */
+  const isModeActive = storedMode === null ? true : (storedMode === 'true');
 
-    toggleTransparentBtn.onclick = () => {
-        if (typeof playSound === 'function') playSound('click');
-        const currentState = document.body.classList.contains('transparent-mode');
-        applyTransparentMode(!currentState);
-    };
+  applyTransparentMode(isModeActive);
+
+  toggleTransparentBtn.onclick = () => {
+    if (typeof playSound === 'function') playSound('click');
+    const currentState = document.body.classList.contains('transparent-mode');
+    applyTransparentMode(!currentState);
+  };
+
 }
