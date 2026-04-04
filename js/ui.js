@@ -69,13 +69,9 @@ function shouldShowBack(card) {
 
 
 /**
- * CRIAÇÃO DE ELEMENTO DE CARTA (CORRIGIDA - ONDA INDIVIDUAL)
- * Gera o elemento HTML e aplica a fase inicial da onda baseada no ID único.
- * Agora suporta IDs alfanuméricos (Firebase) para garantir que cada carta tenha seu próprio ritmo.
- */
-/**
  * CRIAÇÃO DE ELEMENTO DE CARTA (CORRIGIDA)
- * Restaura o Drag & Drop e sincroniza a fase da onda individual.
+ * Restaura o Drag & Drop, sincroniza a fase da onda individual e
+ * respeita o estado global da variável waveEnabled no nascimento da carta.
  */
 function createCardElement(card) {
   const el = document.createElement('div');
@@ -83,13 +79,22 @@ function createCardElement(card) {
   el.draggable = true;
   el.dataset.cardId = card.id;
 
-  // Sincronização da onda individual (Fase persistente pelo ID)
+  // --- CORREÇÃO: SINCRONIZAÇÃO DA ONDA NO NASCIMENTO ---
   const id = card.id || "";
   const cardPhase = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const initialVal = Math.sin((cardPhase * 1.5) + (animationTime * timeMultiplier));
+
+  /**
+   * VERIFICAÇÃO CRÍTICA:
+   * Se 'waveEnabled' for false, forçamos o valor para 0.
+   * Isso evita que a carta fique "congelada" em uma posição de seno quando a animação está pausada.
+   */
+  const initialVal = waveEnabled
+    ? Math.sin((cardPhase * 1.5) + (animationTime * timeMultiplier))
+    : 0;
+
   el.style.setProperty('--y-offset', `${initialVal * offsetMultiplier}px`);
 
-  // Definição de aparência (Frente/Verso)
+  // --- DEFINIÇÃO DE APARÊNCIA (FRENTE/VERSO) ---
   if (shouldShowBack(card)) {
     el.classList.add('back');
   } else {
@@ -114,6 +119,7 @@ function createCardElement(card) {
     el.classList.remove('is-dragging');
   });
 
+  // --- INTERAÇÕES ADICIONAIS ---
   // Clique duplo para devolver ao deck
   el.addEventListener('dblclick', () => {
     returnCardToDeck(card.id);
@@ -124,7 +130,6 @@ function createCardElement(card) {
 
   return el;
 }
-
 
 
 /**
@@ -1048,134 +1053,252 @@ if (toggleReligionBtn) {
   };
 }
 
-// --- SISTEMA DE MOVIMENTO SENOIDAL PERSISTENTE (JUICE) ---
+// =======================================================
+// === SISTEMA DE FLUTUAÇÃO SENOIDAL (CARD WAVE) ===
+// =======================================================
 
 let animationTime = 0;
-const timeMultiplier = 0.5; // Velocidade da flutuação
-const offsetMultiplier = 4; // Altura da flutuação em pixels
+let waveEnabled = true; // Estado global da flutuação
 
+const timeMultiplier = 0.5;   // Velocidade da flutuação
+const offsetMultiplier = 4;   // Altura da flutuação em pixels
+const toggleWaveBtn = document.getElementById('toggleWaveBtn');
+
+/**
+ * LOOP DE ANIMAÇÃO DA ONDA (60 FPS)
+ * Calcula a fase individual de cada carta para criar o efeito lagarta.
+ */
 function updateCardFlotation() {
-  animationTime += 0.02; // Incremento constante
+  // Se estiver desativado, apenas mantém o loop rodando sem processar as cartas
+  if (!waveEnabled) {
+    requestAnimationFrame(updateCardFlotation);
+    return;
+  }
 
+  animationTime += 0.02; // Incremento constante para a função Seno
   const allCards = document.querySelectorAll('.card');
 
   allCards.forEach((card) => {
-    // Bloqueia animação se estiver interagindo (arrastando)
+    // Bloqueia animação se o jogador estiver interagindo com a carta
     if (card.classList.contains('is-dragging') || card.classList.contains('lifting')) return;
 
-    // CORREÇÃO: Transforma o ID (string) em um número de fase único
+    // Gera uma fase única baseada no ID da carta (ID do Firebase)
     const id = card.dataset.cardId || "";
     const cardPhase = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
-    // Multiplicamos a fase por 1.5 para garantir que cartas vizinhas 
-    // fiquem em pontos bem diferentes da onda (efeito lagarta)
+    // Calcula a posição vertical usando Seno
     const val = Math.sin((cardPhase * 1.5) + (animationTime * timeMultiplier));
     const translateY = val * offsetMultiplier;
 
-    // Atualiza a variável CSS definida no style.css
+    // Aplica o deslocamento à variável CSS --y-offset
     card.style.setProperty('--y-offset', `${translateY}px`);
   });
 
-  requestAnimationFrame(updateCardFlotation); // Loop contínuo a 60fps
+  requestAnimationFrame(updateCardFlotation);
 }
 
-// Inicia o processo
+/**
+ * GERENCIADOR DE ESTADO DA ONDA
+ * Controla a interface, persistência e o reset imediato das posições.
+ */
+const applyWaveState = (isEnabled) => {
+  waveEnabled = isEnabled;
+  const img = toggleWaveBtn?.querySelector('img');
+  const span = toggleWaveBtn?.querySelector('span');
+
+  if (isEnabled) {
+    if (span) span.textContent = "Ativado";
+    if (img) img.src = 'img/eye.svg';
+    if (toggleWaveBtn) toggleWaveBtn.style.opacity = '1';
+  } else {
+    if (span) span.textContent = "Desativado";
+    if (img) img.src = 'img/visibility_off.svg';
+    if (toggleWaveBtn) toggleWaveBtn.style.opacity = '0.6';
+
+    // IMPORTANTE: Reseta todas as cartas para a posição neutra (0px) ao desligar
+    document.querySelectorAll('.card').forEach(card => {
+      card.style.setProperty('--y-offset', '0px');
+    });
+  }
+
+  // Salva a preferência no navegador
+  localStorage.setItem('waveEnabled', isEnabled);
+};
+
+/**
+ * INICIALIZAÇÃO DO SISTEMA
+ */
+if (toggleWaveBtn) {
+  const storedWave = localStorage.getItem('waveEnabled');
+  // Ativo por padrão (true) no primeiro acesso
+  const isWaveActive = storedWave === null ? true : (storedWave === 'true');
+
+  applyWaveState(isWaveActive);
+
+  toggleWaveBtn.onclick = () => {
+    playSound('click'); // Som de interface
+    applyWaveState(!waveEnabled);
+  };
+}
+
+// Inicia o loop contínuo
 updateCardFlotation();
 
 
-// // =======================================================
-// // === SISTEMA DE PARALLAX COM CONTROLE DE ESTADO ===
-// // =======================================================
 
-// let targetX = 0;
-// let targetY = 0;
-// let currentX = 0;
-// let currentY = 0;
-// let parallaxEnabled = true; // Estado global controlado pelas configurações
 
-// const smoothing = 0.05; // Suavidade do movimento (estilo Godot)
-// const maxOffset = 12;   // Deslocamento máximo em pixels
+// =======================================================
+// === SISTEMA DE PARALLAX COM CONTROLE DE ESTADO ===
+// =======================================================
 
-// const toggleParallaxBtn = document.getElementById('toggleParallaxBtn');
+let targetX = 0, targetY = 0;
+let currentX = 0, currentY = 0;
+let parallaxEnabled = true; // Estado global
 
-// /**
-//  * MOUSE TRACKER
-//  * Calcula a posição alvo baseada na movimentação do cursor.
-//  */
-// window.addEventListener('mousemove', (e) => {
-//     const centerX = window.innerWidth / 2;
-//     const centerY = window.innerHeight / 2;
+const smoothing = 0.05; // Suavidade LERP (estilo Godot)
+const maxOffset = 12;   // Deslocamento máximo em pixels
+const toggleParallaxBtn = document.getElementById('toggleParallaxBtn');
 
-//     // Calcula o offset normalizado (-1 a 1)
-//     const offsetX = (e.clientX - centerX) / centerX;
-//     const offsetY = (e.clientY - centerY) / centerY;
+/**
+ * MOUSE TRACKER
+ * Calcula o alvo apenas se estiver em telas grandes (>= 1200px).
+ */
+window.addEventListener('mousemove', (e) => {
+  // Aborta se a tela for menor que 1200px (Mobile/Tablet)
+  if (window.innerWidth < 1200) return;
 
-//     targetX = -offsetX * maxOffset;
-//     targetY = -offsetY * maxOffset;
-// });
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
 
-// /**
-//  * LOOP DE ANIMAÇÃO (60 FPS)
-//  * Só aplica a transformação ao DOM se o parallax estiver ativado.
-//  */
-// function updateParallax() {
-//     // A interpolação linear (LERP) continua para manter a fluidez se reativado
-//     currentX += (targetX - currentX) * smoothing;
-//     currentY += (targetY - currentY) * smoothing;
+  // Calcula o offset normalizado (-1 a 1)
+  const offsetX = (e.clientX - centerX) / centerX;
+  const offsetY = (e.clientY - centerY) / centerY;
 
-//     const mainUI = document.querySelector('.container');
+  targetX = -offsetX * maxOffset;
+  targetY = -offsetY * maxOffset;
+});
 
-//     // CONDIÇÃO CRÍTICA: Só manipula o estilo se permitido pelo usuário
-//     if (mainUI && parallaxEnabled) {
-//         mainUI.style.transform = `translate(${currentX}px, ${currentY}px)`;
-//     }
+/**
+ * LOOP DE ANIMAÇÃO (60 FPS)
+ * Sincroniza a posição com suavização linear (LERP).
+ */
+function updateParallax() {
+  // A interpolação continua calculando para garantir transições fluidas
+  currentX += (targetX - currentX) * smoothing;
+  currentY += (targetY - currentY) * smoothing;
 
-//     requestAnimationFrame(updateParallax);
-// }
+  const mainUI = document.querySelector('.container');
 
-// /**
-//  * GERENCIADOR DE ESTADO E INTERFACE
-//  * Sincroniza o botão, o salvamento local e a aplicação visual.
-//  */
-// const applyParallaxState = (isEnabled) => {
-//     parallaxEnabled = isEnabled;
-//     const img = toggleParallaxBtn?.querySelector('img');
-//     const span = toggleParallaxBtn?.querySelector('span');
-//     const mainUI = document.querySelector('.container');
+  if (mainUI) {
+    /**
+     * CONDIÇÃO DE APLICAÇÃO:
+     * 1. Parallax ativado nas configurações.
+     * 2. Largura da tela compatível com Desktop (>= 1200px).
+     */
+    if (parallaxEnabled && window.innerWidth >= 1200) {
+      mainUI.style.transform = `translate(${currentX}px, ${currentY}px)`;
+    } else {
+      // Reset de segurança para telas menores ou efeito desativado
+      mainUI.style.transform = 'translate(0, 0)';
+    }
+  }
 
-//     if (isEnabled) {
-//         if (span) span.textContent = "Ativado";
-//         if (img) img.src = 'img/eye.svg';
-//         if (toggleParallaxBtn) toggleParallaxBtn.style.opacity = '1';
-//     } else {
-//         if (span) span.textContent = "Desativado";
-//         if (img) img.src = 'img/visibility_off.svg';
-//         if (toggleParallaxBtn) toggleParallaxBtn.style.opacity = '0.6';
+  requestAnimationFrame(updateParallax);
+}
 
-//         // Reseta a posição do tabuleiro imediatamente para evitar desalinhamento
-//         if (mainUI) mainUI.style.transform = 'translate(0, 0)';
-//     }
+/**
+ * GERENCIADOR DE ESTADO E INTERFACE DO PARALLAX
+ * Controla a ativação, persistência e o reset visual do tabuleiro.
+ */
+const applyParallaxState = (isEnabled) => {
+  parallaxEnabled = isEnabled;
+  const img = toggleParallaxBtn?.querySelector('img');
+  const span = toggleParallaxBtn?.querySelector('span');
+  const mainUI = document.querySelector('.container');
 
-//     // Salva a preferência para sessões futuras
-//     localStorage.setItem('parallaxEnabled', isEnabled);
-// };
+  // 1. Atualização Visual do Botão (Feedback ao Usuário)
+  if (isEnabled) {
+    if (span) span.textContent = "Ativado";
+    if (img) img.src = 'img/eye.svg';
+    if (toggleParallaxBtn) toggleParallaxBtn.style.opacity = '1';
+  } else {
+    if (span) span.textContent = "Desativado";
+    if (img) img.src = 'img/visibility_off.svg';
+    if (toggleParallaxBtn) toggleParallaxBtn.style.opacity = '0.6';
+  }
 
-// /**
-//  * INICIALIZAÇÃO
-//  * Carrega as preferências do localStorage e inicia o loop.
-//  */
-// if (toggleParallaxBtn) {
-//     const storedParallax = localStorage.getItem('parallaxEnabled');
-//     // Ativado por padrão no primeiro acesso
-//     const isParallaxActive = storedParallax === null ? true : (storedParallax === 'true');
+  // 2. Reset de Segurança: Se desativado OU tela for pequena (Mobile/Tablet), volta ao centro
+  // Isso garante que o tabuleiro não fique "torto" se o efeito for desligado no meio do movimento.
+  if (!isEnabled || window.innerWidth < 1200) {
+    if (mainUI) mainUI.style.transform = 'translate(0, 0)';
+  }
 
-//     applyParallaxState(isParallaxActive);
+  // 3. Persistência: Grava a escolha para sessões futuras
+  localStorage.setItem('parallaxEnabled', isEnabled);
+};
 
-//     toggleParallaxBtn.onclick = () => {
-//         playSound('click'); // Som de interface
-//         applyParallaxState(!parallaxEnabled);
-//     };
-// }
+/**
+ * INICIALIZAÇÃO DO SISTEMA
+ * Carrega a preferência salva e configura os listeners de clique.
+ */
+if (toggleParallaxBtn) {
+  const storedParallax = localStorage.getItem('parallaxEnabled');
 
-// // Inicia o processo de renderização contínua
-// updateParallax();
+  // Valor padrão é 'true' (Ativado) se o jogador nunca tiver configurado
+  const isParallaxActive = storedParallax === null ? true : (storedParallax === 'true');
+
+  applyParallaxState(isParallaxActive);
+
+  toggleParallaxBtn.onclick = () => {
+    if (typeof playSound === 'function') playSound('click');
+    applyParallaxState(!parallaxEnabled);
+  };
+}
+
+// Inicia o loop de renderização (que internamente respeita a trava de largura de tela)
+updateParallax();
+
+
+// --- SISTEMA DE ATIVAÇÃO DO EFEITO VHS/CRT ---
+
+const toggleVhsBtn = document.getElementById('toggleVhsBtn');
+
+/**
+ * APLICA A VISIBILIDADE DO EFEITO VHS
+ * Controla a classe do body e o texto do botão.
+ */
+const applyVhsVisibility = (isEnabled) => {
+  const body = document.body;
+  const img = toggleVhsBtn?.querySelector('img');
+  const span = toggleVhsBtn?.querySelector('span');
+
+  if (isEnabled) {
+    body.classList.add('vhs-enabled');
+    if (span) span.textContent = "Ativado";
+    if (img) img.src = 'img/eye.svg';
+    if (toggleVhsBtn) toggleVhsBtn.style.opacity = '1';
+  } else {
+    body.classList.remove('vhs-enabled');
+    if (span) span.textContent = "Desativado";
+    if (img) img.src = 'img/visibility_off.svg';
+    if (toggleVhsBtn) toggleVhsBtn.style.opacity = '0.6';
+  }
+
+  // Salva a preferência
+  localStorage.setItem('vhsEnabled', isEnabled);
+};
+
+// Inicialização e Listener
+if (toggleVhsBtn) {
+  // Carrega valor salvo ou define como 'true' por padrão
+  const storedVhs = localStorage.getItem('vhsEnabled');
+  const isVhsActive = storedVhs === null ? true : (storedVhs === 'true');
+
+  applyVhsVisibility(isVhsActive);
+
+  toggleVhsBtn.onclick = () => {
+    playSound('click');
+    const currentlyEnabled = document.body.classList.contains('vhs-enabled');
+    applyVhsVisibility(!currentlyEnabled);
+  };
+}

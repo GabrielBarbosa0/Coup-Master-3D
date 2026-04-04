@@ -36,18 +36,19 @@
    === 2. AMBIENTAÇÃO E ILUMINAÇÃO (VIGNETTE) ===
    ======================================================= */
 
+/* Ambientação Mobile-First */
 .vignette {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    /* O gradiente: transparente no centro, preto (ou azul escuro) nas bordas */
-    background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
-    /* CRÍTICO: permite clicar nos elementos que estão atrás */
+    /* No mobile: Centro mais aberto (60%) e bordas mais claras (0.5) */
+    background: radial-gradient(circle, transparent 60%, rgba(0, 0, 0, 0.5) 100%);
     pointer-events: none;
     z-index: 9000;
-    /* Abaixo dos modais, mas acima do tabuleiro */
+    will-change: opacity;
+    /* Otimização leve */
 }
 
 body {
@@ -65,7 +66,76 @@ body {
 }
 
 
+/* =======================================================
+   === 3. SIMULAÇÃO DE MONITOR CRT (TEXTURAS) ===
+   ======================================================= */
 
+/* Escondido por padrão */
+.crt-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    /* Camada de Scanlines e Grille (sem curvatura) */
+    background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+    background-size: 100% 3px, 3px 100%;
+    z-index: 10000;
+    pointer-events: none;
+}
+
+/* Cintilação (Flicker) */
+@keyframes flicker {
+    0% {
+        opacity: 0.98;
+    }
+
+    5% {
+        opacity: 0.96;
+    }
+
+    10% {
+        opacity: 0.99;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.crt-overlay::before {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: rgba(18, 16, 16, 0.02);
+    animation: flicker 0.1s infinite;
+}
+
+/* =======================================================
+   === 4. APLICAÇÃO CONDICIONAL (MODO VHS ATIVO) ===
+   ======================================================= */
+
+body.vhs-enabled .crt-overlay {
+    display: block;
+}
+
+body.vhs-enabled .container {
+    /* Aplica apenas o filtro de cor e ruído, sem o rotateX/perspective */
+    filter: url(#vhs-filter);
+    transition: none !important;
+}
+
+/* O fundo fica mais escuro para destacar o "brilho" do CRT */
+body.vhs-enabled {
+    background-color: #050505;
+}
 
 
 /* =======================================================
@@ -1050,9 +1120,6 @@ body.hide-religion .decks-wrapper {
     transform-style: preserve-3d;
 }
 
-
-
-
 .deck-area,
 .card-slot,
 .card-dropzone,
@@ -1246,8 +1313,8 @@ body.hide-religion .decks-wrapper {
 
 /* --- 15. REGRAS EXCLUSIVAS POR TAMANHO DE TELA --- */
 
-/* Telas Mínimas (< 270px) */
-@media (max-width: 270px) {
+/* Telas Mínimas (< 292px) */
+@media (max-width: 292px) {
     header h1 {
         font-size: 20px;
     }
@@ -1256,13 +1323,79 @@ body.hide-religion .decks-wrapper {
         grid-template-columns: 1fr;
         gap: 4px;
     }
+
+    /* Ajusta o tamanho dos botões de controle e o Reset */
+    .controls button,
+    .resetBtn,
+    .musicBtn,
+    .altRulesBtn,
+    .fullscreenBtn,
+    .infoBtn,
+    .configBtn {
+        width: 28px !important;
+        height: 28px !important;
+        padding: 6px !important;
+        border-radius: 6px !important;
+    }
+
+    /* Ajusta o tamanho das imagens/ícones dentro dos botões */
+    .controls button img,
+    .resetBtn img,
+    .altRulesBtn img {
+        width: 16px !important;
+        height: 16px !important;
+
+    }
+
+    /* Ajuste específico para o slider de volume não quebrar o layout */
+    #volumeSlider {
+        width: 40px !important;
+    }
+
+    /* Reduz o espaçamento entre os botões */
+    .controls {
+        gap: 6px !important;
+    }
 }
 
-/* Mobile Padrão (271px - 479px) */
-@media (min-width: 271px) and (max-width: 479px) {
+/* Mobile Padrão (292px - 479px) */
+@media (min-width: 292px) and (max-width: 479px) {
     .player-hands-container {
         grid-template-columns: repeat(2, 1fr);
         gap: 4px;
+    }
+
+    /* Ajusta o tamanho dos botões de controle e o Reset */
+    .controls button,
+    .resetBtn,
+    .musicBtn,
+    .altRulesBtn,
+    .fullscreenBtn,
+    .infoBtn,
+    .configBtn {
+        width: 32px !important;
+        height: 32px !important;
+        padding: 8px !important;
+        border-radius: 6px !important;
+    }
+
+    /* Ajusta o tamanho das imagens/ícones dentro dos botões */
+    .controls button img,
+    .resetBtn img,
+    .altRulesBtn img {
+        width: 16px !important;
+        height: 16px !important;
+
+    }
+
+    /* Ajuste específico para o slider de volume não quebrar o layout */
+    #volumeSlider {
+        width: 40px !important;
+    }
+
+    /* Reduz o espaçamento entre os botões */
+    .controls {
+        gap: 6px !important;
     }
 }
 
@@ -1274,8 +1407,8 @@ body.hide-religion .decks-wrapper {
     }
 }
 
-/* Laptop Pequeno / Telas Médias (769px - 1199px) */
-@media (min-width: 769px) and (max-width: 1199px) {
+/* Laptop Pequeno / Telas Médias (769px - 1200px) */
+@media (min-width: 769px) and (max-width: 1200px) {
     .player-hands-container {
         grid-template-columns: repeat(4, 1fr);
         gap: 4px;
@@ -1284,9 +1417,7 @@ body.hide-religion .decks-wrapper {
 
 
 
-
 /* ////////////////////////////////////////////////////////////////////// */
-
 
 
 
@@ -1295,6 +1426,20 @@ body.hide-religion .decks-wrapper {
        ======================================================= */
 
 @media (min-width: 1200px) {
+
+    .vignette {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        /* O gradiente: transparente no centro, preto (ou azul escuro) nas bordas */
+        background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+        /* CRÍTICO: permite clicar nos elementos que estão atrás */
+        pointer-events: none;
+        z-index: 9000;
+        /* Abaixo dos modais, mas acima do tabuleiro */
+    }
 
     /* --- 1. ESTRUTURA GLOBAL E HEADER --- */
     .container {
@@ -1436,11 +1581,6 @@ body.hide-religion .decks-wrapper {
         border-radius: 10px;
         border: 3px solid #3b5998;
     }
-
-    /* .asylum-image {
-        width: 45px;
-        height: 45px;
-    } */
 
     .asylum-image-wrapper {
         width: 60px;

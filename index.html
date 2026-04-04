@@ -420,7 +420,7 @@
           <label>Código da Sala:</label>
           <button id="toggleHeaderBtn" class="icon-btn" title="Mostrar/Ocultar Código da Sala">
             <img src="img/eye.svg" alt="Ver" style="width: 24px; height: 24px;">
-            <span style="margin-left: 8px;">Visível</span>
+            <span style="margin-left: 4px;">Visível</span>
           </button>
         </div>
 
@@ -428,17 +428,33 @@
           <label>Religião:</label>
           <button id="toggleReligionBtn" class="icon-btn" title="Mostrar/Ocultar Religião">
             <img src="img/eye.svg" alt="Ver" style="width: 24px; height: 24px;">
-            <span style="margin-left: 8px;">Visível</span>
+            <span style="margin-left: 4px;">Visível</span>
           </button>
         </div>
 
-        <!-- <div class="setting-row">
+        <div class="setting-row">
           <label>Parallax:</label>
           <button id="toggleParallaxBtn" class="icon-btn" title="Ativar/Desativar Parallax">
             <img src="img/eye.svg" alt="Ver" style="width: 24px; height: 24px;">
-            <span style="margin-left: 8px;">Ativado</span>
+            <span style="margin-left: 4px;">Ativado</span>
           </button>
-        </div> -->
+        </div>
+
+        <div class="setting-row">
+          <span>Efeito (VHS)</span>
+          <button id="toggleVhsBtn" class="icon-btn">
+            <img src="img/eye.svg" alt="">
+            <span style="margin-left: 4px;">Ativado</span>
+          </button>
+        </div>
+
+        <div class="setting-row">
+          <label>Flutuação</label>
+          <button id="toggleWaveBtn" class="icon-btn" title="Ativar/Desativar Flutuação">
+            <img src="img/eye.svg" alt="Ver" style="width: 24px; height: 24px;">
+            <span style="margin-left: 4px;">Ativado</span>
+          </button>
+        </div>
 
         <div class="setting-row">
           <label>Adicionar Bot:</label>
@@ -589,11 +605,16 @@
     </div>
   </div>
 
+  <!-- Efeitos de Vinheta e VHS -->
+  <div class="crt-overlay"></div>
+  <div class="vignette"></div>
 
+  <!-- Trilha Sonora -->
   <audio id="bgmAudio" loop autoplay>
     <source src="audio/bgm.mp3" type="audio/mpeg">
   </audio>
 
+  <!-- Efeitos Sonoros -->
   <audio id="audio-coin" src="audio/coin.mp3"></audio>
   <audio id="audio-bag-coins" src="audio/bag-coins.mp3"></audio>
   <audio id="audio-paper" src="audio/paper.mp3"></audio>
@@ -614,10 +635,7 @@
   <script src="js/gameState.js" defer></script>
   <script src="js/ui.js" defer></script>
 
-
-
 </body>
 
-<div class="vignette"></div>
 
 </html>
