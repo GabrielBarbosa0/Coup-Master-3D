@@ -632,6 +632,28 @@
     </div>
   </div>
 
+  <div id="quickActionsModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 300px; text-align: center;">
+      <button id="closeQuickActionsBtn" class="close-btn">&times;</button>
+      <h2 id="quickActionsTitle" style="font-size: 18px; margin-bottom: 15px;">Ações Contra...</h2>
+
+      <div class="quick-actions-grid" style="display: flex; flex-direction: column; gap: 10px;">
+        <button onclick="executeAction('steal')" class="icon-btn" style="width: 100%; justify-content: center;">
+          🫳 ROUBAR 2 MOEDAS
+        </button>
+        <button onclick="executeAction('assassinate')" class="icon-btn"
+          style="width: 100%; justify-content: center; color: #ff3b3b;">
+          🗡️ ASSASSINAR (3 MOEDAS)
+        </button>
+        <hr style="border: 0; border-top: 1px solid var(--muted); margin: 5px 0;">
+        <button onclick="executeAction('tax')" class="icon-btn"
+          style="width: 100%; justify-content: center; color: #ff66c4;">
+          👑 TAXA DO DUQUE (+3)
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Vídeo de Fundo Animado -->
   <video id="bg-video" autoplay muted loop playsinline class="video-background">
     <source src="video/background-smoke.mp4" type="video/mp4">

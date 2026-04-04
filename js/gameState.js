@@ -27,6 +27,7 @@ let myPlayerId = null;
 let isDrawingCard = false;
 let lastSoundTimestamp = 0;
 let pendingKickPid = null;
+window.pendingKickPid = null;
 
 
 // =======================================================
@@ -442,35 +443,42 @@ function addBot() {
  * Devolve cartas ao deck e limpa o slot do jogador em uma única transação.
  */
 function confirmKickAction() {
-  if (!pendingKickPid) return;
-  const pid = pendingKickPid;
+  const pid = window.pendingKickPid; // Usa a variável global
+  if (!pid) return;
 
-  // 1. Toca o som de impacto (feedback local)
+  // 1. Toca o som de impacto localmente
   if (typeof playSound === 'function') playSound('impact');
 
-  // 2. Executa a Transação no Firebase
+  // 2. Executa a Transação Atômica no Firebase
   gameStateRef.transaction((state) => {
     if (!state || !state.players || !state.players[pid]) return state;
 
     const player = state.players[pid];
     const hand = player.hand || [];
 
-    // DEVOLVER TODAS AS CARTAS AO DECK
+    // --- CORREÇÃO: SE O JOGADOR EXPULSO FOR VOCÊ ---
+    // Verificamos pelo UID salvo no slot antes de limpá-lo
+    if (player.uid === currentUser.uid) {
+      setTimeout(() => { window.location.href = 'lobby.html'; }, 500);
+    }
+
+    // --- DEVOLVER CARTAS AO DECK ---
     if (hand.length > 0) {
       if (!state.deck) state.deck = [];
-      
+
       hand.forEach(card => {
+        // Reseta as propriedades da carta para o estado de "no baralho"
         card.owner = null;
         card.location = 'deck';
         card.visible = false;
         state.deck.push(card);
       });
 
-      // Embaralha o deck após as cartas voltarem (usa função do rules.js)
+      // Embaralha o deck usando a função do rules.js
       if (typeof shuffle === 'function') shuffle(state.deck);
     }
 
-    // RESETAR O SLOT DO JOGADOR
+    // --- RESETAR O SLOT DO JOGADOR ---
     state.players[pid] = {
       online: false,
       uid: null,
@@ -484,13 +492,11 @@ function confirmKickAction() {
     return state;
   }, (error, committed) => {
     if (committed) {
-      console.log(`Sucesso: Jogador ${pid} removido.`);
-      // triggerSound('shuffle'); // Avisa a todos que o deck mudou
+      console.log(`Jogador ${pid} removido e cartas devolvidas.`);
     }
-    pendingKickPid = null; // Reseta a variável de controle
+    window.pendingKickPid = null; // Reseta a variável de controle
   });
 }
-
 
 
 
@@ -574,18 +580,53 @@ function joinGame() {
 
     return; // Sala cheia
 
+
   }, (error, committed) => {
     if (committed) {
       console.log(`Conectado no Slot ${myPlayerId}`);
+
+      // 1. Garante que o status 'online' mude se o navegador fechar
       setupDisconnectHandler(myPlayerId);
+
+      /**
+       * 2. VIGIA DE EXPULSÃO (CRÍTICO):
+       * Ativa o monitoramento do slot. Se o Host limpar seu UID, 
+       * seu navegador te redirecionará automaticamente para o lobby.
+       */
+      setupKickListener(myPlayerId);
+
       if (loadingOverlay) loadingOverlay.style.display = 'none';
     } else if (error) {
+      // Tenta recuperar a conexão em caso de erro de rede
       window.location.reload();
     } else {
+      // Redireciona se a sala estiver cheia (sem slots vagos)
       window.location.href = 'lobby.html';
     }
   });
 }
+
+/**
+ * VIGIA DE EXPULSÃO
+ * Monitora o próprio slot do jogador no Firebase. Se o UID for removido (ficando null),
+ * o jogador é forçado a sair da página da sala.
+ */
+function setupKickListener(pid) {
+  if (!pid) return;
+
+  // Escuta mudanças específicas no UID do slot do jogador
+  db.ref(`salas/${roomCode}/gameState/players/${pid}/uid`).on('value', (snapshot) => {
+    // Se o valor for null e o jogo estiver rodando, o jogador foi expulso
+    if (snapshot.val() === null) {
+      console.log("Você foi removido da sala pelo administrador.");
+      window.location.href = 'lobby.html';
+    }
+  });
+}
+
+
+
+
 
 /**
  * INICIALIZAÇÃO GLOBAL DO JOGO

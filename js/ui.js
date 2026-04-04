@@ -1,5 +1,5 @@
 // =======================================================
-// === INTERFACE DO USUÁRIO E RENDERIZAÇÃO (ui.js) ===
+// === INTERFACE DO USUÁRIO E RENDERIZAÇÃO ===
 // =======================================================
 
 // Variáveis DOM
@@ -17,6 +17,7 @@ const asylumMinusBtn = document.getElementById('asylum-minus');
 // =======================================================
 // === FUNÇÕES DE RENDERIZAÇÃO ===
 // =======================================================
+
 
 /**
  * LIMPEZA DO DOM (RESET VISUAL)
@@ -37,6 +38,79 @@ function clearDOM() {
   document.querySelectorAll('.player-area.local-player')
     .forEach(el => el.classList.remove('local-player'));
 }
+
+
+
+// Lógica das Ações Rápidas
+
+let quickActionTargetPid = null;
+
+window.openQuickActions = (pid) => {
+  quickActionTargetPid = pid;
+  const modal = document.getElementById('quickActionsModal');
+  const title = document.getElementById('quickActionsTitle');
+  const player = localGameState.players[pid];
+
+  if (modal && title && player) {
+    title.innerText = `Ação contra ${player.name || 'Jogador ' + pid}`;
+    if (typeof playSound === 'function') playSound('click');
+    modal.style.display = 'flex';
+  }
+};
+window.executeAction = (type) => {
+  if (!quickActionTargetPid || !myPlayerId) return;
+
+  // Busca o estado atual dos envolvidos
+  const myPlayer = localGameState.players[myPlayerId];
+  const myScore = myPlayer ? (myPlayer.score || 0) : 0;
+  const targetPlayer = localGameState.players[quickActionTargetPid];
+  const targetScore = targetPlayer ? (targetPlayer.score || 0) : 0;
+
+  switch (type) {
+    case 'steal':
+      /** * REGRA: O Capitão só rouba se o alvo tiver 2 ou mais moedas.
+       * Se o alvo tiver 0 ou 1, a ação é cancelada.
+       */
+      if (targetScore < 2) {
+        console.log("Ação cancelada: O alvo deve ter pelo menos 2 moedas.");
+        if (typeof playSound === 'function') playSound('click');
+        break;
+      }
+
+      // Executa o roubo fixo de 2 moedas
+      updateScore(quickActionTargetPid, -2);
+      updateScore(myPlayerId, 2);
+      break;
+
+    case 'assassinate':
+      // Verifica se o jogador tem saldo para pagar o assassinato
+      if (myScore < 3) {
+        console.log("Saldo insuficiente para assassinar.");
+        if (typeof playSound === 'function') playSound('click');
+        return;
+      }
+
+      /**
+       * O parâmetro 'true' silencia o som de moeda global no Firebase.
+       * Em seguida, dispararamos o som de faca (knife) globalmente.
+       */
+      updateScore(myPlayerId, -3, true);
+      if (typeof triggerSound === 'function') triggerSound('knife');
+      break;
+
+    case 'tax':
+      // Duque recebe 3 moedas (mantém o som de moeda padrão)
+      updateScore(myPlayerId, 3);
+      break;
+  }
+
+  // Fecha o modal após processar a ação
+  const modal = document.getElementById('quickActionsModal');
+  if (modal) modal.style.display = 'none';
+};
+
+
+
 
 /**
  * LÓGICA DE VISIBILIDADE DE CARTAS
@@ -271,14 +345,19 @@ function renderAll() {
   // Limpa o tabuleiro antes de desenhar o novo estado.
   clearDOM();
 
+
+
+
   // --- 2. RENDERIZAÇÃO DOS SLOTS DE JOGADORES (1 a 10) ---
+
+
   for (let pid = 1; pid <= 10; pid++) {
     const playerEl = document.getElementById(`player-${pid}`);
     if (!playerEl) continue;
 
     const player = state.players[pid] || { online: false, hand: [], score: 0, religion: 'catolico', uid: null };
 
-    // Define se o slot do jogador deve estar visível ou oculto.
+    // Define se o slot do jogador deve estar visível ou oculto
     if (player.online || player.uid) {
       playerEl.style.display = 'flex';
     } else {
@@ -286,11 +365,7 @@ function renderAll() {
       continue;
     }
 
-
-
-
     // --- 2.1 IDENTIFICAÇÃO E CONTROLE DE MODERAÇÃO ---
-    // Adiciona classe de destaque para o jogador local
     if (pid === myPlayerId) {
       playerEl.classList.add('local-player');
     }
@@ -298,11 +373,11 @@ function renderAll() {
     // Controle de Moderação: Botão de expulsar (X) visível apenas para o Host
     const removeBtn = playerEl.querySelector('.remove-player');
     if (removeBtn) {
-      removeBtn.style.display = isAdmin ? 'block' : 'none';
+      // Mostra o botão apenas se for Admin E não for o seu próprio slot
+      removeBtn.style.display = (isAdmin && pid !== myPlayerId) ? 'block' : 'none';
     }
 
     // --- 2.2 CABEÇALHO DO JOGADOR (AVATAR E NOME) ---
-    // Garante que a estrutura do cabeçalho exista para suporte a fotos de perfil
     let headerEl = playerEl.querySelector('.player-header');
     if (!headerEl) {
       const titleDiv = playerEl.querySelector('.player-title');
@@ -322,10 +397,18 @@ function renderAll() {
     const nameTxt = headerEl.querySelector('.player-title');
 
     if (avatarImg) avatarImg.src = player.photo || 'img/coup.png';
-    if (nameTxt) nameTxt.textContent = player.name || `Jogador ${pid}`;
+
+    if (nameTxt) {
+      nameTxt.textContent = player.name || `Jogador ${pid}`;
+
+      // NOVO: Gatilho para o Modal de Ações Rápidas
+      nameTxt.style.cursor = 'pointer'; // Feedback visual de clique
+      nameTxt.onclick = () => {
+        if (typeof openQuickActions === 'function') openQuickActions(pid);
+      };
+    }
 
     // --- 2.3 STATUS DE RELIGIÃO ---
-    // Atualiza ícones e classes CSS baseados na afiliação atual
     const religionEl = playerEl.querySelector('.religion-status');
     if (religionEl) {
       const isProtestante = player.religion === 'protestante';
@@ -333,13 +416,12 @@ function renderAll() {
       const religionText = isProtestante ? 'Protestante' : 'Católico';
 
       religionEl.innerHTML = `<img src="img/${iconFile}" class="religion-icon"> ${religionText}`;
-      religionEl.className = `religion-status ${player.religion}`; // Aplica classe dinâmica
+      religionEl.className = `religion-status ${player.religion}`;
     }
 
     // --- 2.4 RENDERIZAÇÃO DA MÃO E PONTUAÇÃO ---
     const handContainer = playerEl.querySelector('[data-hand]');
     if (handContainer) {
-      // Renderiza cada carta presente na mão do jogador
       player.hand?.forEach((card) => {
         const slot = document.createElement('div');
         slot.className = 'slot small';
@@ -349,7 +431,6 @@ function renderAll() {
         handContainer.appendChild(slot);
       });
 
-      // Mantém um slot vazio por estética se não houver cartas
       if (!player.hand || player.hand.length === 0) {
         const slot = document.createElement('div');
         slot.className = 'slot small';
@@ -357,12 +438,10 @@ function renderAll() {
       }
     }
 
-    // --- RENDERIZAÇÃO DA MÃO E PONTUAÇÃO (Fim do Trecho 2) ---
     const scoreEl = playerEl.querySelector('.score');
     if (scoreEl) scoreEl.textContent = player.score || 0;
 
-    // --- INTEGRAÇÃO DO TRECHO 3 (INDICADOR DE ESPECTADOR) ---
-    // Em vez de um novo loop, fazemos a checagem aqui mesmo, aproveitando o 'pid' atual.
+    // --- INDICADOR DE ESPECTADOR ---
     if (player?.spectators && player.spectators[myPlayerId]) {
       playerEl.style.boxShadow = "0 0 8px #1e90ff";
       playerEl.style.border = "2px solid #1e90ff";
@@ -370,6 +449,14 @@ function renderAll() {
       playerEl.style.boxShadow = "";
       playerEl.style.border = "";
     }
+  }
+
+
+  const closeQuickActionsBtn = document.getElementById('closeQuickActionsBtn');
+  if (closeQuickActionsBtn) {
+    closeQuickActionsBtn.onclick = () => {
+      document.getElementById('quickActionsModal').style.display = 'none';
+    };
   }
 
 
@@ -599,45 +686,51 @@ function setupUI() {
   // === SISTEMA DE REMOÇÃO (KICK) ===
   // =======================================================
 
-// 1. Definição da função global que o botão "X" no HTML chama
-window.kickPlayer = (pid) => {
-  // Sincroniza com a variável global 'pendingKickPid' do gameState.js
-  pendingKickPid = pid; 
-  
-  const modal = document.getElementById('kickPlayerModal');
-  const text = document.getElementById('kickPlayerText');
-  const player = localGameState.players ? localGameState.players[pid] : null;
+  /**
+   * Função global chamada ao clicar no botão 'X' do jogador.
+   * Define quem será expulso e abre o modal de confirmação.
+   */
+  window.kickPlayer = (pid) => {
+    // Sincroniza com a variável global 'pendingKickPid' do gameState.js
+    window.pendingKickPid = pid;
 
-  // Atualiza o texto do modal com o nome do alvo
-  if (text && player) {
-    text.innerText = `Tem certeza que deseja remover ${player.name || 'o Jogador ' + pid}?`;
+    const modal = document.getElementById('kickPlayerModal');
+    const text = document.getElementById('kickPlayerText');
+
+    // Busca o nome do jogador no estado local para o texto de confirmação
+    const player = localGameState.players ? localGameState.players[pid] : null;
+
+    if (text && player) {
+      // Texto simplificado e direto
+      text.innerText = `Remover ${player.name || 'o Jogador ' + pid}?`;
+    }
+
+    if (modal) {
+      if (typeof playSound === 'function') playSound('click');
+      modal.style.display = 'flex';
+    }
+  };
+
+  // Configuração dos botões do Modal
+  const confirmKickBtn = document.getElementById('confirmKickBtn');
+  const cancelKickBtn = document.getElementById('cancelKickBtn');
+  const kickModal = document.getElementById('kickPlayerModal');
+
+  if (confirmKickBtn) {
+    confirmKickBtn.onclick = () => {
+      // Chamamos a ação principal que agora lida com cartas e remoção
+      confirmKickAction();
+      if (kickModal) kickModal.style.display = 'none';
+    };
   }
 
-  if (modal) {
-    if (typeof playSound === 'function') playSound('click');
-    modal.style.display = 'flex';
+  if (cancelKickBtn) {
+    cancelKickBtn.onclick = () => {
+      if (kickModal) kickModal.style.display = 'none';
+      window.pendingKickPid = null; // Limpa a seleção global de segurança
+    };
   }
-};
 
-// 2. Configuração dos botões do Modal
-const confirmKickBtn = document.getElementById('confirmKickBtn');
-const cancelKickBtn = document.getElementById('cancelKickBtn');
-const kickModal = document.getElementById('kickPlayerModal');
-
-if (confirmKickBtn) {
-  confirmKickBtn.onclick = () => {
-    // Chamamos a ação principal. Ela agora faz TUDO (devolve cartas + remove player)
-    confirmKickAction(); 
-    if (kickModal) kickModal.style.display = 'none';
-  };
-}
-
-if (cancelKickBtn) {
-  cancelKickBtn.onclick = () => {
-    if (kickModal) kickModal.style.display = 'none';
-    pendingKickPid = null; // Limpa a seleção
-  };
-}
 
 
 
