@@ -456,12 +456,7 @@ function confirmKickAction() {
     const player = state.players[pid];
     const hand = player.hand || [];
 
-    // --- CORREÇÃO: SE O JOGADOR EXPULSO FOR VOCÊ ---
-    // Verificamos pelo UID salvo no slot antes de limpá-lo
-    if (player.uid === currentUser.uid) {
-      setTimeout(() => { window.location.href = 'lobby.html'; }, 500);
-    }
-
+    
     // --- DEVOLVER CARTAS AO DECK ---
     if (hand.length > 0) {
       if (!state.deck) state.deck = [];
@@ -644,14 +639,29 @@ function initializeGame() {
     if (typeof renderAll === "function") renderAll();
   });
 
-  // 2. Sincroniza o estado do jogo
+
+  // 2. Sincroniza o estado do jogo e monitora expulsões
   gameStateRef.on('value', (snapshot) => {
     const state = snapshot.val();
     if (state) {
-      // SINCRONIZAÇÃO DE SONS (Isso estava faltando!)
+      // SINCRONIZAÇÃO DE SONS
       if (state.lastSFX && state.lastSFX.timestamp > lastSoundTimestamp) {
         lastSoundTimestamp = state.lastSFX.timestamp;
         playSound(state.lastSFX.id);
+      }
+
+      /**
+       * VERIFICAÇÃO DE EXPULSÃO (KICK CHECK)
+       * Se você já ocupou um slot e agora seu UID não está mais lá,
+       * redireciona você para o lobby imediatamente.
+       */
+      if (myPlayerId && state.players && state.players[myPlayerId]) {
+        const slotUID = state.players[myPlayerId].uid;
+        if (slotUID !== currentUser.uid) {
+          console.warn("Expulsão confirmada. Redirecionando para o lobby...");
+          window.location.href = 'lobby.html';
+          return; // Para a execução para evitar erros de renderização
+        }
       }
 
       localGameState = state;
