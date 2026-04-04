@@ -216,13 +216,66 @@ body.transparent-mode .resetBtn:hover {
     font-family: "Cinzel", serif !important;
 }
 
+html {
+    margin: 0;
+    padding: 0;
+    background: #14171e;
+    /* Cor de fundo base */
+}
+
+/* ////////////////////////////////////////////////////// */
+
+/* RESET TOTAL DA BARRA DE ROLAGEM */
 html,
 body {
     height: 100%;
     margin: 0;
     background: #14171e;
     color: var(--text);
+    scrollbar-width: none !important;
+    /* Firefox */
+    -ms-overflow-style: none !important;
+    /* IE e Edge */
+    overflow-x: hidden;
+    /* Protege o Parallax */
 }
+
+
+body {
+    /* 1. LIBERA A ROLAGEM: overflow-y: auto permite descer a página */
+    overflow-x: hidden;
+    overflow-y: auto;
+    /* 2. ALTURA DINÂMICA: Mude de height: 100% para min-height: 100vh */
+    /* Isso permite que o fundo ocupe a tela toda, mas a página cresça se houver conteúdo abaixo */
+    min-height: 100vh;
+    height: auto;
+    margin: 0;
+    background: #0a0c10;
+    color: var(--text);
+    scroll-behavior: smooth;
+    /* Previne que o Parallax ou animações criem barras horizontais fantasmas */
+    position: relative;
+    /* --- OCULTAR BARRA (Firefox e Edge antigo) --- */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* Internet Explorer e Edge */
+}
+
+/* --- OCULTAR BARRA (Chrome, Safari e Opera) --- */
+body::-webkit-scrollbar {
+    display: none;
+}
+
+/* Remove para Chrome, Safari e Opera */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* ////////////////////////////////////////////////////// */
 
 p {
     margin: 0;
@@ -249,42 +302,7 @@ h2 {
 
 
 
-html {
-    margin: 0;
-    padding: 0;
-    background: #14171e;
-    /* Cor de fundo base */
-}
 
-body {
-    /* 1. LIBERA A ROLAGEM: overflow-y: auto permite descer a página */
-    overflow-x: hidden;
-    overflow-y: auto;
-
-    /* 2. ALTURA DINÂMICA: Mude de height: 100% para min-height: 100vh */
-    /* Isso permite que o fundo ocupe a tela toda, mas a página cresça se houver conteúdo abaixo */
-    min-height: 100vh;
-    height: auto;
-
-    margin: 0;
-    background: #0a0c10;
-    color: var(--text);
-    scroll-behavior: smooth;
-
-    /* Previne que o Parallax ou animações criem barras horizontais fantasmas */
-    position: relative;
-
-    /* --- OCULTAR BARRA (Firefox e Edge antigo) --- */
-    scrollbar-width: none;
-    /* Firefox */
-    -ms-overflow-style: none;
-    /* Internet Explorer e Edge */
-}
-
-/* --- OCULTAR BARRA (Chrome, Safari e Opera) --- */
-body::-webkit-scrollbar {
-    display: none;
-}
 
 /* Garante que o container acompanhe o crescimento do conteúdo */
 .container {
