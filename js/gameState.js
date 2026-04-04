@@ -507,10 +507,13 @@ function setupDisconnectHandler(pid) {
   db.ref(`salas/${roomCode}/gameState/players/${pid}/online`).onDisconnect().set(false);
 }
 
+
+
 /**
  * ENTRAR NA PARTIDA
  * Gerencia a entrada do usuário em um slot vago ou a reentrada em um slot já ocupado por ele.
  */
+
 function joinGame() {
   const loadingOverlay = document.getElementById('loadingOverlay');
   if (loadingOverlay) loadingOverlay.style.display = 'flex';
@@ -575,31 +578,36 @@ function joinGame() {
 
     return; // Sala cheia
 
-
-  }, (error, committed) => {
+}, (error, committed) => {
     if (committed) {
       console.log(`Conectado no Slot ${myPlayerId}`);
 
-      // 1. Garante que o status 'online' mude se o navegador fechar
+      // 1. Aciona o som global de entrada para todos os jogadores na sala
+      triggerSound('player-online');
+
+      // 2. Garante que o status 'online' mude para false se o navegador fechar
       setupDisconnectHandler(myPlayerId);
 
       /**
-       * 2. VIGIA DE EXPULSÃO (CRÍTICO):
-       * Ativa o monitoramento do slot. Se o Host limpar seu UID, 
-       * seu navegador te redirecionará automaticamente para o lobby.
+       * 3. VIGIA DE EXPULSÃO:
+       * Ativa o monitoramento do slot. Se o UID for removido, 
+       * o navegador redireciona automaticamente para o lobby.
        */
       setupKickListener(myPlayerId);
 
+      // 4. Remove a proteção de tela de carregamento
       if (loadingOverlay) loadingOverlay.style.display = 'none';
+      
     } else if (error) {
-      // Tenta recuperar a conexão em caso de erro de rede
+      // Em caso de erro crítico de rede, tenta recarregar a página
       window.location.reload();
     } else {
-      // Redireciona se a sala estiver cheia (sem slots vagos)
+      // Se a transação falhar (sala cheia), volta para o lobby
       window.location.href = 'lobby.html';
     }
   });
 }
+
 
 /**
  * VIGIA DE EXPULSÃO
@@ -618,8 +626,6 @@ function setupKickListener(pid) {
     }
   });
 }
-
-
 
 
 
@@ -670,6 +676,7 @@ function initializeGame() {
   });
 
   joinGame();
+
   setupNotificationListener();
 
   if (typeof setupUI === "function") setupUI();

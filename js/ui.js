@@ -92,10 +92,10 @@ window.executeAction = (type) => {
 
       /**
        * O parâmetro 'true' silencia o som de moeda global no Firebase.
-       * Em seguida, dispararamos o som de faca (knife) globalmente.
+       * Em seguida, dispararamos o som de faca (coin) globalmente.
        */
       updateScore(myPlayerId, -3, true);
-      if (typeof triggerSound === 'function') triggerSound('knife');
+      if (typeof triggerSound === 'function') triggerSound('coin');
       break;
 
     case 'tax':
