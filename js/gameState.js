@@ -26,6 +26,7 @@ let localGameState = {};
 let myPlayerId = null;
 let isDrawingCard = false;
 let lastSoundTimestamp = 0;
+let pendingKickPid = null;
 
 
 // =======================================================
@@ -332,54 +333,6 @@ function burnTopCard() {
   });
 }
 
-// =======================================================
-// === MODERAÇÃO E GESTÃO DE JOGADORES (ADMIN) ===
-// =======================================================
-
-let pendingKickPid = null; // Memória temporária para o ID de quem será expulso
-
-/**
- * ABRIR MODAL DE EXPULSÃO
- * Prepara a interface de confirmação para remover um jogador ou bot da sala.
- */
-function kickPlayer(pid) {
-  pendingKickPid = pid;
-  const modal = document.getElementById('kickPlayerModal');
-  const text = document.getElementById('kickPlayerText');
-  const player = localGameState.players[pid];
-
-  if (text && player) {
-    text.innerText = `Tem certeza que deseja remover ${player.name || 'o Jogador ' + pid}?`;
-  }
-  if (modal) modal.style.display = 'flex';
-}
-
-/**
- * CONFIRMAR EXPULSÃO
- * Efetiva a remoção do jogador no banco de dados e limpa seu slot.
- */
-function confirmKickAction() {
-  if (!pendingKickPid) return;
-
-  triggerSound('impact');
-
-  // Se o próprio jogador for o expulso, redireciona para o lobby
-  if (pendingKickPid === myPlayerId) {
-    window.location.href = 'lobby.html';
-  }
-
-  // Limpa os dados do jogador no Firebase para deixar o slot vago
-  db.ref(`salas/${roomCode}/gameState/players/${pendingKickPid}`).update({
-    online: false,
-    uid: null,
-    name: null,
-    photo: null,
-    hand: [],
-    score: 2
-  });
-
-  pendingKickPid = null;
-}
 
 
 // =======================================================
@@ -481,6 +434,65 @@ function addBot() {
     }
   }
 }
+
+
+
+/**
+ * CONFIRMAR EXPULSÃO
+ * Devolve cartas ao deck e limpa o slot do jogador em uma única transação.
+ */
+function confirmKickAction() {
+  if (!pendingKickPid) return;
+  const pid = pendingKickPid;
+
+  // 1. Toca o som de impacto (feedback local)
+  if (typeof playSound === 'function') playSound('impact');
+
+  // 2. Executa a Transação no Firebase
+  gameStateRef.transaction((state) => {
+    if (!state || !state.players || !state.players[pid]) return state;
+
+    const player = state.players[pid];
+    const hand = player.hand || [];
+
+    // DEVOLVER TODAS AS CARTAS AO DECK
+    if (hand.length > 0) {
+      if (!state.deck) state.deck = [];
+      
+      hand.forEach(card => {
+        card.owner = null;
+        card.location = 'deck';
+        card.visible = false;
+        state.deck.push(card);
+      });
+
+      // Embaralha o deck após as cartas voltarem (usa função do rules.js)
+      if (typeof shuffle === 'function') shuffle(state.deck);
+    }
+
+    // RESETAR O SLOT DO JOGADOR
+    state.players[pid] = {
+      online: false,
+      uid: null,
+      name: null,
+      photo: null,
+      hand: [],
+      score: 2,
+      religion: (pid % 2 === 1) ? 'catolico' : 'protestante'
+    };
+
+    return state;
+  }, (error, committed) => {
+    if (committed) {
+      console.log(`Sucesso: Jogador ${pid} removido.`);
+      // triggerSound('shuffle'); // Avisa a todos que o deck mudou
+    }
+    pendingKickPid = null; // Reseta a variável de controle
+  });
+}
+
+
+
 
 // =======================================================
 // === SISTEMA DE CONEXÃO E INICIALIZAÇÃO ===

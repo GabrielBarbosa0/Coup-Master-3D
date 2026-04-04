@@ -210,7 +210,7 @@ body.transparent-mode .resetBtn:hover {
 
 
 /* =======================================================
-   === 2. RESET GERAL E TIPOGRAFIA ===
+   === RESET GERAL E TIPOGRAFIA ===
    ======================================================= */
 * {
     font-family: "Cinzel", serif !important;
@@ -218,26 +218,17 @@ body.transparent-mode .resetBtn:hover {
 
 html {
     margin: 0;
-    padding: 0;
-    background: #14171e;
-    /* Cor de fundo base */
+    background: #0a0c10;
 }
 
-/* ////////////////////////////////////////////////////// */
-
-/* RESET TOTAL DA BARRA DE ROLAGEM */
-html,
 body {
-    height: 100%;
     margin: 0;
-    background: #14171e;
+    background: #0a0c10;
     color: var(--text);
-    scrollbar-width: none !important;
-    /* Firefox */
-    -ms-overflow-style: none !important;
-    /* IE e Edge */
+    min-height: 100vh;
     overflow-x: hidden;
-    /* Protege o Parallax */
+    overflow-y: auto;
+    scroll-behavior: smooth;
 }
 
 
@@ -530,6 +521,22 @@ header p {
     transform: scale(1.02);
     filter: brightness(1.1);
 }
+
+/* Estilo Ghost para o botão de saída */
+
+/* #leaveRoomBtn {
+    background: transparent !important;
+    border: 1px solid #ff3b3b !important;
+    color: #ff3b3b !important;
+    margin-top: 30px;
+    transition: all 0.2s ease;
+}
+
+#leaveRoomBtn:hover {
+    background: #ff3b3b !important;
+    color: white !important;
+    box-shadow: 0 0 15px rgba(255, 59, 59, 0.3);
+} */
 
 
 /* =======================================================

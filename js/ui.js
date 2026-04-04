@@ -13,6 +13,7 @@ const asylumScoreEl = document.getElementById('asylum-score');
 const asylumPlusBtn = document.getElementById('asylum-plus');
 const asylumMinusBtn = document.getElementById('asylum-minus');
 
+
 // =======================================================
 // === FUNÇÕES DE RENDERIZAÇÃO ===
 // =======================================================
@@ -592,23 +593,53 @@ function setupUI() {
     }
   }
 
-  // Modal de Remoção de Jogador (Kick)
-  const kickModal = document.getElementById('kickPlayerModal');
-  const confirmKickBtn = document.getElementById('confirmKickBtn');
-  const cancelKickBtn = document.getElementById('cancelKickBtn');
 
-  if (confirmKickBtn) {
-    confirmKickBtn.onclick = () => {
-      confirmKickAction(); // Executa a remoção no Firebase
-      if (kickModal) kickModal.style.display = 'none';
-    };
+
+  // =======================================================
+  // === SISTEMA DE REMOÇÃO (KICK) ===
+  // =======================================================
+
+// 1. Definição da função global que o botão "X" no HTML chama
+window.kickPlayer = (pid) => {
+  // Sincroniza com a variável global 'pendingKickPid' do gameState.js
+  pendingKickPid = pid; 
+  
+  const modal = document.getElementById('kickPlayerModal');
+  const text = document.getElementById('kickPlayerText');
+  const player = localGameState.players ? localGameState.players[pid] : null;
+
+  // Atualiza o texto do modal com o nome do alvo
+  if (text && player) {
+    text.innerText = `Tem certeza que deseja remover ${player.name || 'o Jogador ' + pid}?`;
   }
 
-  if (cancelKickBtn) {
-    cancelKickBtn.onclick = () => {
-      if (kickModal) kickModal.style.display = 'none';
-    };
+  if (modal) {
+    if (typeof playSound === 'function') playSound('click');
+    modal.style.display = 'flex';
   }
+};
+
+// 2. Configuração dos botões do Modal
+const confirmKickBtn = document.getElementById('confirmKickBtn');
+const cancelKickBtn = document.getElementById('cancelKickBtn');
+const kickModal = document.getElementById('kickPlayerModal');
+
+if (confirmKickBtn) {
+  confirmKickBtn.onclick = () => {
+    // Chamamos a ação principal. Ela agora faz TUDO (devolve cartas + remove player)
+    confirmKickAction(); 
+    if (kickModal) kickModal.style.display = 'none';
+  };
+}
+
+if (cancelKickBtn) {
+  cancelKickBtn.onclick = () => {
+    if (kickModal) kickModal.style.display = 'none';
+    pendingKickPid = null; // Limpa a seleção
+  };
+}
+
+
 
   // Modal Interno de Confirmação de Reset de Mesa
   const confirmBtn = document.getElementById('confirmResetBtn');
@@ -1395,11 +1426,6 @@ const leaveRoomBtn = document.getElementById('leaveRoomBtn');
 if (leaveRoomBtn) {
   leaveRoomBtn.onclick = () => {
     if (typeof playSound === 'function') playSound('click');
-
-    /**
-     * Redireciona o usuário de volta para o lobby.
-     * O Firebase detectará a desconexão automaticamente após a saída da página.
-     */
-    window.location.href = 'lobby.html';
+    window.location.href = 'lobby.html'; // Retorna ao lobby
   };
 }
