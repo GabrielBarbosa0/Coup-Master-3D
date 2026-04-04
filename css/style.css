@@ -42,8 +42,9 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    /* Mude de 100% para estas unidades de viewport */
+    width: 100vw;
+    height: 100vh;
     /* No mobile: Centro mais aberto (60%) e bordas mais claras (0.5) */
     background: radial-gradient(circle, transparent 60%, rgba(0, 0, 0, 0.5) 100%);
     pointer-events: none;
@@ -52,12 +53,6 @@
     /* Otimização leve */
 }
 
-body {
-    overflow: hidden;
-    /* Garante que o movimento não crie barras de rolagem */
-    background: #0a0c10;
-    /* Um fundo neutro para quando o board se mover */
-}
 
 .board {
     will-change: transform;
@@ -243,6 +238,50 @@ h2 {
     max-width: 1100px;
     margin: auto;
     padding: 12px;
+}
+
+.container {
+    position: relative;
+    z-index: 1;
+    min-height: 100%;
+    /* Permite que o container cresça conforme as cartas */
+}
+
+
+
+html {
+    margin: 0;
+    padding: 0;
+    background: #14171e;
+    /* Cor de fundo base */
+}
+
+body {
+    /* 1. LIBERA A ROLAGEM: overflow-y: auto permite descer a página */
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    /* 2. ALTURA DINÂMICA: Mude de height: 100% para min-height: 100vh */
+    /* Isso permite que o fundo ocupe a tela toda, mas a página cresça se houver conteúdo abaixo */
+    min-height: 100vh;
+    height: auto;
+
+    margin: 0;
+    background: #0a0c10;
+    color: var(--text);
+    scroll-behavior: smooth;
+
+    /* Previne que o Parallax ou animações criem barras horizontais fantasmas */
+    position: relative;
+}
+
+/* Garante que o container acompanhe o crescimento do conteúdo */
+.container {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Overlay de Carregamento */
@@ -1602,17 +1641,8 @@ body.hide-religion .decks-wrapper {
 @media (min-width: 1200px) {
 
     .vignette {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
         /* O gradiente: transparente no centro, preto (ou azul escuro) nas bordas */
         background: radial-gradient(circle, transparent 50%, rgba(0, 0, 0, 0.5) 100%);
-        /* CRÍTICO: permite clicar nos elementos que estão atrás */
-        pointer-events: none;
-        z-index: 9000;
-        /* Abaixo dos modais, mas acima do tabuleiro */
     }
 
     /* --- 1. ESTRUTURA GLOBAL E HEADER --- */
