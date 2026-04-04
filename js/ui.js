@@ -1302,3 +1302,83 @@ if (toggleVhsBtn) {
     applyVhsVisibility(!currentlyEnabled);
   };
 }
+
+
+// SISTEMA DE VÍDEO DE FUNDO ANIMADO
+
+const toggleVideoBgBtn = document.getElementById('toggleVideoBgBtn');
+
+const applyVideoBgState = (isEnabled) => {
+  const body = document.body;
+  const img = toggleVideoBgBtn?.querySelector('img');
+  const span = toggleVideoBgBtn?.querySelector('span');
+
+  if (isEnabled) {
+    body.classList.add('video-bg-enabled');
+    if (span) span.textContent = "Ativado";
+    if (img) img.src = 'img/eye.svg';
+  } else {
+    body.classList.remove('video-bg-enabled');
+    if (span) span.textContent = "Desativado";
+    if (img) img.src = 'img/visibility_off.svg';
+  }
+
+  localStorage.setItem('videoBgEnabled', isEnabled);
+};
+
+if (toggleVideoBgBtn) {
+  const storedVideo = localStorage.getItem('videoBgEnabled');
+  // Ativado por padrão
+  const isVideoActive = storedVideo === null ? true : (storedVideo === 'true');
+  applyVideoBgState(isVideoActive);
+
+  toggleVideoBgBtn.onclick = () => {
+    playSound('click');
+    const currentState = document.body.classList.contains('video-bg-enabled');
+    applyVideoBgState(!currentState);
+  };
+}
+
+
+
+
+// SISTEMA DE MODO TRANSPARENTE
+
+const toggleTransparentBtn = document.getElementById('toggleTransparentBtn');
+
+/**
+ * APLICA O MODO TRANSPARENTE
+ * Altera a classe do body e salva a preferência.
+ */
+const applyTransparentMode = (isEnabled) => {
+    const body = document.body;
+    const img = toggleTransparentBtn?.querySelector('img');
+    const span = toggleTransparentBtn?.querySelector('span');
+
+    if (isEnabled) {
+        body.classList.add('transparent-mode');
+        if (span) span.textContent = "Ativado";
+        if (img) img.src = 'img/eye.svg';
+    } else {
+        body.classList.remove('transparent-mode');
+        if (span) span.textContent = "Desativado";
+        if (img) img.src = 'img/visibility_off.svg';
+    }
+
+    localStorage.setItem('transparentModeEnabled', isEnabled);
+};
+
+// Inicialização
+if (toggleTransparentBtn) {
+    const storedMode = localStorage.getItem('transparentModeEnabled');
+    // Desativado por padrão (false) para manter o visual original
+    const isModeActive = storedMode === 'true'; 
+
+    applyTransparentMode(isModeActive);
+
+    toggleTransparentBtn.onclick = () => {
+        if (typeof playSound === 'function') playSound('click');
+        const currentState = document.body.classList.contains('transparent-mode');
+        applyTransparentMode(!currentState);
+    };
+}

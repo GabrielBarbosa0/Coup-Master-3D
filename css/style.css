@@ -1,6 +1,7 @@
 /* =======================================================
-   === 1. IDENTIDADE VISUAL E ANIMAÇÕES ===
+   === IDENTIDADE VISUAL E ANIMAÇÕES ===
    ======================================================= */
+
 @font-face {
     font-family: 'Tilda Script';
     src: url('../fonts/tilda-script-bold.woff2') format('woff2'),
@@ -33,7 +34,7 @@
 }
 
 /* =======================================================
-   === 2. AMBIENTAÇÃO E ILUMINAÇÃO (VIGNETTE) ===
+   === AMBIENTAÇÃO E ILUMINAÇÃO (VIGNETTE) ===
    ======================================================= */
 
 /* Ambientação Mobile-First */
@@ -67,7 +68,7 @@ body {
 
 
 /* =======================================================
-   === 3. SIMULAÇÃO DE MONITOR CRT (TEXTURAS) ===
+   === SIMULAÇÃO DE MONITOR CRT (TEXTURAS) ===
    ======================================================= */
 
 /* Escondido por padrão */
@@ -119,7 +120,7 @@ body {
 }
 
 /* =======================================================
-   === 4. APLICAÇÃO CONDICIONAL (MODO VHS ATIVO) ===
+   === APLICAÇÃO CONDICIONAL (MODO VHS ATIVO) ===
    ======================================================= */
 
 body.vhs-enabled .crt-overlay {
@@ -136,6 +137,81 @@ body.vhs-enabled .container {
 body.vhs-enabled {
     background-color: #050505;
 }
+
+
+/* =======================================================
+   === Vídeo de Fundo Dinâmico ===
+   ======================================================= */
+
+/* Estilo Base do Vídeo de Fundo */
+.video-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    /* Garante que o vídeo preencha a tela sem distorcer */
+    z-index: 0;
+    /* Acima do fundo do body, mas abaixo do conteúdo */
+    opacity: 0.3;
+    /* Deixa o efeito sutil */
+    pointer-events: none;
+    display: none;
+    /* Escondido por padrão, ativado pelo JS */
+}
+
+/* Ativação via classe condicional no body */
+body.video-bg-enabled .video-background {
+    display: block;
+}
+
+/* Ajuste crítico no container para que ele fique por cima do vídeo */
+.container {
+    position: relative;
+    z-index: 1;
+}
+
+
+
+/* =======================================================
+   === MODO TRANSPARENTE (OVERRIDE) ===
+   ======================================================= */
+
+/* Remove fundos e bordas quando a classe está ativa no body */
+body.transparent-mode header {
+    background: transparent !important;
+    border-radius: 50px !important;
+}
+
+body.transparent-mode .board {
+    background: transparent !important;
+    border-style: none !important;
+    box-shadow: none !important;
+    /* Remove a sombra para flutuar melhor no vídeo */
+}
+
+body.transparent-mode .asylum-area,
+body.transparent-mode .deck-area {
+    background: transparent !important;
+}
+
+/* --- A NOVIDADE: Ícones da Top-Row no Modo Transparente --- */
+body.transparent-mode .controls button,
+body.transparent-mode .resetBtn {
+    background-color: transparent !important;
+    border: 2px solid #ffffff0f !important;
+    backdrop-filter: blur(4px);
+    /* Opcional: efeito de vidro fosco no vídeo */
+}
+
+/* Efeito de hover exclusivo para o modo transparente */
+body.transparent-mode .controls button:hover,
+body.transparent-mode .resetBtn:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
 
 
 /* =======================================================
@@ -257,7 +333,7 @@ header p {
 
 
 /* =======================================================
-       === 4. BOTÕES DE CONTROLE E SLIDER (UI SUPERIOR) ===
+       === BOTÕES DE CONTROLE E SLIDER (UI SUPERIOR) ===
        ======================================================= */
 
 .resetBtn,
@@ -371,7 +447,7 @@ header p {
 
 
 /* =======================================================
-       === 5. ESTRUTURA DO TABULEIRO (BOARD LAYOUT) ===
+       === ESTRUTURA DO TABULEIRO (BOARD LAYOUT) ===
        ======================================================= */
 
 .board {
@@ -467,7 +543,7 @@ header p {
 
 
 /* =======================================================
-       === 6. ÁREA DO JOGADOR (AVATAR, PONTOS, RELIGIÃO) ===
+       === ÁREA DO JOGADOR (AVATAR, PONTOS, RELIGIÃO) ===
        ======================================================= */
 .player-area {
     border-radius: 10px;
@@ -767,9 +843,9 @@ body.hide-religion .decks-wrapper {
 }
 
 /* =======================================================
-       === 8. ESTILOS DE CARTAS E SLOTS ===
+       === ESTILOS DE CARTAS E SLOTS ===
        ======================================================= */
-/* [style.css] - Versão Unificada da Carta */
+
 .card {
     /* --- Estética e Identidade --- */
     border-radius: 6px;
@@ -887,8 +963,70 @@ body.hide-religion .decks-wrapper {
 
 
 /* =======================================================
-       === 9. MODAIS, OVERLAYS E MENUS ===
+       === MODAIS, OVERLAYS E MENUS ===
        ======================================================= */
+
+
+/*  Otimização do Modal de Configurações */
+
+/* Define uma largura fixa e centraliza o conteúdo */
+#settingsModal .modal-content {
+    width: 80%;
+    max-width: 380px;
+    /* Largura fixa ideal para leitura */
+    padding: 25px 15px 15px 25px;
+    /* Ajuste de respiro */
+}
+
+/* Título principal do modal */
+#settingsModal h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+/* Títulos de seção (ex: Gráficos) */
+#settingsModal .settings-container h2 {
+    margin: 20px 0 10px 0;
+    /* Ajustei levemente as margens para o centro */
+    font-size: 20px;
+    text-align: center;
+    /* Alterado de 'left' para 'center' */
+    border-bottom: 1px solid var(--muted);
+    padding-bottom: 8px;
+    color: var(--text);
+}
+
+/* Área de rolagem configurada */
+.settings-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    /* Reduzi levemente o gap para compactar */
+    max-height: 65vh;
+    /* Limita a altura a 65% da tela para evitar cortes */
+    overflow-y: auto;
+    /* Ativa a barra de rolagem */
+    padding-right: 12px;
+    /* Espaço para a scrollbar não cobrir os botões */
+}
+
+/* Estilização da Barra de Rolagem (Estilo Coup Master) */
+.settings-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.settings-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.settings-container::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 10px;
+}
+
+
+
 .modal-overlay {
     display: none;
     position: fixed;
@@ -992,10 +1130,120 @@ body.hide-religion .decks-wrapper {
     background: #ff5555;
 }
 
+/* =======================================================
+   === CONFIGURAÇÃO DE BARALHO (LISTAS E INPUTS) ===
+   ======================================================= */
+
+/* Unifica o tamanho do modal com o de Configurações */
+#configModal .modal-content {
+    width: 80%;
+    max-width: 380px;
+    padding: 25px 15px 15px 25px;
+}
+
+/* Área de lista com rolagem interna e altura limitada */
+.card-config-list {
+    list-style: none;
+    padding: 0 12px 0 0;
+    /* Espaço para a scrollbar */
+    margin: 0;
+    max-height: 60vh;
+    /* Mantém a proporção do outro modal */
+    overflow-y: auto;
+}
+
+/* Títulos das Expansões (Estilo idêntico ao "Gráficos") */
+
+.title-dlc-card-config-item {
+    text-align: center;
+    /* Alterado de 'left' para 'center' */
+    font-size: 18px;
+    font-weight: bold;
+    margin: 25px 0 15px 0;
+    /* Aumentei levemente o respiro superior */
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--muted);
+    color: var(--text);
+}
+
+.title-dlc-card-config-item p {
+    margin: 0;
+    font-family: "Cinzel", serif !important;
+    letter-spacing: 1px;
+    /* Um pequeno espaçamento para dar um ar mais premium */
+}
+
+/* Itens da lista (Linha da Carta) */
+.card-config-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.card-config-item label {
+    font-size: 16px;
+    color: var(--text);
+}
+
+/* Estilização dos Inputs Numéricos */
+.card-config-item input {
+    width: 50px;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid var(--accent);
+    background: var(--bg);
+    color: white;
+    font-size: 16px;
+    text-align: center;
+    outline: none;
+}
+
+.card-config-item input:focus {
+    box-shadow: 0 0 8px var(--accent);
+}
+
+/* Botão de Aplicação (Visual Balatro/Neon) */
+#applyDeckConfigBtn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    background: #00ff73;
+    /* Verde neon */
+    color: #000;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 20px;
+    font-weight: bold;
+    transition: transform 0.2s, filter 0.2s;
+}
+
+#applyDeckConfigBtn:hover:not(:disabled) {
+    transform: scale(1.02);
+    filter: brightness(1.1);
+}
+
+/* Barra de Rolagem Customizada para a Lista */
+.card-config-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.card-config-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.card-config-list::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 10px;
+}
+
 
 
 /* =======================================================
-       === 10. ANIMAÇÃO FLIP-CARD (REGRAS) ===
+       === ANIMAÇÃO FLIP-CARD (REGRAS) ===
        ======================================================= */
 .flip-card.is-flipped .flip-card-inner {
     transform: rotateY(-180deg);
@@ -1037,82 +1285,10 @@ body.hide-religion .decks-wrapper {
 }
 
 
-/* =======================================================
-       === 11. CONFIGURAÇÃO DE BARALHO (LISTAS E INPUTS) ===
-       ======================================================= */
-
-.card-config-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    max-height: 60vh;
-    overflow-y: auto;
-}
-
-.title-dlc-card-config-item {
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-    margin-top: 16px;
-    margin-bottom: 16px;
-}
-
-.card-config-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px;
-    border-bottom: 1px solid var(--bg);
-}
-
-.card-config-item label {
-    font-size: 18px;
-    color: var(--text);
-}
-
-.card-config-item input {
-    width: 60px;
-    padding: 5px;
-    border-radius: 5px;
-    border: 1px solid var(--accent);
-    background: var(--bg);
-    color: var(--text);
-    font-size: 16px;
-    text-align: center;
-}
-
-.card-config-item input:disabled {
-    background: #555;
-    color: #999;
-    border-color: #555;
-}
-
-#applyDeckConfigBtn {
-    width: 100%;
-    padding: 12px;
-    font-size: 18px;
-    background: #00ff73;
-    color: #111;
-    border: 0;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-top: 15px;
-    font-weight: 600;
-}
-
-#openDeckConfigBtn {
-    font-weight: 600;
-}
-
-#applyDeckConfigBtn:disabled {
-    background: #555;
-    color: #999;
-}
-
 
 
 /* =======================================================
-       === 12. EFEITOS VISUAIS (3D E BALATRO) ===
+       === EFEITOS VISUAIS (3D E BALATRO) ===
        ======================================================= */
 .balatro-effect {
     transition: transform 0.1s ease, box-shadow 0.1s ease;
@@ -1129,7 +1305,7 @@ body.hide-religion .decks-wrapper {
 
 
 /* =======================================================
-       === 13. EFEITO DE ARRASTAR (FLUTUANTE) ===
+       === EFEITO DE ARRASTAR (FLUTUANTE) ===
        ======================================================= */
 .card.lifting {
     transform: scale(1.15) rotate(5deg) !important;
@@ -1151,7 +1327,7 @@ body.hide-religion .decks-wrapper {
 
 
 
-/* --- 14. BASE DO MODO COMPACTO (Compartilhado por todas as telas < 1200px) --- */
+/* --- BASE DO MODO COMPACTO (Compartilhado por todas as telas < 1200px) --- */
 @media (max-width: 1199px) {
     .container {
         padding: 4px;
@@ -1311,7 +1487,7 @@ body.hide-religion .decks-wrapper {
 
 
 
-/* --- 15. REGRAS EXCLUSIVAS POR TAMANHO DE TELA --- */
+/* --- REGRAS EXCLUSIVAS POR TAMANHO DE TELA --- */
 
 /* Telas Mínimas (< 292px) */
 @media (max-width: 292px) {
@@ -1402,7 +1578,7 @@ body.hide-religion .decks-wrapper {
 /* Tablets e Celulares Grandes (480px - 768px) */
 @media (min-width: 480px) and (max-width: 768px) {
     .player-hands-container {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 4px;
     }
 }
@@ -1416,13 +1592,11 @@ body.hide-religion .decks-wrapper {
 }
 
 
-
 /* ////////////////////////////////////////////////////////////////////// */
 
 
-
 /* =======================================================
-       === 16. VERSÃO PC OTIMIZADA (TELAS > 1200px) ===
+       === VERSÃO PC OTIMIZADA (TELAS > 1200px) ===
        ======================================================= */
 
 @media (min-width: 1200px) {
@@ -1434,7 +1608,7 @@ body.hide-religion .decks-wrapper {
         width: 100%;
         height: 100%;
         /* O gradiente: transparente no centro, preto (ou azul escuro) nas bordas */
-        background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+        background: radial-gradient(circle, transparent 50%, rgba(0, 0, 0, 0.5) 100%);
         /* CRÍTICO: permite clicar nos elementos que estão atrás */
         pointer-events: none;
         z-index: 9000;

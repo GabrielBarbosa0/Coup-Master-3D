@@ -43,7 +43,6 @@
     <h2 class="loadingOverlay">Conectando à Sala...</h2>
   </div>
 
-
   <div class="container">
     <header id="roomHeader" title="Clique para copiar o código">
       <h1>Sala: <span id="roomCodeDisplay">...</span></h1>
@@ -433,7 +432,35 @@
         </div>
 
         <div class="setting-row">
-          <label>Parallax:</label>
+          <label>Adicionar Bot:</label>
+          <button id="addBotBtn" class="icon-btn" title="Adicionar Jogador Fantasma">
+            <img src="img/robot.svg" alt="Bot" style="width: 24px; height: 24px;">
+            <span style="margin-left: 2px;">+1</span>
+          </button>
+        </div>
+
+  
+        <h2>Gráficos</h2>
+
+
+        <div class="setting-row">
+          <label>Fundo Animado:</label>
+          <button id="toggleVideoBgBtn" class="icon-btn">
+            <img src="img/eye.svg" alt="">
+            <span style="margin-left: 4px;">Ativado</span>
+          </button>
+        </div>
+
+        <div class="setting-row">
+          <label>Transparência:</label>
+          <button id="toggleTransparentBtn" class="icon-btn">
+            <img src="img/eye.svg" alt="">
+            <span style="margin-left: 4px;">Desativado</span>
+          </button>
+        </div>
+
+        <div class="setting-row">
+          <label>Parallax (PC):</label>
           <button id="toggleParallaxBtn" class="icon-btn" title="Ativar/Desativar Parallax">
             <img src="img/eye.svg" alt="Ver" style="width: 24px; height: 24px;">
             <span style="margin-left: 4px;">Ativado</span>
@@ -441,7 +468,7 @@
         </div>
 
         <div class="setting-row">
-          <span>Efeito (VHS)</span>
+          <span>Efeito (VHS):</span>
           <button id="toggleVhsBtn" class="icon-btn">
             <img src="img/eye.svg" alt="">
             <span style="margin-left: 4px;">Ativado</span>
@@ -449,18 +476,10 @@
         </div>
 
         <div class="setting-row">
-          <label>Flutuação</label>
+          <label>Flutuação:</label>
           <button id="toggleWaveBtn" class="icon-btn" title="Ativar/Desativar Flutuação">
             <img src="img/eye.svg" alt="Ver" style="width: 24px; height: 24px;">
             <span style="margin-left: 4px;">Ativado</span>
-          </button>
-        </div>
-
-        <div class="setting-row">
-          <label>Adicionar Bot:</label>
-          <button id="addBotBtn" class="icon-btn" title="Adicionar Jogador Fantasma">
-            <img src="img/robot.svg" alt="Bot" style="width: 24px; height: 24px;">
-            <span style="margin-left: 2px;">+1</span>
           </button>
         </div>
 
@@ -604,6 +623,11 @@
         VAMOS JOGAR!</button>
     </div>
   </div>
+
+  <!-- Vídeo de Fundo Animado -->
+  <video id="bg-video" autoplay muted loop playsinline class="video-background">
+    <source src="video/background-smoke.mp4" type="video/mp4">
+  </video>
 
   <!-- Efeitos de Vinheta e VHS -->
   <div class="crt-overlay"></div>
