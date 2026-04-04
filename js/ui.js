@@ -1388,3 +1388,18 @@ if (toggleTransparentBtn) {
   };
 
 }
+
+
+// --- BOTÃO SAIR DA SALA ---
+const leaveRoomBtn = document.getElementById('leaveRoomBtn');
+if (leaveRoomBtn) {
+  leaveRoomBtn.onclick = () => {
+    if (typeof playSound === 'function') playSound('click');
+
+    /**
+     * Redireciona o usuário de volta para o lobby.
+     * O Firebase detectará a desconexão automaticamente após a saída da página.
+     */
+    window.location.href = 'lobby.html';
+  };
+}

@@ -17,6 +17,7 @@
 /* =======================================================
        === TELA DE CARREGAMENTO (LOADER) ===
        ======================================================= */
+
 .loader-overlay {
     position: fixed;
     top: 0;
@@ -101,32 +102,133 @@
 }
 
 body {
-    background: var(--bg);
-    color: var(--text);
+    margin: 0;
+    padding: 0;
+    
+    /* 1. CONTROLE DE ROLAGEM: Permite vertical, trava horizontal para o Parallax */
+    overflow-x: hidden;
+    overflow-y: auto;
+    
+    /* 2. ALTURA DINÂMICA: Mude de height: 100% para min-height para permitir scroll */
+    min-height: 100vh;
+    min-height: 100dvh; /* Fix para navegadores mobile (Chrome/Safari) */
+    
+    /* 3. LAYOUT: Centraliza a lobby-box na tela */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
-    min-height: 100dvh;
-    /* Mobile fix */
-    margin: 0;
+    
+    /* 4. ESTÉTICA: Fundo escuro para destacar o vídeo e texto centralizado */
+    background: #0a0c10;
+    color: var(--text);
     text-align: center;
-    overflow-x: hidden;
+
+    /* 5. OCULTAR BARRA DE ROLAGEM: Mantém o visual limpo (opcional) */
+    scrollbar-width: none;       /* Firefox */
+    -ms-overflow-style: none;    /* IE e Edge */
 }
 
+/* Ocultar barra de rolagem (Chrome, Safari e Opera) */
+body::-webkit-scrollbar {
+    display: none;
+}
+
+/* 2. Ambientação (Copiado do Jogo para Consistência) */
+.video-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    z-index: -1;
+    /* Atrás de tudo */
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.vignette {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle, transparent 50%, rgba(0, 0, 0, 0.7) 100%);
+    pointer-events: none;
+    z-index: 1;
+    /* Acima do vídeo, abaixo do lobby-box */
+}
+
+.crt-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+    background-size: 100% 3px, 3px 100%;
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* LOBBY-BOX UNIFICADA E RESPONSIVA */
+
 .lobby-box {
-    background: var(--panel);
-    padding: 26px 30px 26px 30px;
+    position: relative;
+    z-index: 10; /* Fica acima do vídeo e da vinheta */
+    
+    /* Estética Glassmorphism (Vidro Fosco) */
+    background: rgba(35, 42, 51, 0.9); 
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 18px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
-    width: 90%;
-    max-width: 400px;
-    margin: 0;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+
+    /* Layout Centralizado */
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Garante que tudo dentro fique centralizado */
+    
+    /* Dimensionamento e Respiro */
+    width: 90%;
+    max-width: 400px;
+    padding: 26px 30px;
+    margin: 20px 0;
+
+    /** * TRAVAS DE RESPONSIVIDADE VERTICAL:
+     * Impede que a caixa estoure em telas baixas e oculta a barra de scroll 
+     * para manter o visual limpo.
+     */
+    max-height: 90vh;
+    overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+}
+
+/* Ocultar barra de rolagem interna (Chrome, Safari, Edge) */
+.lobby-box::-webkit-scrollbar {
+    display: none;
+}
+
+
+/* 4. Ajustes de Texto e Mobile */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 32px;
+        margin-bottom: 15px;
+    }
+
+    .lobby-box {
+        padding: 20px;
+    }
+
+    #google-login-btn,
+    #room-actions button {
+        padding: 10px;
+        font-size: 13px;
+    }
 }
 
 
@@ -455,7 +557,10 @@ input:focus {
 .muted {
     color: rgba(255, 255, 255, 0.5);
     font-size: 10px;
-    margin-top: 5px;
+    margin-top: 0px;
+    margin-bottom: 0px;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
+
+

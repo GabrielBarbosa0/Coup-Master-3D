@@ -514,6 +514,24 @@ header p {
 }
 
 
+/* Classe para botões de ação larga no modal */
+.settings-action-btn {
+    color: white;
+    padding: 10px;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: bold;
+    transition: transform 0.2s, filter 0.2s;
+}
+
+.settings-action-btn:hover {
+    transform: scale(1.02);
+    filter: brightness(1.1);
+}
+
+
 /* =======================================================
        === ESTRUTURA DO TABULEIRO (BOARD LAYOUT) ===
        ======================================================= */
