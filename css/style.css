@@ -273,6 +273,17 @@ body {
 
     /* Previne que o Parallax ou animações criem barras horizontais fantasmas */
     position: relative;
+
+    /* --- OCULTAR BARRA (Firefox e Edge antigo) --- */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* Internet Explorer e Edge */
+}
+
+/* --- OCULTAR BARRA (Chrome, Safari e Opera) --- */
+body::-webkit-scrollbar {
+    display: none;
 }
 
 /* Garante que o container acompanhe o crescimento do conteúdo */
