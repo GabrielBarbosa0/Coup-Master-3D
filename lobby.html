@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
 
     <title>Lobby | Coup Master - Jogue Coup Online com Amigos</title>
-    <link rel="icon" href="img/favicon-coup-master.png" type="image/png">
-    <link rel="shortcut icon" href="img/favicon-coup-master.png" type="image/x-icon">
+    <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
+    <link rel="shortcut icon" href="assets/img/logo/favicon-coup-master.png" type="image/x-icon">
 
     <link rel="canonical" href="https://gabrielbarbosa0.github.io/Coup-Master/" />
 
@@ -22,7 +22,7 @@
     <meta property="og:title" content="Entre no Lobby do Coup Master">
     <meta property="og:description"
         content="Crie sua sala e convide seus amigos para uma partida de Coup online agora mesmo!">
-    <meta property="og:image" content="https://gabrielbarbosa0.github.io/Coup-Master/img/ico-coup-master.png">
+    <meta property="og:image" content="https://gabrielbarbosa0.github.io/Coup-Master/assets/img/logo/ico-coup-master.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -46,7 +46,7 @@
         <h1>Coup Master</h1>
 
         <button id="google-login-btn">
-            <img src="img/google.svg" alt="G" class="google-icon">
+            <img src="assets/img/icons/google.svg" alt="G" class="google-icon">
             <span>ENTRAR COM GOOGLE</span>
         </button>
 
@@ -90,7 +90,7 @@
             <div class="community-links" style="display: flex; flex-direction: column; gap: 10px;">
                 <a href="https://patreon.com/gabrielbarbosa0" target="_blank" class="link-btn patreon"
                     style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    <img src="img/patreon.svg" alt="Patreon"
+                    <img src="assets/img/icons/patreon.svg" alt="Patreon"
                         style="width: 20px; height: 20px; filter: brightness(0) invert(1);">
                     Apoie no Patreon
                 </a>
@@ -111,14 +111,14 @@
     </div>
 
     <video id="bg-video" autoplay muted loop playsinline class="video-background">
-        <source src="video/background-smoke.mp4" type="video/mp4">
+        <source src="assets/video/background-smoke.mp4" type="video/mp4">
     </video>
 
     <div class="crt-overlay"></div>
     <div class="vignette"></div>
 
-    <script src="js/firebase.js" defer></script>
-    <script src="js/lobby.js" defer></script>
+    <script src="js/core/firebase.js" defer></script>
+    <script src="js/lobby/lobby-manager.js" defer></script>
 
 </body>
 

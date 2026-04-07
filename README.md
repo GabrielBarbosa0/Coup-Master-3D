@@ -18,7 +18,7 @@ com foco em escalabilidade e consistência de estado.
 
 ## 🖼️ Preview
 
-  <img src="./docs/game-preview.gif" width="800">
+  <img src="./marketing/screenshots/game-preview.gif" width="800">
 
 ---
 
