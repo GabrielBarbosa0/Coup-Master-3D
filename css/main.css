@@ -218,17 +218,7 @@ body.transparent-mode .resetBtn:hover {
 
 html {
     margin: 0;
-    background: #0a0c10;
-}
-
-body {
-    margin: 0;
-    background: #0a0c10;
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-    overflow-y: auto;
-    scroll-behavior: smooth;
+    background: var(--bg);
 }
 
 
@@ -241,7 +231,7 @@ body {
     min-height: 100vh;
     height: auto;
     margin: 0;
-    background: #0a0c10;
+    background: var(--bg);
     color: var(--text);
     scroll-behavior: smooth;
     /* Previne que o Parallax ou animações criem barras horizontais fantasmas */
@@ -652,15 +642,15 @@ header p {
 .points {
     display: flex;
     align-items: center;
-    margin-top: 4px;
-    margin-bottom: 8px;
+    margin-top: 6px;
+    margin-bottom: 6px;
     justify-content: center;
 }
 
 .remove-player {
     position: absolute;
-    right: 8px;
-    top: 8px;
+    right: 3px;
+    top: 3px;
     background: #ff3b3b;
     width: 12px;
     height: 12px;
@@ -677,36 +667,6 @@ header p {
     background: #ff5555;
 }
 
-/* Estilo para os ícones de religião */
-.religion-icon {
-    width: 10px;
-    height: 10px;
-    margin-right: 0px;
-    vertical-align: middle;
-    filter: brightness(0) invert(1);
-    /* Deixa o SVG branco */
-    display: inline-block;
-}
-
-
-
-/* Badge de Religião */
-.religion-status {
-    border-radius: 6px;
-    color: white;
-    cursor: pointer;
-    user-select: none;
-    border: 1px solid #ffffff4d;
-}
-
-.religion-status.catolico {
-    background-color: #3b5998;
-}
-
-.religion-status.protestante {
-    background-color: #f01f4f;
-}
-
 
 /* Nome e Foto */
 .player-title {
@@ -715,26 +675,48 @@ header p {
     color: var(--muted);
 }
 
+
 .player-area.local-player .player-title {
     color: var(--accent);
     font-weight: 700;
 }
 
+/* Estilo para o cabeçalho que contém Foto, Nome e Religião */
 .player-header {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
     justify-content: center;
 }
 
+/* O Avatar do jogador já possui um tamanho definido */
 .player-avatar {
-    width: 32px;
-    height: 32px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
-    border: 2px solid var(--accent);
+    border: 2px solid #1e90ff;
     object-fit: cover;
 }
 
+
+/* Novo Badge de Religião circular */
+.religion-badge {
+    width: 40px;
+    /* Mesmo tamanho do avatar para manter simetria */
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.3s;
+    object-fit: contain;
+    background: rgba(0, 0, 0, 0.4);
+    /* Fundo sutil para destacar o ícone */;
+    border: 2px solid #1e90ff;
+}
+
+.religion-badge:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
 
 
 
@@ -908,13 +890,13 @@ header p {
        === REGRAS PARA O MODO: OCULTAR RELIGIÃO E ASILO ===
        ======================================================= */
 
-/* Quando o body tiver a classe 'hide-religion', esconde os badges */
-body.hide-religion .religion-status {
+/* Oculta o novo ícone circular quando a configuração de visibilidade está ativa */
+body.hide-religion .religion-badge {
     display: none !important;
 }
 
-/* 1. Esconde o Asilo quando a classe estiver ativa no body */
-body.hide-religion #asylumArea {
+/* Garante que o Asilo também permaneça oculto conforme sua preferência */
+body.hide-religion .asylum-area {
     display: none !important;
 }
 
@@ -1435,7 +1417,7 @@ body.hide-religion .decks-wrapper {
     }
 
     .player-title {
-        font-size: 8px !important;
+        font-size: 10px !important;
         line-height: 10px;
         margin-bottom: 0 !important;
         white-space: nowrap;
@@ -1444,15 +1426,22 @@ body.hide-religion .decks-wrapper {
         max-width: 60px;
     }
 
+
+
     .player-header {
         gap: 4px;
         margin-bottom: 0;
     }
 
     .player-avatar {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
         border-width: 1px;
+    }
+
+    .religion-badge {
+        width: 18px;
+        height: 18px;
     }
 
     /* Cartas e Slots */
@@ -1476,8 +1465,8 @@ body.hide-religion .decks-wrapper {
 
     /* Controles e Religião */
     .points {
-        margin-top: 4px !important;
-        margin-bottom: 4px !important;
+        margin-top: 2px !important;
+        margin-bottom: 5px !important;
     }
 
     .points .plus,
@@ -1487,25 +1476,6 @@ body.hide-religion .decks-wrapper {
         font-size: 20px;
     }
 
-    .religion-status {
-        font-size: 8px !important;
-        padding: 2px 5px !important;
-        margin-bottom: 4px !important;
-        line-height: 10px;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 2px;
-        max-width: 60px !important;
-        min-width: 60px !important;
-        height: 15px;
-    }
-
-    .religion-icon {
-        width: 10px !important;
-        height: 10px !important;
-    }
 
     /* Rodapé e Decks */
     .bottom-table-container {
@@ -1738,12 +1708,17 @@ body.hide-religion .decks-wrapper {
     }
 
     .player-avatar {
-        width: 20px;
-        height: 20px;
+        width: 28px;
+        height: 28px;
+    }
+
+    .religion-badge {
+        width: 28px;
+        height: 28px;
     }
 
     .player-title {
-        font-size: 11px;
+        font-size: 12px;
     }
 
     /* --- 3. CARTAS E SLOTS --- */
@@ -1770,28 +1745,6 @@ body.hide-religion .decks-wrapper {
         gap: 7px;
     }
 
-    /* --- 4. STATUS E PONTUAÇÃO --- */
-    .points {
-        margin: 2px 0;
-    }
-
-    .religion-status {
-        font-size: 10px;
-        padding: 2px 6px;
-        margin: 4px 0;
-        width: 84px;
-        height: 22px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 1px;
-        box-sizing: border-box;
-    }
-
-    .religion-icon {
-        width: 12px;
-        height: 12px;
-    }
 
     /* --- 5. ÁREA CENTRAL E TABULEIRO INFERIOR --- */
     .center-area {

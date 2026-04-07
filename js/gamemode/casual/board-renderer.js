@@ -148,7 +148,7 @@ function shouldShowBack(card) {
  */
 function getCardFolder(type) {
   const t = type.toLowerCase();
-  
+
   // Categorias baseadas na nova estrutura de pastas
   const base = ['assassino', 'capitao', 'condessa', 'duque', 'embaixador', 'inquisidor'];
   const dlc1 = ['bispo', 'camaleao', 'diplomata', 'marionetista', 'mercenario', 'tesoureiro', 'vigilante'];
@@ -159,7 +159,7 @@ function getCardFolder(type) {
   if (dlc1.includes(t)) return 'dlc1';
   if (dlc2.includes(t)) return 'dlc2';
   if (promo.includes(t)) return 'promo';
-  
+
   return 'base'; // Fallback padrão
 }
 
@@ -424,16 +424,33 @@ function renderAll() {
       };
     }
 
-    // --- 2.3 STATUS DE RELIGIÃO ---
-    const religionEl = playerEl.querySelector('.religion-status');
-    if (religionEl) {
-      const isProtestante = player.religion === 'protestante';
-      const iconFile = isProtestante ? 'shield-sword.svg' : 'shield-cross.svg';
-      const religionText = isProtestante ? 'Protestante' : 'Católico';
+    // Atualização do ícone de religião
 
-      religionEl.innerHTML = `<img src="assets/img/icons/${iconFile}" class="religion-icon"> ${religionText}`;
-      religionEl.className = `religion-status ${player.religion}`;
+    // --- 2.3 STATUS DE RELIGIÃO (MODO ÍCONE CIRCULAR) ---
+    let religionIcon = headerEl.querySelector('.religion-badge');
+
+    if (!religionIcon) {
+      religionIcon = document.createElement('img');
+      religionIcon.className = 'religion-badge';
+      // Insere o ícone logo após o nome do jogador no cabeçalho
+      headerEl.appendChild(religionIcon);
     }
+
+    const isProtestante = player.religion === 'protestante';
+    // Utiliza os novos caminhos da estrutura de pastas refatorada 
+    const iconPath = isProtestante
+      ? 'assets/img/cards/religion/protestante.png'
+      : 'assets/img/cards/religion/catolico.png';
+
+    religionIcon.src = iconPath;
+    religionIcon.alt = player.religion;
+    religionIcon.title = isProtestante ? 'Protestante' : 'Católico';
+
+    // Permite clicar no ícone para trocar de religião, assim como antes
+    religionIcon.onclick = (e) => {
+      e.stopPropagation(); // Evita abrir o modal de ações rápidas ao clicar no ícone
+      toggleReligion(pid);
+    };
 
     // --- 2.4 RENDERIZAÇÃO DA MÃO E PONTUAÇÃO ---
     const handContainer = playerEl.querySelector('[data-hand]');
