@@ -92,10 +92,10 @@ window.executeAction = (type) => {
 
       /**
        * O parâmetro 'true' silencia o som de moeda global no Firebase.
-       * Em seguida, dispararamos o som de faca (coin) globalmente.
+       * Em seguida, dispararamos o som de estrela ninja globalmente.
        */
       updateScore(myPlayerId, -3, true);
-      if (typeof triggerSound === 'function') triggerSound('coin');
+      if (typeof triggerSound === 'function') triggerSound('ninja-star');
       break;
 
     case 'tax':
@@ -310,14 +310,7 @@ function renderAll() {
   if (spectatorBtn && spectatorModal) {
     const myHand = state.players[myPlayerId]?.hand || [];
 
-    // APLICAÇÃO DE VISIBILIDADE CRÍTICA: 
-    // O 'important' força o bloqueio mesmo em @media queries de altura/largura
-    if (myHand.length === 0) {
-      spectatorBtn.style.setProperty('display', 'block', 'important');
-    } else {
-      spectatorBtn.style.setProperty('display', 'none', 'important');
-      spectatorModal.style.display = 'none'; // Fecha o modal se o jogador voltar ao jogo
-    }
+    spectatorBtn.style.setProperty('display', 'flex', 'important');
 
     // Abertura do Modal e Listagem de Alvos
     spectatorBtn.onclick = () => {

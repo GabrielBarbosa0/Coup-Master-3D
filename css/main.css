@@ -176,12 +176,10 @@ body.video-bg-enabled .video-background {
 /* Remove fundos e bordas quando a classe está ativa no body */
 body.transparent-mode header {
     background: transparent !important;
-    border-radius: 50px !important;
 }
 
 body.transparent-mode .board {
     background: transparent !important;
-    border-style: none !important;
     box-shadow: none !important;
     /* Remove a sombra para flutuar melhor no vídeo */
 }
@@ -269,30 +267,19 @@ h2 {
 }
 
 .container {
-    max-width: 1100px;
-    margin: auto;
-    padding: 12px;
-}
-
-.container {
-    position: relative;
-    z-index: 1;
-    min-height: 100%;
-    /* Permite que o container cresça conforme as cartas */
-}
-
-
-
-
-
-/* Garante que o container acompanhe o crescimento do conteúdo */
-.container {
-    position: relative;
-    z-index: 1;
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
+    max-width: 1100px;
+    min-height: 100%;
+    min-height: 100vh;
+    margin: auto;
+    padding: 12px;
+    justify-content: center;
+
+    position: relative;
+    z-index: 1;
 }
+
 
 /* Overlay de Carregamento */
 #loading-overlay {
@@ -709,7 +696,8 @@ header p {
     transition: transform 0.2s, box-shadow 0.3s;
     object-fit: contain;
     background: rgba(0, 0, 0, 0.4);
-    /* Fundo sutil para destacar o ícone */;
+    /* Fundo sutil para destacar o ícone */
+    ;
     border: 2px solid #1e90ff;
 }
 
@@ -1041,8 +1029,12 @@ body.hide-religion .decks-wrapper {
        === MODAIS, OVERLAYS E MENUS ===
        ======================================================= */
 
+#tutorialModal .modal-content {
+    width: 80%;
+    max-width: 380px;
+    padding: 25px 15px 15px 25px;
+}
 
-/*  Otimização do Modal de Configurações */
 
 /* Define uma largura fixa e centraliza o conteúdo */
 #settingsModal .modal-content {
@@ -1215,6 +1207,7 @@ body.hide-religion .decks-wrapper {
     max-width: 380px;
     padding: 25px 15px 15px 25px;
 }
+
 
 /* Área de lista com rolagem interna e altura limitada */
 .card-config-list {
