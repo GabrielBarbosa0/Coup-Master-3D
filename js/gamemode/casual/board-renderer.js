@@ -57,6 +57,7 @@ window.openQuickActions = (pid) => {
     modal.style.display = 'flex';
   }
 };
+
 window.executeAction = (type) => {
   if (!quickActionTargetPid || !myPlayerId) return;
 
@@ -66,7 +67,25 @@ window.executeAction = (type) => {
   const targetPlayer = localGameState.players[quickActionTargetPid];
   const targetScore = targetPlayer ? (targetPlayer.score || 0) : 0;
 
+
   switch (type) {
+
+    case 'coup':
+      // 1. Verificação de saldo (mínimo 7 moedas)
+      if (myScore < 7) {
+        console.log("Saldo insuficiente para aplicar um Golpe de Estado.");
+        if (typeof playSound === 'function') playSound('click');
+        return; // Bloqueia a ação
+      }
+
+      // 2. Deduz as 7 moedas (silent=true para usar o som de impacto personalizado)
+      updateScore(myPlayerId, -7, true);
+
+      // 3. Dispara som de impacto pesado globalmente
+      if (typeof triggerSound === 'function') triggerSound('impact');
+      break;
+
+
     case 'steal':
       /** * REGRA: O Capitão só rouba se o alvo tiver 2 ou mais moedas.
        * Se o alvo tiver 0 ou 1, a ação é cancelada.
