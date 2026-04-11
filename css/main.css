@@ -33,6 +33,64 @@
     --active: #00ff73;
 }
 
+
+
+
+/* =======================================================
+   === RESET GERAL E TIPOGRAFIA ===
+   ======================================================= */
+* {
+    font-family: "Cinzel", serif !important;
+}
+
+html {
+    margin: 0;
+    background: var(--bg);
+}
+
+
+body {
+    /* 1. LIBERA A ROLAGEM: overflow-y: auto permite descer a página */
+    overflow-x: hidden;
+    overflow-y: auto;
+    /* 2. ALTURA DINÂMICA: Mude de height: 100% para min-height: 100vh */
+    /* Isso permite que o fundo ocupe a tela toda, mas a página cresça se houver conteúdo abaixo */
+    min-height: 100vh;
+    height: auto;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    scroll-behavior: smooth;
+    /* Previne que o Parallax ou animações criem barras horizontais fantasmas */
+    position: relative;
+    /* --- OCULTAR BARRA (Firefox e Edge antigo) --- */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* Internet Explorer e Edge */
+
+    align-items: center;
+    /* Centraliza horizontalmente */
+    justify-content: center;
+    /* Centraliza verticalmente */
+    overflow-x: hidden;
+    /* Trava contra scroll lateral */
+}
+
+/* --- OCULTAR BARRA (Chrome, Safari e Opera) --- */
+body::-webkit-scrollbar {
+    display: none;
+}
+
+/* Remove para Chrome, Safari e Opera */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+
 /* =======================================================
    === AMBIENTAÇÃO E ILUMINAÇÃO (VIGNETTE) ===
    ======================================================= */
@@ -206,53 +264,6 @@ body.transparent-mode .resetBtn:hover {
 
 
 
-/* =======================================================
-   === RESET GERAL E TIPOGRAFIA ===
-   ======================================================= */
-* {
-    font-family: "Cinzel", serif !important;
-}
-
-html {
-    margin: 0;
-    background: var(--bg);
-}
-
-
-body {
-    /* 1. LIBERA A ROLAGEM: overflow-y: auto permite descer a página */
-    overflow-x: hidden;
-    overflow-y: auto;
-    /* 2. ALTURA DINÂMICA: Mude de height: 100% para min-height: 100vh */
-    /* Isso permite que o fundo ocupe a tela toda, mas a página cresça se houver conteúdo abaixo */
-    min-height: 100vh;
-    height: auto;
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    scroll-behavior: smooth;
-    /* Previne que o Parallax ou animações criem barras horizontais fantasmas */
-    position: relative;
-    /* --- OCULTAR BARRA (Firefox e Edge antigo) --- */
-    scrollbar-width: none;
-    /* Firefox */
-    -ms-overflow-style: none;
-    /* Internet Explorer e Edge */
-}
-
-/* --- OCULTAR BARRA (Chrome, Safari e Opera) --- */
-body::-webkit-scrollbar {
-    display: none;
-}
-
-/* Remove para Chrome, Safari e Opera */
-html::-webkit-scrollbar,
-body::-webkit-scrollbar {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-}
-
 /* ////////////////////////////////////////////////////// */
 
 p {
@@ -277,7 +288,6 @@ h2 {
     display: flex;
     flex-direction: column;
 }
-
 
 
 
@@ -1035,15 +1045,37 @@ body.hide-religion .decks-wrapper {
     padding: 25px 15px 15px 25px;
 }
 
+
+#quickActionsModal .modal-content {
+    width: 90%;
+    /* Garante margem lateral em telas pequenas */
+    max-width: 380px;
+    /* Limita o tamanho no PC */
+    padding: 25px;
+    box-sizing: border-box;
+    /* Fundamental para que o padding não estique o modal */
+    margin: 0 auto;
+    /* Centraliza se o pai for flex */
+}
+
+/* Ajuste para o título não empurrar as bordas se o nome for gigante */
+#quickActionsTitle {
+    word-wrap: break-word;
+    /* Quebra palavras longas */
+    overflow-wrap: break-word;
+    font-size: 18px;
+    line-height: 1.4;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
 /*  Otimização do Modal de Configurações */
 
 /* Define uma largura fixa e centraliza o conteúdo */
 #settingsModal .modal-content {
     width: 80%;
     max-width: 380px;
-    /* Largura fixa ideal para leitura */
     padding: 25px 15px 15px 25px;
-    /* Ajuste de respiro */
 }
 
 /* Título principal do modal */
@@ -1678,7 +1710,7 @@ body.hide-religion .decks-wrapper {
     }
 
     #roomHeader {
-        margin-top: 0px !important;
+        margin-top: 24px !important;
         padding: 6px 18px;
     }
 
