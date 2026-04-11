@@ -59,6 +59,7 @@ window.openQuickActions = (pid) => {
 };
 
 window.executeAction = (type) => {
+  // Verifica se há um alvo e um jogador local definido
   if (!quickActionTargetPid || !myPlayerId) return;
 
   // Busca o estado atual dos envolvidos
@@ -67,67 +68,58 @@ window.executeAction = (type) => {
   const targetPlayer = localGameState.players[quickActionTargetPid];
   const targetScore = targetPlayer ? (targetPlayer.score || 0) : 0;
 
-
   switch (type) {
-
     case 'coup':
-      // 1. Verificação de saldo (mínimo 7 moedas)
+      // 1. Verificação de saldo: Golpe exige no mínimo 7 moedas
       if (myScore < 7) {
         console.log("Saldo insuficiente para aplicar um Golpe de Estado.");
         if (typeof playSound === 'function') playSound('click');
         return; // Bloqueia a ação
       }
 
-      // 2. Deduz as 7 moedas (silent=true para usar o som de impacto personalizado)
+      // 2. Deduz as 7 moedas (silencia o som de moeda para usar o impacto)
       updateScore(myPlayerId, -7, true);
 
       // 3. Dispara som de impacto pesado globalmente
       if (typeof triggerSound === 'function') triggerSound('impact');
       break;
 
-
     case 'steal':
-      /** * REGRA: O Capitão só rouba se o alvo tiver 2 ou mais moedas.
-       * Se o alvo tiver 0 ou 1, a ação é cancelada.
-       */
+      // REGRA: O Capitão só rouba se o alvo tiver 2 ou mais moedas
       if (targetScore < 2) {
         console.log("Ação cancelada: O alvo deve ter pelo menos 2 moedas.");
         if (typeof playSound === 'function') playSound('click');
         break;
       }
 
-      // Executa o roubo fixo de 2 moedas
+      // Executa o roubo de 2 moedas
       updateScore(quickActionTargetPid, -2);
       updateScore(myPlayerId, 2);
       break;
 
     case 'assassinate':
-      // Verifica se o jogador tem saldo para pagar o assassinato
+      // Verifica se o jogador tem saldo para pagar o assassinato (3 moedas)
       if (myScore < 3) {
         console.log("Saldo insuficiente para assassinar.");
         if (typeof playSound === 'function') playSound('click');
         return;
       }
 
-      /**
-       * O parâmetro 'true' silencia o som de moeda global no Firebase.
-       * Em seguida, dispararamos o som de estrela ninja globalmente.
-       */
+      // Deduz moedas e dispara o som de estrela ninja
       updateScore(myPlayerId, -3, true);
       if (typeof triggerSound === 'function') triggerSound('ninja-star');
       break;
 
     case 'tax':
-      // Duque recebe 3 moedas (mantém o som de moeda padrão)
+      // Duque recebe 3 moedas
       updateScore(myPlayerId, 3);
       break;
   }
 
-  // Fecha o modal após processar a ação
+  // Fecha o modal após qualquer ação processada
   const modal = document.getElementById('quickActionsModal');
   if (modal) modal.style.display = 'none';
 };
-
 
 
 
