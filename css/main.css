@@ -181,7 +181,6 @@ body.transparent-mode header {
 body.transparent-mode .board {
     background: transparent !important;
     box-shadow: none !important;
-    /* Remove a sombra para flutuar melhor no vídeo */
 }
 
 body.transparent-mode .asylum-area,
@@ -212,10 +211,6 @@ body.transparent-mode .resetBtn:hover {
    ======================================================= */
 * {
     font-family: "Cinzel", serif !important;
-    box-sizing: border-box;
-    /* Faz com que padding não aumente o tamanho real do elemento */
-    margin: 0;
-    padding: 0;
 }
 
 html {
@@ -271,18 +266,20 @@ h2 {
 }
 
 .container {
-    display: flex;
-    flex-direction: column;
     max-width: 1100px;
-    min-height: 100%;
-    min-height: 100vh;
     margin: auto;
     padding: 12px;
-    /* justify-content: center; */
-
     position: relative;
     z-index: 1;
+    min-height: 100%;
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
+
+
 
 
 /* Overlay de Carregamento */
@@ -1039,6 +1036,7 @@ body.hide-religion .decks-wrapper {
     padding: 25px 15px 15px 25px;
 }
 
+/*  Otimização do Modal de Configurações */
 
 /* Define uma largura fixa e centraliza o conteúdo */
 #settingsModal .modal-content {
@@ -1211,7 +1209,6 @@ body.hide-religion .decks-wrapper {
     max-width: 380px;
     padding: 25px 15px 15px 25px;
 }
-
 
 /* Área de lista com rolagem interna e altura limitada */
 .card-config-list {

@@ -310,6 +310,7 @@ function renderAll() {
   if (spectatorBtn && spectatorModal) {
     const myHand = state.players[myPlayerId]?.hand || [];
 
+    // Exibe botão de modo espectador
     spectatorBtn.style.setProperty('display', 'flex', 'important');
 
     // Abertura do Modal e Listagem de Alvos
