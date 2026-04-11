@@ -1455,27 +1455,49 @@ if (toggleVhsBtn) {
 }
 
 
-// SISTEMA DE VÍDEO DE FUNDO ANIMADO
+// =======================================================
+// === SISTEMA DE VÍDEO DE FUNDO ANIMADO ===
+// =======================================================
 
 const toggleVideoBgBtn = document.getElementById('toggleVideoBgBtn');
 
+/**
+ * Aplica o estado do vídeo de fundo, atualizando a classe do body,
+ * o ícone, o texto do botão e a opacidade visual.
+ */
 const applyVideoBgState = (isEnabled) => {
   const body = document.body;
   const img = toggleVideoBgBtn?.querySelector('img');
   const span = toggleVideoBgBtn?.querySelector('span');
 
   if (isEnabled) {
+    // Estado ATIVADO: Opacidade total e ícone de "olho aberto"
     body.classList.add('video-bg-enabled');
     if (span) span.textContent = "Ativado";
     if (img) img.src = 'assets/img/icons/eye.svg';
+    if (toggleVideoBgBtn) toggleVideoBgBtn.style.opacity = '1';
   } else {
+    // Estado DESATIVADO: Opacidade reduzida (0.6) e ícone de "olho fechado"
     body.classList.remove('video-bg-enabled');
     if (span) span.textContent = "Desativado";
     if (img) img.src = 'assets/img/icons/visibility_off.svg';
+    if (toggleVideoBgBtn) toggleVideoBgBtn.style.opacity = '0.6';
   }
 
+  // Persiste a escolha do usuário no navegador
   localStorage.setItem('videoBgEnabled', isEnabled);
 };
+
+// Listener de Clique para o botão
+if (toggleVideoBgBtn) {
+  toggleVideoBgBtn.onclick = () => {
+    if (typeof playSound === 'function') playSound('click');
+    const currentState = document.body.classList.contains('video-bg-enabled');
+    applyVideoBgState(!currentState);
+  };
+}
+
+
 
 if (toggleVideoBgBtn) {
   const storedVideo = localStorage.getItem('videoBgEnabled');
@@ -1493,13 +1515,15 @@ if (toggleVideoBgBtn) {
 
 
 
-// SISTEMA DE MODO TRANSPARENTE
+// =======================================================
+// === SISTEMA DE MODO TRANSPARENTE ===
+// =======================================================
 
 const toggleTransparentBtn = document.getElementById('toggleTransparentBtn');
 
 /**
  * APLICA O MODO TRANSPARENTE
- * Altera a classe do body e salva a preferência.
+ * Altera a classe do body, atualiza a interface visual e salva a preferência.
  */
 const applyTransparentMode = (isEnabled) => {
   const body = document.body;
@@ -1507,17 +1531,31 @@ const applyTransparentMode = (isEnabled) => {
   const span = toggleTransparentBtn?.querySelector('span');
 
   if (isEnabled) {
+    // Estado ATIVADO: Fundo transparente, opacidade total e ícone de "olho"
     body.classList.add('transparent-mode');
     if (span) span.textContent = "Ativado";
     if (img) img.src = 'assets/img/icons/eye.svg';
+    if (toggleTransparentBtn) toggleTransparentBtn.style.opacity = '1';
   } else {
+    // Estado DESATIVADO: Fundo padrão, opacidade reduzida e ícone "oculto"
     body.classList.remove('transparent-mode');
     if (span) span.textContent = "Desativado";
     if (img) img.src = 'assets/img/icons/visibility_off.svg';
+    if (toggleTransparentBtn) toggleTransparentBtn.style.opacity = '0.6';
   }
 
+  // Persiste a escolha do usuário
   localStorage.setItem('transparentModeEnabled', isEnabled);
 };
+
+// Listener de Clique para alternar o modo
+if (toggleTransparentBtn) {
+  toggleTransparentBtn.onclick = () => {
+    if (typeof playSound === 'function') playSound('click');
+    const currentState = document.body.classList.contains('transparent-mode');
+    applyTransparentMode(!currentState);
+  };
+}
 
 // Inicialização
 if (toggleTransparentBtn) {

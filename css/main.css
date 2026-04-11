@@ -1419,8 +1419,6 @@ body.hide-religion .decks-wrapper {
         max-width: 60px;
     }
 
-
-
     .player-header {
         gap: 4px;
         margin-bottom: 0;
@@ -1429,7 +1427,6 @@ body.hide-religion .decks-wrapper {
     .player-avatar {
         width: 18px;
         height: 18px;
-        border-width: 1px;
     }
 
     .religion-badge {
@@ -1588,6 +1585,10 @@ body.hide-religion .decks-wrapper {
     .controls {
         gap: 6px !important;
     }
+
+    .setting-row {
+        font-size: 14px;
+    }
 }
 
 /* Mobile Padrão (292px - 479px) */
@@ -1628,6 +1629,14 @@ body.hide-religion .decks-wrapper {
     /* Reduz o espaçamento entre os botões */
     .controls {
         gap: 6px !important;
+    }
+
+    .setting-row {
+        font-size: 14px;
+    }
+
+    .icon-btn {
+        padding: 8px 4px;
     }
 }
 
