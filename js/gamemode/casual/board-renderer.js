@@ -81,7 +81,7 @@ window.executeAction = (type) => {
       updateScore(myPlayerId, -7, true);
 
       // 3. Dispara som de impacto pesado globalmente
-      if (typeof triggerSound === 'function') triggerSound('impact');
+      if (typeof triggerSound === 'function') triggerSound('unity-sword');
       break;
 
     case 'steal':
