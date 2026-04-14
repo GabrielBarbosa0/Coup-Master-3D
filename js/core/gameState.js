@@ -456,7 +456,7 @@ function confirmKickAction() {
     const player = state.players[pid];
     const hand = player.hand || [];
 
-    
+
     // --- DEVOLVER CARTAS AO DECK ---
     if (hand.length > 0) {
       if (!state.deck) state.deck = [];
@@ -578,31 +578,31 @@ function joinGame() {
 
     return; // Sala cheia
 
-}, (error, committed) => {
-    if (committed) {
-      console.log(`Conectado no Slot ${myPlayerId}`);
+  }, (error, committed) => {
+    // 1. Sempre remove a tela de carregamento, independente do resultado
+    if (loadingOverlay) loadingOverlay.style.display = 'none';
 
-      // 1. Aciona o som global de entrada para todos os jogadores na sala
+    if (committed && myPlayerId) {
+      console.log(`✅ Conectado no Slot ${myPlayerId}`);
+
+      // 2. Aciona o som global de entrada para todos os jogadores na sala
       triggerSound('player-online');
 
-      // 2. Garante que o status 'online' mude para false se o navegador fechar
+      // 3. Garante que o status 'online' mude para false se o navegador fechar
       setupDisconnectHandler(myPlayerId);
 
       /**
-       * 3. VIGIA DE EXPULSÃO:
-       * Ativa o monitoramento do slot. Se o UID for removido, 
-       * o navegador redireciona automaticamente para o lobby.
+       * NOTA: A função setupKickListener foi removida/comentada 
+       * para evitar o erro "ReferenceError: setupKickListener is not defined"
        */
-      setupKickListener(myPlayerId);
+      // setupKickListener(myPlayerId); 
 
-      // 4. Remove a proteção de tela de carregamento
-      if (loadingOverlay) loadingOverlay.style.display = 'none';
-      
     } else if (error) {
+      console.error("Erro crítico na transação:", error);
       // Em caso de erro crítico de rede, tenta recarregar a página
       window.location.reload();
     } else {
-      // Se a transação falhar (sala cheia), volta para o lobby
+      // Se a transação falhar (ex: sala cheia ou slot ocupado), volta para o lobby
       window.location.href = 'lobby.html';
     }
   });
