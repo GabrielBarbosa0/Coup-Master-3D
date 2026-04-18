@@ -168,16 +168,35 @@ Para que o login e a reserva de slots funcionem:
 ```json
 {
   "rules": {
-    "salas": {
-      // Permite listar salas para o cleanup do lobby e leitura geral
+    "users": {
       ".read": "auth != null",
-      ".write": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "salas": {
       "$roomCode": {
-        // Garante que sub-itens como lastActivity e gameState sejam acessíveis
+        ".read": "auth != null",
+        // Permite criar a sala e atualizar a atividade (lastActivity)
         ".write": "auth != null",
-        "lastActivity": {
-          // Proteção extra: só permite deletar se realmente for antigo (opcional)
-          ".validate": "newData.isNumber()"
+
+        "gameState": {
+          // Permite que jogadores enviem sons e mexam no Asilo/Cemitério
+          "lastSFX": { ".write": "auth != null" },
+          "asylumScore": { ".write": "auth != null" },
+          "freeCards": { ".write": "auth != null" },
+
+          // PROTEÇÃO DO DECK: Apenas o Host pode resetar ou mudar a config
+          "deck": { ".write": "auth.uid === data.parent().parent().child('hostUID').val()" },
+          "deckConfig": { ".write": "auth.uid === data.parent().parent().child('hostUID').val()" },
+
+          "players": {
+            "$playerId": {
+              // PERMISSÃO DE ENTRADA: 
+              // Permite escrever se o slot estiver vazio (Join), se for o dono ou se for o Host (Kick)
+              ".write": "auth != null && (!data.exists() || data.child('uid').val() === auth.uid || auth.uid === data.parent().parent().parent().child('hostUID').val() || (!data.hasChild('uid') && newData.child('uid').val() === auth.uid))"
+            }
+          }
         }
       }
     }
@@ -205,6 +224,33 @@ const firebaseConfig = {
   appId: "..."
 };
 ```
+
+## 🛠️ Manutenção do Banco de Dados (Realtime Database)
+
+Este projeto utiliza o **Plano Spark (Gratuito)** do Firebase. Por conta das limitações deste plano, funções agendadas de limpeza automática via servidor (Cloud Functions) não podem ser ativadas.
+
+Com o tempo, o acúmulo de salas pode deixar o console do Firebase lento ou ativar o **"Modo Somente Leitura"**. Quando isso ocorrer, siga o procedimento abaixo:
+
+### 🧹 Procedimento de Limpeza Manual
+
+Caso o banco de dados apresente lentidão devido ao excesso de registros:
+
+1. Acesse o [Console do Firebase](https://console.firebase.google.com/).
+2. No menu lateral, vá em **Realtime Database**.
+3. Clique nos **três pontos (⋮)** localizados no canto superior direito da visualização de dados.
+4. Selecione a opção **"Importar JSON"**.
+5. Clique em navegar e escolha o arquivo **`limpeza.json`** localizado na raiz deste repositório.
+6. Confirme a importação.
+
+> [!CAUTION]
+> **Atenção:** Este procedimento substituirá o nó selecionado (ex: `salas`) por um objeto vazio `{}`. Isso removerá **todas** as salas ativas e acumuladas instantaneamente, restaurando a performance total do painel.
+
+### 🤖 Limpeza em Tempo de Execução
+
+Embora o servidor não limpe as salas sozinho, o projeto possui uma lógica interna no arquivo `lobby-manager.js` que tenta remover salas inativas por mais de 24 horas sempre que um usuário acessa o Lobby.
+
+* **Critério de Limpeza:** A função verifica os campos `lastActivity` e `createdAt` para determinar a idade da sala.
+* **Limitação:** Se o site ficar muito tempo sem nenhum acesso no Lobby, o acúmulo manual via console (explicado acima) será necessário.
 
 ---
 
