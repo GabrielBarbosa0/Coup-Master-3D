@@ -14,6 +14,67 @@
     --text: #e6eef6;
 }
 
+
+/* 1. Reset Global */
+* {
+    font-family: "Cinzel", serif;
+    box-sizing: border-box;
+
+    /* Remove a seleção azul padrão */
+    -webkit-user-select: none;
+    /* Safari  */
+    -ms-user-select: none;
+    /* IE e Edge antigo  */
+    user-select: none;
+    /* Padrão moderno (Chrome, Firefox)  */
+    /* Previne o menu de contexto em imagens no mobile (opcional) */
+    -webkit-touch-callout: none;
+}
+
+/* Garante que campos de texto continuem funcionando [cite: 115] */
+input,
+textarea {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+
+    /* 1. CONTROLE DE ROLAGEM: Permite vertical, trava horizontal para o Parallax */
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    /* 2. ALTURA DINÂMICA: Mude de height: 100% para min-height para permitir scroll */
+    min-height: 100vh;
+    min-height: 100dvh;
+    /* Fix para navegadores mobile (Chrome/Safari) */
+
+    /* 3. LAYOUT: Centraliza a lobby-box na tela */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    /* 4. ESTÉTICA: Fundo escuro para destacar o vídeo e texto centralizado */
+    background: #0a0c10;
+    color: var(--text);
+    text-align: center;
+
+    /* 5. OCULTAR BARRA DE ROLAGEM: Mantém o visual limpo (opcional) */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE e Edge */
+}
+
+/* Ocultar barra de rolagem (Chrome, Safari e Opera) */
+body::-webkit-scrollbar {
+    display: none;
+}
+
+
 /* =======================================================
        === TELA DE CARREGAMENTO (LOADER) ===
        ======================================================= */
@@ -95,47 +156,6 @@
     }
 }
 
-/* 1. Reset Global */
-* {
-    font-family: "Cinzel", serif;
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    padding: 0;
-
-    /* 1. CONTROLE DE ROLAGEM: Permite vertical, trava horizontal para o Parallax */
-    overflow-x: hidden;
-    overflow-y: auto;
-
-    /* 2. ALTURA DINÂMICA: Mude de height: 100% para min-height para permitir scroll */
-    min-height: 100vh;
-    min-height: 100dvh;
-    /* Fix para navegadores mobile (Chrome/Safari) */
-
-    /* 3. LAYOUT: Centraliza a lobby-box na tela */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    /* 4. ESTÉTICA: Fundo escuro para destacar o vídeo e texto centralizado */
-    background: #0a0c10;
-    color: var(--text);
-    text-align: center;
-
-    /* 5. OCULTAR BARRA DE ROLAGEM: Mantém o visual limpo (opcional) */
-    scrollbar-width: none;
-    /* Firefox */
-    -ms-overflow-style: none;
-    /* IE e Edge */
-}
-
-/* Ocultar barra de rolagem (Chrome, Safari e Opera) */
-body::-webkit-scrollbar {
-    display: none;
-}
 
 /* 2. Ambientação (Copiado do Jogo para Consistência) */
 .video-background {

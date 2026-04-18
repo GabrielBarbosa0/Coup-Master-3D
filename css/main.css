@@ -34,14 +34,30 @@
 }
 
 
-
-
 /* =======================================================
    === RESET GERAL E TIPOGRAFIA ===
    ======================================================= */
 * {
     font-family: "Cinzel", serif !important;
+    /* Remove a seleção azul padrão */
+    -webkit-user-select: none;
+    /* Safari  */
+    -ms-user-select: none;
+    /* IE e Edge antigo  */
+    user-select: none;
+    /* Padrão moderno (Chrome, Firefox)  */
+
+    /* Previne o menu de contexto em imagens no mobile (opcional) */
+    -webkit-touch-callout: none;
 }
+
+/* Garante que campos de texto continuem funcionando [cite: 115] */
+input,
+textarea {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
 
 html {
     margin: 0;
@@ -1839,4 +1855,3 @@ body.hide-religion .decks-wrapper {
         /* Suaviza a mudança de layout */
     }
 }
-
