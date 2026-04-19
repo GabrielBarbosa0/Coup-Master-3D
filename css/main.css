@@ -1055,6 +1055,9 @@ body.hide-religion .decks-wrapper {
        === MODAIS, OVERLAYS E MENUS ===
        ======================================================= */
 
+
+
+
 #tutorialModal .modal-content {
     width: 80%;
     max-width: 380px;
@@ -1174,6 +1177,61 @@ body.hide-religion .decks-wrapper {
     padding: 20px;
     border-radius: 10px;
 }
+
+
+
+/* Centraliza o conjunto seguindo o padrão dos outros modais */
+#cardPreviewModal .modal-actions-and-rules {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative; 
+    /* Removemos o height: 100vh daqui para não esticar o botão */
+}
+
+/* Define o tamanho fixo do preview */
+#previewFlipCard {
+    width: 300px;  /* Mesmo tamanho da flip-card de regras */
+    height: 450px; /* Mesmo tamanho da flip-card de regras */
+    cursor: pointer;
+    perspective: 1000px;
+}
+
+/* Botão de Fechar: Usando a classe .close-btn existente */
+#closePreviewBtn.close-btn {
+    /* O posicionamento absolute agora será relativo ao .modal-actions-and-rules */
+    position: absolute;
+    top: -10px;    /* Valor padrão do seu CSS para close-btn */
+    right: -10px;  /* Valor padrão do seu CSS para close-btn */
+    z-index: 1010;
+    /* As cores e bordas já vêm da classe .close-btn */
+    
+    /* Força o botão a ficar na frente da animação 3D */
+    transform: translateZ(50px);
+}
+
+/* Garante que as faces da carta preencham o container corretamente */
+#previewFlipCard .flip-card-front,
+#previewFlipCard .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 20px; /* Arredondamento igual às regras */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Verso da carta */
+#previewFlipCard .flip-card-back {
+    transform: rotateY(180deg);
+    background-image: url('../assets/img/cards/base/back.png') !important;
+}
+
+
+
 
 .settings-container {
     display: flex;

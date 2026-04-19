@@ -174,10 +174,12 @@ function getCardFolder(type) {
   return 'base'; // Fallback padrão
 }
 
+
 /**
  * CRIAÇÃO DE ELEMENTO DE CARTA (ATUALIZADA PARA NOVAS PASTAS)
  */
 function createCardElement(card) {
+
   const el = document.createElement('div');
   el.className = 'card';
   el.draggable = true;
@@ -1598,3 +1600,73 @@ if (leaveRoomBtn) {
     window.location.href = 'lobby.html'; // Retorna ao lobby
   };
 }
+
+
+// =======================================================
+// === SISTEMA DE PREVIEW 3D (BOTÃO DIREITO) ===
+// =======================================================
+
+/**
+ * BLOQUEIO DO MENU DE CONTEXTO E GATILHO DO PREVIEW
+ * Captura o clique com o botão direito em qualquer lugar do documento.
+ * Se o alvo for uma carta válida, abre o modal de visualização detalhada.
+ */
+document.addEventListener('contextmenu', (e) => {
+  e.preventDefault(); // Bloqueia o menu padrão do navegador
+  const cardEl = e.target.closest('.card');
+
+  if (cardEl) {
+    const cardId = cardEl.dataset.cardId;
+    const cardData = findCardById(localGameState, cardId); // Busca dados reais no rules.js
+
+    // Só abre o preview se não for o verso de outro jogador
+    if (cardData && !shouldShowBack(cardData)) {
+      openCardPreviewModal(cardData);
+    }
+  }
+});
+
+/**
+ * GERENCIADOR DE ABERTURA DO MODAL DE PREVIEW
+ * Configura a imagem frontal da carta baseada na sua pasta de origem (base, dlc, etc).
+ */
+function openCardPreviewModal(card) {
+  const modal = document.getElementById('cardPreviewModal');
+  const front = document.getElementById('previewFront');
+  const flipInner = document.querySelector('#previewFlipCard .flip-card-inner');
+
+  // Localiza a pasta correta (base, promo, dlc1, dlc2)
+  const folder = getCardFolder(card.type);
+  const imageUrl = `./assets/img/cards/${folder}/${card.type.toLowerCase()}.png`;
+
+  front.style.backgroundImage = `url('${imageUrl}')`;
+
+  // Reseta a rotação para a face frontal ao abrir
+  if (flipInner) flipInner.style.transform = 'rotateY(0deg)';
+  
+  if (modal) modal.style.display = 'flex';
+
+  // Executa som de deslize de carta
+  if (typeof playSound === 'function') playSound('card-slide');
+}
+
+/**
+ * CONTROLES DE INTERAÇÃO DO PREVIEW (FECHAR E ROTACIONAR)
+ */
+// Botão de fechar (X)
+document.getElementById('closePreviewBtn').onclick = () => {
+  const modal = document.getElementById('cardPreviewModal');
+  if (modal) modal.style.display = 'none';
+};
+
+// Clique na carta para girar entre frente e verso (back.png)
+document.getElementById('previewFlipCard').onclick = function () {
+  const inner = this.querySelector('.flip-card-inner');
+  if (!inner) return;
+
+  // Alterna entre 0 e 180 graus para exibir o verso padrão
+  const isFlipped = inner.style.transform === 'rotateY(180deg)';
+  inner.style.transform = isFlipped ? 'rotateY(0deg)' : 'rotateY(180deg)';
+  
+  if (typeof playSound === 'function') playSound('card-slide');
+};

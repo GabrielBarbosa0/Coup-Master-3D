@@ -276,6 +276,19 @@
     </div>
   </div>
 
+  <div id="cardPreviewModal" class="modal-overlay" style="display: none;">
+    <div class="modal-actions-and-rules">
+      <button id="closePreviewBtn" class="close-btn">&times;</button>
+
+      <div class="flip-card flip-horizontal-left" id="previewFlipCard">
+        <div class="flip-card-inner">
+          <div class="flip-card-front" id="previewFront"></div>
+          <div class="flip-card-back" style="background-image: url('./assets/img/cards/base/back.png')"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="configModal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
       <button id="closeConfigModalBtn" class="close-btn">&times;</button>
@@ -673,7 +686,7 @@
   <audio id="bgmAudio" loop autoplay>
     <source src="assets/sounds/soundtrack/bgm.mp3" type="audio/mpeg">
   </audio>
-  
+
 
   <!-- Efeitos Sonoros -->
   <audio id="audio-coin" src="assets/sounds/vfx/coin.mp3"></audio>
