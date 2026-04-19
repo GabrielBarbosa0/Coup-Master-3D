@@ -1674,35 +1674,47 @@ document.getElementById('previewFlipCard').onclick = function () {
 
 
 // =======================================================
-// === SUPORTE TOUCH (LONG PRESS PARA PREVIEW) ===
+// === SUPORTE TOUCH (LONG PRESS COM TOLERÂNCIA) ===
 // =======================================================
 
 let touchTimer = null;
-let isMoving = false;
+let startX = 0;
+let startY = 0;
+const moveThreshold = 10; // Pixels de folga para não cancelar com tremores leves
 
 document.addEventListener('touchstart', (e) => {
   const cardEl = e.target.closest('.card');
   if (!cardEl) return;
 
-  isMoving = false;
-  const cardId = cardEl.dataset.cardId;
-  const cardData = findCardById(localGameState, cardId);
+  // Guarda a posição inicial do toque
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
 
-  // Inicia contagem de 500ms para o toque longo
+  const cardId = cardEl.dataset.cardId;
+  const cardData = findCardById(localGameState, cardId); //
+
+  // Inicia o timer
   touchTimer = setTimeout(() => {
-    if (!isMoving && cardData && !shouldShowBack(cardData)) {
-      openCardPreviewModal(cardData);
-      // Opcional: Pequena vibração no celular para feedback
+    if (cardData && !shouldShowBack(cardData)) {
+      openCardPreviewModal(cardData); //
       if (navigator.vibrate) navigator.vibrate(50); 
     }
   }, 500); 
 }, { passive: true });
 
-document.addEventListener('touchmove', () => {
-  isMoving = true;
-  clearTimeout(touchTimer); // Cancela se o usuário começar a arrastar a carta
+document.addEventListener('touchmove', (e) => {
+  const currentX = e.touches[0].clientX;
+  const currentY = e.touches[0].clientY;
+
+  // Calcula a distância movida
+  const dist = Math.sqrt(Math.pow(currentX - startX, 2) + Math.pow(currentY - startY, 2));
+
+  // Se o usuário moveu o dedo além do limite, cancelamos o preview para deixar o drag fluir
+  if (dist > moveThreshold) {
+    clearTimeout(touchTimer);
+  }
 }, { passive: true });
 
 document.addEventListener('touchend', () => {
-  clearTimeout(touchTimer); // Cancela se soltar antes dos 500ms
+  clearTimeout(touchTimer);
 });
