@@ -1670,3 +1670,39 @@ document.getElementById('previewFlipCard').onclick = function () {
   
   if (typeof playSound === 'function') playSound('card-slide');
 };
+
+
+
+// =======================================================
+// === SUPORTE TOUCH (LONG PRESS PARA PREVIEW) ===
+// =======================================================
+
+let touchTimer = null;
+let isMoving = false;
+
+document.addEventListener('touchstart', (e) => {
+  const cardEl = e.target.closest('.card');
+  if (!cardEl) return;
+
+  isMoving = false;
+  const cardId = cardEl.dataset.cardId;
+  const cardData = findCardById(localGameState, cardId);
+
+  // Inicia contagem de 500ms para o toque longo
+  touchTimer = setTimeout(() => {
+    if (!isMoving && cardData && !shouldShowBack(cardData)) {
+      openCardPreviewModal(cardData);
+      // Opcional: Pequena vibração no celular para feedback
+      if (navigator.vibrate) navigator.vibrate(50); 
+    }
+  }, 500); 
+}, { passive: true });
+
+document.addEventListener('touchmove', () => {
+  isMoving = true;
+  clearTimeout(touchTimer); // Cancela se o usuário começar a arrastar a carta
+}, { passive: true });
+
+document.addEventListener('touchend', () => {
+  clearTimeout(touchTimer); // Cancela se soltar antes dos 500ms
+});
