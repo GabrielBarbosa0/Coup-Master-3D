@@ -1674,47 +1674,58 @@ document.getElementById('previewFlipCard').onclick = function () {
 
 
 // =======================================================
-// === SUPORTE TOUCH (LONG PRESS COM TOLERÂNCIA) ===
+// === SUPORTE TOUCH (LONG PRESS COM TRAVA DE MOVIMENTO) ===
 // =======================================================
 
 let touchTimer = null;
 let startX = 0;
 let startY = 0;
-const moveThreshold = 10; // Pixels de folga para não cancelar com tremores leves
+const moveThreshold = 10; 
+
+/**
+ * Cancela o timer de preview de forma segura
+ */
+function cancelCardPreview() {
+  if (touchTimer) {
+    clearTimeout(touchTimer);
+    touchTimer = null;
+  }
+}
 
 document.addEventListener('touchstart', (e) => {
   const cardEl = e.target.closest('.card');
   if (!cardEl) return;
 
-  // Guarda a posição inicial do toque
+  cancelCardPreview(); // Limpa qualquer timer residual
+
   startX = e.touches[0].clientX;
   startY = e.touches[0].clientY;
 
   const cardId = cardEl.dataset.cardId;
   const cardData = findCardById(localGameState, cardId); //
 
-  // Inicia o timer
   touchTimer = setTimeout(() => {
     if (cardData && !shouldShowBack(cardData)) {
       openCardPreviewModal(cardData); //
       if (navigator.vibrate) navigator.vibrate(50); 
     }
-  }, 999); 
+  }, 999); // Seu timing de teste
 }, { passive: true });
 
 document.addEventListener('touchmove', (e) => {
   const currentX = e.touches[0].clientX;
   const currentY = e.touches[0].clientY;
-
-  // Calcula a distância movida
   const dist = Math.sqrt(Math.pow(currentX - startX, 2) + Math.pow(currentY - startY, 2));
 
-  // Se o usuário moveu o dedo além do limite, cancelamos o preview para deixar o drag fluir
+  // Se mover mais que o limite, cancela o preview definitivamente
   if (dist > moveThreshold) {
-    clearTimeout(touchTimer);
+    cancelCardPreview();
   }
 }, { passive: true });
 
-document.addEventListener('touchend', () => {
-  clearTimeout(touchTimer);
-});
+// CRÍTICO: Cancela o timer ao soltar a carta ou se o sistema cancelar o toque
+document.addEventListener('touchend', cancelCardPreview);
+document.addEventListener('touchcancel', cancelCardPreview);
+
+// Garante que o drag and drop do navegador também cancele o preview
+document.addEventListener('dragstart', cancelCardPreview);
