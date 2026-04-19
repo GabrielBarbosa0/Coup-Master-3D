@@ -1699,7 +1699,7 @@ document.addEventListener('touchstart', (e) => {
       openCardPreviewModal(cardData); //
       if (navigator.vibrate) navigator.vibrate(50); 
     }
-  }, 500); 
+  }, 999); 
 }, { passive: true });
 
 document.addEventListener('touchmove', (e) => {
