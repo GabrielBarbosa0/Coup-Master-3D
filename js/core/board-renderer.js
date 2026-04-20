@@ -256,7 +256,7 @@ function renderAll() {
     }
 
     // Verifica se é Desktop (>= 1200px)
-    if (window.innerWidth >= 1200) {
+    if (window.innerWidth >= 769) {
       let cols = 5; // Padrão
 
       if (activeCount === 1) cols = 1;
@@ -1643,7 +1643,7 @@ function openCardPreviewModal(card) {
 
   // Reseta a rotação para a face frontal ao abrir
   if (flipInner) flipInner.style.transform = 'rotateY(0deg)';
-  
+
   if (modal) modal.style.display = 'flex';
 
   // Executa som de deslize de carta
@@ -1667,8 +1667,7 @@ document.getElementById('previewFlipCard').onclick = function () {
   // Alterna entre 0 e 180 graus para exibir o verso padrão
   const isFlipped = inner.style.transform === 'rotateY(180deg)';
   inner.style.transform = isFlipped ? 'rotateY(0deg)' : 'rotateY(180deg)';
-  
+
   if (typeof playSound === 'function') playSound('card-slide');
 };
-
 
