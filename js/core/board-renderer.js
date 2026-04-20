@@ -1647,7 +1647,7 @@ function openCardPreviewModal(card) {
   if (modal) modal.style.display = 'flex';
 
   // Executa som de deslize de carta
-  if (typeof playSound === 'function') playSound('card-slide');
+  // if (typeof playSound === 'function') playSound('card-slide');
 }
 
 /**
