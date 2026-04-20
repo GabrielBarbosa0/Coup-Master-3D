@@ -2,6 +2,10 @@
 
 ![Status](https://img.shields.io/badge/Status-Beta_v0.5-blue) ![Firebase](https://img.shields.io/badge/Firebase-Auth_%26_Database-orange)
 
+<p align="center">
+  <img src="./marketing/banners/banner-coup-master.png" alt="Coup Master Banner" width="100%">
+</p>
+
 ## 📖 Sobre o Projeto
 
 **Coup Master** é um jogo multiplayer **sandbox** inspirado em jogos de blefe e estratégia política. 
