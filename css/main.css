@@ -1055,6 +1055,64 @@ body.hide-religion .decks-wrapper {
        ======================================================= */
 
 
+/* Container do Modal de Feedback */
+#feedbackModal .modal-actions-and-rules {
+    background: #171d26; /* Fundo para combinar com o Tally Dark */
+    border: 2px solid var(--accent);
+    border-radius: 15px;
+    padding: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    /* REMOVEMOS o overflow: hidden para o botão aparecer fora */
+    overflow: visible; 
+}
+
+/* Garante que o iframe respeite o arredondamento das bordas */
+#feedbackModal iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 13px; /* Um pouco menor que o container para encaixar */
+    display: block;
+}
+
+/* Botão de Fechar flutuando fora (Igual às cartas de regra) */
+#feedbackModal .close-btn {
+    position: absolute;
+    /* Valores negativos jogam o botão para fora da div azul */
+    top: -15px;
+    right: -15px;
+    z-index: 1010;
+    /* Estilos extras para garantir visibilidade */
+    background: var(--bg);
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+}
+
+/* Estilização da Scrollbar para o Iframe (WebKit) */
+/* Nota: Como o iframe é um documento externo, a barra de rolagem principal 
+   deve ser tratada no container se o iframe for maior que o modal */
+#feedbackModal .modal-actions-and-rules::-webkit-scrollbar {
+    width: 6px;
+}
+
+#feedbackModal .modal-actions-and-rules::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+#feedbackModal .modal-actions-and-rules::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 10px;
+}
 
 
 #tutorialModal .modal-content {
@@ -1098,7 +1156,7 @@ body.hide-religion .decks-wrapper {
 
 /* Título principal do modal */
 #settingsModal h2 {
-    margin-bottom: 20px;
+    margin-bottom: 0px;
     font-size: 24px;
 }
 
@@ -1788,16 +1846,23 @@ body.hide-religion .decks-wrapper {
         gap: 4px;
     }
 
-    header h1{
+    header h1 {
         margin: 0;
         font-size: 12px;
         letter-spacing: 1px;
     }
 
-    .resetBtn, .infoBtn, .shuffleBtn, .configBtn, .musicBtn, .altRulesBtn, .fullscreenBtn, .spectatorBtn {
-    width: 30px;
-    height: 30px;
-}
+    .resetBtn,
+    .infoBtn,
+    .shuffleBtn,
+    .configBtn,
+    .musicBtn,
+    .altRulesBtn,
+    .fullscreenBtn,
+    .spectatorBtn {
+        width: 30px;
+        height: 30px;
+    }
 }
 
 

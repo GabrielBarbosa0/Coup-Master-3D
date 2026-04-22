@@ -660,6 +660,28 @@ function setupUI() {
   }
 
 
+// Feedback Modal
+const feedbackModal = document.getElementById('feedbackModal');
+const openFeedbackBtn = document.getElementById('openFeedbackBtn');
+const closeFeedbackBtn = document.getElementById('closeFeedbackBtn');
+
+if (openFeedbackBtn && feedbackModal) {
+  openFeedbackBtn.onclick = () => {
+    if (typeof playSound === 'function') playSound('click');
+    feedbackModal.style.display = 'flex';
+    // Opcional: fecha o modal de configurações ao abrir o de feedback
+    document.getElementById('settingsModal').style.display = 'none';
+  };
+}
+
+if (closeFeedbackBtn) {
+  closeFeedbackBtn.onclick = () => {
+    if (typeof playSound === 'function') playSound('click');
+    feedbackModal.style.display = 'none';
+  };
+}
+
+
   // --- 2. CONTROLES DE AMBIENTE E TELA ---
 
   // Alternância de Tela Cheia (Fullscreen)
