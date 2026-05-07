@@ -660,26 +660,26 @@ function setupUI() {
   }
 
 
-// Feedback Modal
-const feedbackModal = document.getElementById('feedbackModal');
-const openFeedbackBtn = document.getElementById('openFeedbackBtn');
-const closeFeedbackBtn = document.getElementById('closeFeedbackBtn');
+  // Feedback Modal
+  const feedbackModal = document.getElementById('feedbackModal');
+  const openFeedbackBtn = document.getElementById('openFeedbackBtn');
+  const closeFeedbackBtn = document.getElementById('closeFeedbackBtn');
 
-if (openFeedbackBtn && feedbackModal) {
-  openFeedbackBtn.onclick = () => {
-    if (typeof playSound === 'function') playSound('click');
-    feedbackModal.style.display = 'flex';
-    // Opcional: fecha o modal de configurações ao abrir o de feedback
-    document.getElementById('settingsModal').style.display = 'none';
-  };
-}
+  if (openFeedbackBtn && feedbackModal) {
+    openFeedbackBtn.onclick = () => {
+      if (typeof playSound === 'function') playSound('click');
+      feedbackModal.style.display = 'flex';
+      // Opcional: fecha o modal de configurações ao abrir o de feedback
+      document.getElementById('settingsModal').style.display = 'none';
+    };
+  }
 
-if (closeFeedbackBtn) {
-  closeFeedbackBtn.onclick = () => {
-    if (typeof playSound === 'function') playSound('click');
-    feedbackModal.style.display = 'none';
-  };
-}
+  if (closeFeedbackBtn) {
+    closeFeedbackBtn.onclick = () => {
+      if (typeof playSound === 'function') playSound('click');
+      feedbackModal.style.display = 'none';
+    };
+  }
 
 
   // --- 2. CONTROLES DE AMBIENTE E TELA ---
@@ -1634,14 +1634,19 @@ if (leaveRoomBtn) {
  * Se o alvo for uma carta válida, abre o modal de visualização detalhada.
  */
 document.addEventListener('contextmenu', (e) => {
-  e.preventDefault(); // Bloqueia o menu padrão do navegador
+  // Se o evento foi disparado por um toque (tablet/mobile), ignoramos
+  // e deixamos o navegador seguir com o fluxo normal de drag.
+  if (e.pointerType === 'touch' || e.pointerType === 'pen') {
+    return;
+  }
+
+  e.preventDefault();
   const cardEl = e.target.closest('.card');
 
   if (cardEl) {
     const cardId = cardEl.dataset.cardId;
-    const cardData = findCardById(localGameState, cardId); // Busca dados reais no rules.js
+    const cardData = findCardById(localGameState, cardId);
 
-    // Só abre o preview se não for o verso de outro jogador
     if (cardData && !shouldShowBack(cardData)) {
       openCardPreviewModal(cardData);
     }
