@@ -207,6 +207,71 @@ function createCardElement(card) {
     el.style.backgroundImage = `url('${imageUrl}')`;
   }
 
+  // =======================================================
+  // === NOVO: CONTROLE DE SCALE E Z-INDEX NO MOBILE ===
+  // =======================================================
+  
+  // Garante que a carta começa com uma posição relativa para o z-index funcionar
+  el.style.position = "relative";
+  el.style.transition = "transform 0.2s ease, z-index 0.2s ease, box-shadow 0.2s ease";
+
+  // 1. Clique Simples: Alterna o Zoom e joga para a frente de tudo
+  el.addEventListener('click', (e) => {
+    // Pequeno delay para garantir que não é o primeiro toque de um duplo clique
+    if (e.detail === 1) { 
+      setTimeout(() => {
+        // Se o utilizador fez clique duplo rápido, cancela esta execução do clique simples
+        if (el.dataset.doubleClicked === 'true') {
+          el.dataset.doubleClicked = 'false';
+          return;
+        }
+
+        const isAmplified = el.dataset.amplied === 'true';
+
+        // Remove o zoom de qualquer outra carta que tenha ficado aberta na mesa
+        document.querySelectorAll('.card').forEach(otherCard => {
+          if (otherCard !== el && otherCard.dataset.amplied === 'true') {
+            otherCard.style.zIndex = "";
+            otherCard.style.transform = "";
+            otherCard.style.boxShadow = "";
+            otherCard.dataset.amplied = 'false';
+          }
+        });
+
+        if (!isAmplified) {
+          // Ativa o Zoom Máximo e coloca na camada superior (z-index 999)
+          el.style.zIndex = "999";
+          // Preserva as rotações 3D se houverem e aplica scale(2.0)
+          el.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(2.5) translateY(0px)`;
+          el.style.boxShadow = "0 10px 30px rgba(0,0,0,0.7)";
+          el.dataset.amplied = 'true';
+        } else {
+          // Volta ao estado normal da mesa
+          el.style.zIndex = "";
+          el.style.transform = "";
+          el.style.boxShadow = "";
+          el.dataset.amplied = 'false';
+        }
+      }, 220);
+    }
+  });
+
+  // 2. Clique Duplo Rápido: Reseta os estilos inline e envia de volta para o Deck
+  el.addEventListener('dblclick', () => {
+    el.dataset.doubleClicked = 'true';
+    
+    // Limpa os estilos de ampliação antes de devolver
+    el.style.zIndex = "";
+    el.style.transform = "";
+    el.style.boxShadow = "";
+    el.dataset.amplied = 'false';
+
+    // Executa a tua função original de devolver a carta ao deck
+    returnCardToDeck(card.id);
+  });
+
+  // =======================================================
+
   // --- EVENTOS DE ARRASTAR (DRAG & DROP) ---
   el.addEventListener('dragstart', (ev) => {
     ev.dataTransfer.setData('text/plain', card.id);
@@ -604,7 +669,8 @@ function attachBalatroEffect(element, isDeck = false) {
     const wave = isDeck ? "0px" : "var(--y-offset)";
 
     // A mágica: perspective + rotação + a onda atual
-    element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.3) translateY(${wave})`;
+    // No cálculo do efeito 3D / mousemove:
+    element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(var(--custom-scale, 1.3)) translateY(${wave})`;
 
     // Brilho azul neon para as cartas e deck
     element.style.boxShadow = `${-rotateY * 0.5}px ${rotateX * 0.5}px 40px rgba(0, 191, 255, 0.4)`;
