@@ -2052,3 +2052,8 @@ body.hide-religion .decks-wrapper {
         --deck-scale: 0.95; 
     }
 }
+
+#openFeedbackBtn {
+    background-color: #2ecc71; /* Verde moderno e limpo */
+    color: white;
+}
