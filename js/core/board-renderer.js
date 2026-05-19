@@ -1772,3 +1772,76 @@ document.getElementById('previewFlipCard').onclick = function () {
   if (typeof playSound === 'function') playSound('card-slide');
 };
 
+
+
+/**
+ * APLICA UM PRESET DE CONFIGURAÇÃO DE BARALHO NOS INPUTS DO MODAL
+ * Configura as cartas em lote separando por Jogo Base e suas respectivas DLCs.
+ */
+window.applyDeckPreset = (presetType) => {
+  const configInputs = document.querySelectorAll('.card-config-item input');
+  if (!configInputs.length) return;
+
+  // Separação exata baseada nas pastas e lógica do seu código
+  const baseChars = ['assassino', 'capitao', 'condessa', 'duque', 'embaixador', 'inquisidor'];
+  const dlc1Chars = ['benfeitor', 'bufao', 'burgues', 'burocrata'];
+  const dlc2Chars = ['bispo', 'diplomata', 'marionetista', 'mercenario', 'tesoureiro', 'vigilante'];
+  const dlc3Chars = ['estrategista', 'ladrao', 'magnata', 'pistoleiro', 'vigarista', 'xerife'];
+
+  if (typeof playSound === 'function') playSound('pop');
+
+  configInputs.forEach(input => {
+    const card = input.dataset.card;
+
+    switch (presetType) {
+      case 'standard':
+        // Define 5 cartas apenas para o Jogo Base e zera o resto
+        if (baseChars.includes(card)) {
+          input.value = 5;
+        } else {
+          input.value = 0;
+        }
+        break;
+
+      case 'base_dlc1':
+        // Ativa apenas as cartas do Jogo Base + DLC 1 (5 de cada)
+        if (baseChars.includes(card) || dlc1Chars.includes(card)) {
+          input.value = 5;
+        } else {
+          input.value = 0;
+        }
+        break;
+
+      case 'base_dlc2':
+        // Ativa apenas as cartas do Jogo Base + DLC 2 (5 de cada)
+        if (baseChars.includes(card) || dlc2Chars.includes(card)) {
+          input.value = 5;
+        } else {
+          input.value = 0;
+        }
+        break;
+
+      case 'base_dlc3':
+        // Ativa apenas as cartas do Jogo Base + DLC 3 / Promo (5 de cada)
+        if (baseChars.includes(card) || dlc3Chars.includes(card)) {
+          input.value = 5;
+        } else {
+          input.value = 0;
+        }
+        break;
+
+      case 'caos':
+        // Coloca 5 em absolutamente todas as cartas do jogo
+        input.value = 5;
+        break;
+
+      case 'clear':
+        // Zera todos os campos para configuração manual do zero
+        input.value = 0;
+        break;
+
+      default:
+        input.value = 0;
+    }
+  });
+};
