@@ -1856,6 +1856,16 @@ window.applyDeckPreset = (presetType) => {
         input.value = 5;
         break;
 
+      case 'duel':
+        // === NOVO PRESET DE DUELO ===
+        // Define exatamente 3 cópias apenas para as cartas do Jogo Base e zera o resto
+        if (baseChars.includes(card)) {
+          input.value = 3;
+        } else {
+          input.value = 0;
+        }
+        break;
+
       case 'test':
         // === NOVO PRESET DE DESENVOLVIMENTO ===
         // Força exatamente 1 cópia de absolutamente todas as influências do jogo
