@@ -1857,14 +1857,15 @@ window.applyDeckPreset = (presetType) => {
         break;
 
       case 'duel':
-        // === NOVO PRESET DE DUELO ===
-        // Define exatamente 3 cópias apenas para as cartas do Jogo Base e zera o resto
-        if (baseChars.includes(card)) {
-          input.value = 3;
-        } else {
-          input.value = 0;
-        }
-        break;
+        // Em vez de preencher direto, abre o modal de escolha e interrompe o loop
+        if (typeof playSound === 'function') playSound('click');
+        const dModal = document.getElementById('duelModal');
+        if (dModal) dModal.style.display = 'flex';
+
+        // Fecha o modal de configurações de fundo para não poluir a tela
+        const sModal = document.getElementById('settingsModal');
+        if (sModal) sModal.style.display = 'none';
+        return;
 
       case 'test':
         // === NOVO PRESET DE DESENVOLVIMENTO ===
@@ -1881,4 +1882,45 @@ window.applyDeckPreset = (presetType) => {
         input.value = 0;
     }
   });
+};
+
+
+
+/**
+ * CONFIRMA E APLICA O PRESET DE DUELO COM A ESCOLHA DO JOGADOR
+ * Adiciona 3 cópias de cada carta base + 3 da escolhida (Total: 15 cartas)
+ */
+window.confirmDuelPreset = (chosenCard) => {
+  const configInputs = document.querySelectorAll('.card-config-item input');
+  if (!configInputs.length) return;
+
+  // Lista das cartas base fixas (sem embaixador e inquisidor)
+  const fixedBaseChars = ['assassino', 'capitao', 'condessa', 'duque'];
+
+  if (typeof playSound === 'function') playSound('pop');
+
+  configInputs.forEach(input => {
+    const card = input.dataset.card;
+
+    if (fixedBaseChars.includes(card) || card === chosenCard) {
+      // Aplica 3 cópias para as fixas e para a carta escolhida
+      input.value = 3;
+    } else {
+      // Zera todo o resto, garantindo que o rival direto fique em 0
+      input.value = 0;
+    }
+  });
+
+  // Fecha o modal de duelo e reabre o de configuração com os novos dados na tela
+  closeDuelModal();
+  const configModal = document.getElementById('configModal');
+  if (configModal) configModal.style.display = 'flex';
+};
+
+/**
+ * FECHA O MODAL DE DUELO
+ */
+window.closeDuelModal = () => {
+  const dModal = document.getElementById('duelModal');
+  if (dModal) dModal.style.display = 'none';
 };

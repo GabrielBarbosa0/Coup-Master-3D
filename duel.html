@@ -60,13 +60,6 @@
           <button id="musicBtn" class="musicBtn" title="Música de Fundo"><img src="assets/img/icons/music_note.svg"
               alt="Música"></button>
 
-          <button id="altRulesBtn" class="altRulesBtn" title="Regras Alternativas">
-            <img src="assets/img/icons/parchment.svg" alt="Regras Alternativas"></button>
-
-          <button id="spectatorBtn" class="spectatorBtn" title="Modo Espectador" style="display: none;">
-            <img src="assets/img/icons/ghost.svg" alt="Espectar">
-          </button>
-
           <button id="fullscreenBtn" class="fullscreenBtn" title="Tela Cheia">
             <img src="assets/img/icons/fullscreen.svg" alt="Tela Cheia">
           </button>
@@ -103,102 +96,6 @@
               <button class="plus">+</button>
             </div>
             <div class="religion-status" data-pid="2"></div>
-            <div class="player-stack hand" data-hand></div>
-          </div>
-
-          <div class="player-area" id="player-3" data-player="3">
-            <button class="remove-player" data-pid="3" title="Remover Jogador"></button>
-            <div class="player-title">Jogador 3</div>
-            <div class="points">
-              <button class="minus">-</button>
-              <div class="score" data-score="0">0</div>
-              <button class="plus">+</button>
-            </div>
-            <div class="religion-status" data-pid="3"></div>
-            <div class="player-stack hand" data-hand></div>
-          </div>
-
-          <div class="player-area" id="player-4" data-player="4">
-            <button class="remove-player" data-pid="4" title="Remover Jogador"></button>
-            <div class="player-title">Jogador 4</div>
-            <div class="points">
-              <button class="minus">-</button>
-              <div class="score" data-score="0">0</div>
-              <button class="plus">+</button>
-            </div>
-            <div class="religion-status" data-pid="4"></div>
-            <div class="player-stack hand" data-hand></div>
-          </div>
-
-          <div class="player-area" id="player-5" data-player="5">
-            <button class="remove-player" data-pid="5" title="Remover Jogador"></button>
-            <div class="player-title">Jogador 5</div>
-            <div class="points">
-              <button class="minus">-</button>
-              <div class="score" data-score="0">0</div>
-              <button class="plus">+</button>
-            </div>
-            <div class="religion-status" data-pid="5"></div>
-            <div class="player-stack hand" data-hand></div>
-          </div>
-
-          <div class="player-area" id="player-6" data-player="6">
-            <button class="remove-player" data-pid="6" title="Remover Jogador"></button>
-            <div class="player-title">Jogador 6</div>
-            <div class="points">
-              <button class="minus">-</button>
-              <div class="score" data-score="0">0</div>
-              <button class="plus">+</button>
-            </div>
-            <div class="religion-status" data-pid="6"></div>
-            <div class="player-stack hand" data-hand></div>
-          </div>
-
-          <div class="player-area" id="player-7" data-player="7">
-            <button class="remove-player" data-pid="7" title="Remover Jogador"></button>
-            <div class="player-title">Jogador 7</div>
-            <div class="points">
-              <button class="minus">-</button>
-              <div class="score" data-score="0">0</div>
-              <button class="plus">+</button>
-            </div>
-            <div class="religion-status" data-pid="7"></div>
-            <div class="player-stack hand" data-hand></div>
-          </div>
-
-          <div class="player-area" id="player-8" data-player="8">
-            <button class="remove-player" data-pid="8" title="Remover Jogador"></button>
-            <div class="player-title">Jogador 8</div>
-            <div class="points">
-              <button class="minus">-</button>
-              <div class="score" data-score="0">0</div>
-              <button class="plus">+</button>
-            </div>
-            <div class="religion-status" data-pid="8"></div>
-            <div class="player-stack hand" data-hand></div>
-          </div>
-
-          <div class="player-area" id="player-9" data-player="9">
-            <button class="remove-player" data-pid="9" title="Remover Jogador"></button>
-            <div class="player-title">Jogador 9</div>
-            <div class="points">
-              <button class="minus">-</button>
-              <div class="score" data-score="0">0</div>
-              <button class="plus">+</button>
-            </div>
-            <div class="religion-status" data-pid="9"></div>
-            <div class="player-stack hand" data-hand></div>
-          </div>
-
-          <div class="player-area" id="player-10" data-player="10">
-            <button class="remove-player" data-pid="10" title="Remover Jogador"></button>
-            <div class="player-title">Jogador 10</div>
-            <div class="points">
-              <button class="minus">-</button>
-              <div class="score" data-score="0">0</div>
-              <button class="plus">+</button>
-            </div>
-            <div class="religion-status" data-pid="10"></div>
             <div class="player-stack hand" data-hand></div>
           </div>
 
@@ -263,16 +160,6 @@
     <div class="modal-actions-and-rules">
       <button id="closeAltRulesBtn" class="close-btn">&times;</button>
 
-      <div class="flip-card flip-horizontal-left" id="altRulesFlipCard">
-        <div class="flip-card-inner">
-          <div class="flip-card-front">
-            <img src="assets/img/guides/alternative-rules1.png" alt="Regras Alt Frente">
-          </div>
-          <div class="flip-card-back">
-            <img src="assets/img/guides/alternative-rules2.png" alt="Regras Alt Verso">
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -299,9 +186,6 @@
 
         <div class="deck-presets-container">
           <button type="button" class="preset-btn" onclick="applyDeckPreset('standard')">Base</button>
-          <button type="button" class="preset-btn" onclick="applyDeckPreset('base_promo')">Base + Promo</button>
-          <button type="button" class="preset-btn" onclick="applyDeckPreset('base_dlc1')">Base + DLC 1</button>
-          <button type="button" class="preset-btn" onclick="applyDeckPreset('base_dlc2')">Base + DLC 2</button>
           <button type="button" class="preset-btn" onclick="applyDeckPreset('duel')">Duelo</button>
           <button type="button" class="preset-btn" onclick="applyDeckPreset('test')">Modo Teste</button>
           <button type="button" class="preset-btn" onclick="applyDeckPreset('caos')">Todas</button>
@@ -336,95 +220,6 @@
           <input type="number" id="config-inquisidor" data-card="inquisidor" min="0" max="10" value="5">
         </li>
 
-        <li class="title-dlc-card-config-item">
-          <p>"Sombras do Palácio"</p>
-        </li>
-
-        <li class="card-config-item">
-          <label for="config-bufao">Bufão</label>
-          <input type="number" id="config-bufao" data-card="bufao" min="0" max="10" value="0">
-        </li>
-
-        <li class="card-config-item">
-          <label for="config-burocrata">Burocrata</label>
-          <input type="number" id="config-burocrata" data-card="burocrata" min="0" max="10" value="0">
-        </li>
-
-        <li class="card-config-item">
-          <label for="config-benfeitor">Benfeitor</label>
-          <input type="number" id="config-benfeitor" data-card="benfeitor" min="0" max="10" value="0">
-        </li>
-
-        <li class="card-config-item">
-          <label for="config-burgues">Burguês</label>
-          <input type="number" id="config-burgues" data-card="burgues" min="0" max="10" value="0">
-        </li>
-
-        <li class="title-dlc-card-config-item">
-          <p>"A Revolução"</p>
-        </li>
-
-        <li class="card-config-item">
-          <label for="config-marionetista">Marionetista</label>
-          <input type="number" id="config-marionetista" data-card="marionetista" min="0" max="10" value="0">
-        </li>
-
-        <li class="card-config-item">
-          <label for="config-diplomata">Diplomata</label>
-          <input type="number" id="config-diplomata" data-card="diplomata" min="0" max="10" value="0">
-        </li>
-
-        <li class="card-config-item">
-          <label for="config-mercenario">Mercenário</label>
-          <input type="number" id="config-mercenario" data-card="mercenario" min="0" max="10" value="0">
-        </li>
-
-        <li class="card-config-item">
-          <label for="config-bispo">Bispo</label>
-          <input type="number" id="config-bispo" data-card="bispo" min="0" max="10" value="0">
-        </li>
-
-        <li class="card-config-item">
-          <label for="config-tesoureiro">Tesoureiro</label>
-          <input type="number" id="config-tesoureiro" data-card="tesoureiro" min="0" max="10" value="0">
-        </li>
-
-        <li class="card-config-item">
-          <label for="config-vigilante">Vigilante</label>
-          <input type="number" id="config-vigilante" data-card="vigilante" min="0" max="10" value="0">
-        </li>
-
-
-        <li class="title-dlc-card-config-item">
-          <p>"Sombras do Asilo"</p>
-        </li>
-
-        <li class="card-config-item">
-          <label for="config-pistoleiro">Pistoleiro
-          </label>
-          <input type="number" id="config-pistoleiro" data-card="pistoleiro" min="0" max="10" value="0">
-        </li>
-        <li class="card-config-item">
-          <label for="config-magnata">Magnata</label>
-          <input type="number" id="config-magnata" data-card="magnata" min="0" max="10" value="0">
-        </li>
-        <li class="card-config-item">
-          <label for="config-estrategista">Estrategista</label>
-          <input type="number" id="config-estrategista" data-card="estrategista" min="0" max="10" value="0">
-        </li>
-        <li class="card-config-item">
-          <label for="config-ladrao">Ladrão</label>
-          <input type="number" id="config-ladrao" data-card="ladrao" min="0" max="10" value="0">
-        </li>
-        <li class="card-config-item">
-          <label for="config-vigarista">Vigarista</label>
-          <input type="number" id="config-vigarista" data-card="vigarista" min="0" max="10" value="0">
-        </li>
-        <li class="card-config-item">
-          <label for="config-xerife">Xerife</label>
-          <input type="number" id="config-xerife" data-card="xerife" min="0" max="10" value="0">
-        </li>
-
       </ul>
       <button id="applyDeckConfigBtn">Aplicar e Resetar Jogo</button>
     </div>
@@ -457,14 +252,6 @@
         </div>
 
         <div class="setting-row">
-          <label>Religião:</label>
-          <button id="toggleReligionBtn" class="icon-btn" title="Mostrar/Ocultar Religião">
-            <img src="assets/img/icons/eye.svg" alt="Ver" style="width: 24px; height: 24px;">
-            <span style="margin-left: 4px;">Visível</span>
-          </button>
-        </div>
-
-        <div class="setting-row">
           <label>Adicionar Bot:</label>
           <button id="addBotBtn" class="icon-btn" title="Adicionar Jogador Fantasma">
             <img src="assets/img/icons/robot.svg" alt="Bot" style="width: 24px; height: 24px;">
@@ -479,10 +266,8 @@
           </button>
         </div>
 
-        <!-- <hr style="border: 0; border-top: 1px solid var(--muted); margin: 10px 0;"> -->
 
         <h2>Gráficos e Efeitos</h2>
-
 
         <div class="setting-row">
           <label>Fundo Animado:</label>
@@ -558,33 +343,6 @@
     </div>
   </div>
 
-  <div id="spectateRequestModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="text-align: center; max-width: 320px;">
-      <h2 class="config-title">Pedido de Espectador</h2>
-      <p id="spectateRequestText" class="config-p-title"
-        style="font-size: 14px; opacity: 0.7; margin-bottom: 20px; margin-top: 20px;">
-        Alguém deseja te assistir.
-      </p>
-      <div style="display: flex; gap: 12px; justify-content: center;">
-        <button id="acceptSpectateBtn" class="icon-btn"
-          style="background: var(--active); color: #000; flex: 1; justify-content: center; font-weight: bold; border: none;">ACEITAR</button>
-        <button id="denySpectateBtn" class="icon-btn"
-          style="background: rgba(255,255,255,0.1); flex: 1; justify-content: center; border: none;">RECUSAR</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="waitSpectateModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="text-align: center; max-width: 320px;">
-      <h2 class="config-title">Solicitação Enviada!</h2>
-      <div class="spinner" style="margin: 20px auto; width: 30px; height: 30px;"></div>
-      <p class="config-p-title" style="font-size: 14px; opacity: 0.7; margin-bottom: 25px;">
-        Aguardando aprovação do jogador...
-      </p>
-      <button id="closeWaitModalBtn" class="icon-btn"
-        style="background: var(--accent); color: white; width: 100%; justify-content: center; font-weight: bold; border: none;">OK</button>
-    </div>
-  </div>
 
   <div id="kickPlayerModal" class="modal-overlay" style="display: none;">
     <div class="modal-content" style="text-align: center; max-width: 300px;">
@@ -610,17 +368,6 @@
       </p>
       <button id="closeFullRoomBtn" class="icon-btn"
         style="background: var(--accent); color: white; width: 100%; justify-content: center; font-weight: bold; border: none; padding: 12px;">OK</button>
-    </div>
-  </div>
-
-
-  <div id="spectatorModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 320px; text-align: center;">
-      <button id="closeSpectatorModalBtn" class="close-btn">&times;</button>
-      <h2 style="margin-bottom: 10px;">Modo Espectador</h2>
-      <p class="muted" style="margin-bottom: 20px;">Escolha um jogador para assistir:</p>
-      <div id="spectator-list" class="spectator-list" style="display: flex; flex-direction: column; gap: 10px;">
-      </div>
     </div>
   </div>
 
@@ -655,15 +402,10 @@
           <img src="assets/img/icons/paid.svg" style="width: 24px; filter: brightness(0) invert(1);">
           <p>
             <strong>Economia:</strong> Use <strong style="font-size: 20px;">+</strong> / <strong
-              style="font-size: 20px;">-</strong> para gerir moedas ou <strong>2 cliques</strong> no Asilo para sacar
-            tudo de uma vez.
+              style="font-size: 20px;">-</strong> para gerir moedas ou <strong>2 cliques</strong>
           </p>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <img src="assets/img/icons/shield-cross.svg" style="width: 24px; filter: brightness(0) invert(1);">
-          <p><strong>Religião:</strong> Clique no badge de religião para alternar entre Católico e Protestante.</p>
-        </div>
       </div>
 
       <button id="startPlayBtn" class="icon-btn"
