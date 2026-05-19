@@ -237,6 +237,7 @@ function createCardElement(card) {
         // Remove o zoom de qualquer outra carta que tenha ficado aberta na mesa
         document.querySelectorAll('.card').forEach(otherCard => {
           if (otherCard !== el && otherCard.dataset.amplied === 'true') {
+            otherCard.style.transition = "transform 0.25s ease-out, z-index 0.25s ease-out, box-shadow 0.25s ease-out";
             otherCard.style.zIndex = "";
             otherCard.style.transform = "";
             otherCard.style.boxShadow = "";
@@ -245,6 +246,9 @@ function createCardElement(card) {
         });
 
         if (!isAmplified) {
+          // FORÇA A TRANSIÇÃO: Garante que o navegador vai animar o crescimento de forma fluida
+          el.style.transition = "transform 0.25s ease-out, z-index 0.25s ease-out, box-shadow 0.25s ease-out";
+
           // Ativa o Zoom e coloca na camada superior (z-index 999)
           el.style.zIndex = "999";
           el.style.boxShadow = "0 10px 30px rgba(0,0,0,0.7)";
@@ -259,9 +263,10 @@ function createCardElement(card) {
             el.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1.15) translateY(var(--y-offset, 0px))`;
           }
 
-
-
         } else {
+          // FORÇA A TRANSIÇÃO: Garante que ela vai diminuir suavemente de volta para a mesa
+          el.style.transition = "transform 0.25s ease-out, z-index 0.25s ease-out, box-shadow 0.25s ease-out";
+
           // Volta ao estado normal da mesa
           el.style.zIndex = "";
           el.style.transform = "";
@@ -1798,11 +1803,11 @@ window.applyDeckPreset = (presetType) => {
   const configInputs = document.querySelectorAll('.card-config-item input');
   if (!configInputs.length) return;
 
-  // Separação exata baseada nas pastas e lógica do seu código
+  // Separação exata alinhada com as regras oficiais do Coup
   const baseChars = ['assassino', 'capitao', 'condessa', 'duque', 'embaixador', 'inquisidor'];
-  const dlc1Chars = ['benfeitor', 'bufao', 'burgues', 'burocrata'];
-  const dlc2Chars = ['bispo', 'diplomata', 'marionetista', 'mercenario', 'tesoureiro', 'vigilante'];
-  const dlc3Chars = ['estrategista', 'ladrao', 'magnata', 'pistoleiro', 'vigarista', 'xerife'];
+  const promoChars = ['benfeitor', 'bufao', 'burgues', 'burocrata'];
+  const dlc1Chars = ['bispo', 'diplomata', 'marionetista', 'mercenario', 'tesoureiro', 'vigilante'];
+  const dlc2Chars = ['estrategista', 'ladrao', 'magnata', 'pistoleiro', 'vigarista', 'xerife'];
 
   if (typeof playSound === 'function') playSound('pop');
 
@@ -1819,8 +1824,17 @@ window.applyDeckPreset = (presetType) => {
         }
         break;
 
+      case 'base_promo':
+        // CORRIGIDO: Ativa Jogo Base + Cartas Promo (5 de cada)
+        if (baseChars.includes(card) || promoChars.includes(card)) {
+          input.value = 5;
+        } else {
+          input.value = 0;
+        }
+        break;
+
       case 'base_dlc1':
-        // Ativa apenas as cartas do Jogo Base + DLC 1 (5 de cada)
+        // CORRIGIDO: Ativa Jogo Base + Cartas da DLC 1 (5 de cada)
         if (baseChars.includes(card) || dlc1Chars.includes(card)) {
           input.value = 5;
         } else {
@@ -1829,17 +1843,8 @@ window.applyDeckPreset = (presetType) => {
         break;
 
       case 'base_dlc2':
-        // Ativa apenas as cartas do Jogo Base + DLC 2 (5 de cada)
+        // CORRIGIDO: Ativa Jogo Base + Cartas da DLC 2 (5 de cada)
         if (baseChars.includes(card) || dlc2Chars.includes(card)) {
-          input.value = 5;
-        } else {
-          input.value = 0;
-        }
-        break;
-
-      case 'base_dlc3':
-        // Ativa apenas as cartas do Jogo Base + DLC 3 / Promo (5 de cada)
-        if (baseChars.includes(card) || dlc3Chars.includes(card)) {
           input.value = 5;
         } else {
           input.value = 0;
@@ -1849,6 +1854,12 @@ window.applyDeckPreset = (presetType) => {
       case 'caos':
         // Coloca 5 em absolutamente todas as cartas do jogo
         input.value = 5;
+        break;
+
+      case 'test':
+        // === NOVO PRESET DE DESENVOLVIMENTO ===
+        // Força exatamente 1 cópia de absolutamente todas as influências do jogo
+        input.value = 1;
         break;
 
       case 'clear':

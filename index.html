@@ -294,13 +294,15 @@
       <button id="closeConfigModalBtn" class="close-btn">&times;</button>
       <h2 class="config-title">Configurar Baralho</h2>
       <p class="muted config-p-title">(Use 0 para remover uma carta)</p>
+      
       <ul class="card-config-list">
 
         <div class="deck-presets-container">
           <button type="button" class="preset-btn" onclick="applyDeckPreset('standard')">Base</button>
+          <button type="button" class="preset-btn" onclick="applyDeckPreset('base_promo')">Base + Promo</button>
           <button type="button" class="preset-btn" onclick="applyDeckPreset('base_dlc1')">Base + DLC 1</button>
           <button type="button" class="preset-btn" onclick="applyDeckPreset('base_dlc2')">Base + DLC 2</button>
-          <button type="button" class="preset-btn" onclick="applyDeckPreset('base_dlc3')">Base + DLC 3</button>
+          <button type="button" class="preset-btn" onclick="applyDeckPreset('test')">Modo Teste (1x)</button>
           <button type="button" class="preset-btn" onclick="applyDeckPreset('caos')">Todas</button>
           <button type="button" class="preset-btn" onclick="applyDeckPreset('clear')">Zerar Tudo</button>
         </div>
