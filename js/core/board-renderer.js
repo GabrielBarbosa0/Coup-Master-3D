@@ -210,21 +210,21 @@ function createCardElement(card) {
   // =======================================================
   // === NOVO: CONTROLE DE SCALE E Z-INDEX NO MOBILE ===
   // =======================================================
-  
+
   // Garante que a carta começa com uma posição relativa para o z-index funcionar
   el.style.position = "relative";
   el.style.transition = "transform 0.2s ease, z-index 0.2s ease, box-shadow 0.2s ease";
 
-// 1. Clique Simples: Alterna o Zoom e joga para a frente de tudo
+  // 1. Clique Simples: Alterna o Zoom e joga para a frente de tudo
   el.addEventListener('click', (e) => {
-    
+
     // TRAVA DEFINITIVA E SIMPLES: A carta está fisicamente no cemitério ou no baralho?
     if (el.closest('#freeArea') || el.closest('.deck-area')) {
       return; // Se sim, mata o script aqui e não dá zoom!
     }
 
     // Pequeno delay para garantir que não é o primeiro toque de um duplo clique
-    if (e.detail === 1) { 
+    if (e.detail === 1) {
       setTimeout(() => {
         // Se o utilizador fez clique duplo rápido, cancela esta execução do clique simples
         if (el.dataset.doubleClicked === 'true') {
@@ -259,7 +259,7 @@ function createCardElement(card) {
             el.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1.15) translateY(var(--y-offset, 0px))`;
           }
 
-          
+
 
         } else {
           // Volta ao estado normal da mesa
@@ -275,7 +275,7 @@ function createCardElement(card) {
   // 2. Clique Duplo Rápido: Reseta os estilos inline e envia de volta para o Deck
   el.addEventListener('dblclick', () => {
     el.dataset.doubleClicked = 'true';
-    
+
     // Limpa os estilos de ampliação antes de devolver
     el.style.zIndex = "";
     el.style.transform = "";
@@ -681,7 +681,7 @@ function attachBalatroEffect(element, isDeck = false) {
     const centerY = rect.height / 2;
 
     // Sensibilidade da inclinação (2 é o padrão, pode baixar para 1.5 se quiser que ela "deite" ainda mais)
-    const sensitivity = 2; 
+    const sensitivity = 2;
     const rotateX = -(y - centerY) / sensitivity;
     const rotateY = (x - centerX) / sensitivity;
 
@@ -1788,3 +1788,76 @@ document.getElementById('previewFlipCard').onclick = function () {
   if (typeof playSound === 'function') playSound('card-slide');
 };
 
+
+
+/**
+ * APLICA UM PRESET DE CONFIGURAÇÃO DE BARALHO NOS INPUTS DO MODAL
+ * Configura as cartas em lote separando por Jogo Base e suas respectivas DLCs.
+ */
+window.applyDeckPreset = (presetType) => {
+  const configInputs = document.querySelectorAll('.card-config-item input');
+  if (!configInputs.length) return;
+
+  // Separação exata baseada nas pastas e lógica do seu código
+  const baseChars = ['assassino', 'capitao', 'condessa', 'duque', 'embaixador', 'inquisidor'];
+  const dlc1Chars = ['benfeitor', 'bufao', 'burgues', 'burocrata'];
+  const dlc2Chars = ['bispo', 'diplomata', 'marionetista', 'mercenario', 'tesoureiro', 'vigilante'];
+  const dlc3Chars = ['estrategista', 'ladrao', 'magnata', 'pistoleiro', 'vigarista', 'xerife'];
+
+  if (typeof playSound === 'function') playSound('pop');
+
+  configInputs.forEach(input => {
+    const card = input.dataset.card;
+
+    switch (presetType) {
+      case 'standard':
+        // Define 5 cartas apenas para o Jogo Base e zera o resto
+        if (baseChars.includes(card)) {
+          input.value = 5;
+        } else {
+          input.value = 0;
+        }
+        break;
+
+      case 'base_dlc1':
+        // Ativa apenas as cartas do Jogo Base + DLC 1 (5 de cada)
+        if (baseChars.includes(card) || dlc1Chars.includes(card)) {
+          input.value = 5;
+        } else {
+          input.value = 0;
+        }
+        break;
+
+      case 'base_dlc2':
+        // Ativa apenas as cartas do Jogo Base + DLC 2 (5 de cada)
+        if (baseChars.includes(card) || dlc2Chars.includes(card)) {
+          input.value = 5;
+        } else {
+          input.value = 0;
+        }
+        break;
+
+      case 'base_dlc3':
+        // Ativa apenas as cartas do Jogo Base + DLC 3 / Promo (5 de cada)
+        if (baseChars.includes(card) || dlc3Chars.includes(card)) {
+          input.value = 5;
+        } else {
+          input.value = 0;
+        }
+        break;
+
+      case 'caos':
+        // Coloca 5 em absolutamente todas as cartas do jogo
+        input.value = 5;
+        break;
+
+      case 'clear':
+        // Zera todos os campos para configuração manual do zero
+        input.value = 0;
+        break;
+
+      default:
+        input.value = 0;
+    }
+  });
+};

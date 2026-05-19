@@ -2071,3 +2071,30 @@ body.hide-religion .decks-wrapper {
     color: white;
 }
 
+.deck-presets-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #ffffff0d;
+    border-radius: 8px;
+}
+
+.preset-btn {
+    background: #171d26;
+    color: #f8fafc;
+    border: 1px solid var(--accent);
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.preset-btn:hover {
+    background: #00bfff;
+    border-color: #00bfff;
+    color: #000;
+    box-shadow: 0 0 10px rgba(0, 191, 255, 0.4);
+}
