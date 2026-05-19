@@ -215,7 +215,7 @@ function createCardElement(card) {
   el.style.position = "relative";
   el.style.transition = "transform 0.2s ease, z-index 0.2s ease, box-shadow 0.2s ease";
 
-  // 1. Clique Simples: Alterna o Zoom e joga para a frente de tudo
+// 1. Clique Simples: Alterna o Zoom e joga para a frente de tudo
   el.addEventListener('click', (e) => {
     // Pequeno delay para garantir que não é o primeiro toque de um duplo clique
     if (e.detail === 1) { 
@@ -239,12 +239,20 @@ function createCardElement(card) {
         });
 
         if (!isAmplified) {
-          // Ativa o Zoom Máximo e coloca na camada superior (z-index 999)
+          // Ativa o Zoom e coloca na camada superior (z-index 999)
           el.style.zIndex = "999";
-          // Preserva as rotações 3D se houverem e aplica scale(2.0)
-          el.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(2.5) translateY(0px)`;
           el.style.boxShadow = "0 10px 30px rgba(0,0,0,0.7)";
           el.dataset.amplied = 'true';
+
+          // --- CONFIGURAÇÃO DINÂMICA DE ESCALA (MOBILE VS DESKTOP) ---
+          if (window.innerWidth <= 768) {
+            // No Mobile: Mantém o zoom grande (scale 2.5) para dar leitura no touch
+            el.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(2.5) translateY(0px)`;
+          } else {
+            // No Desktop: Usa o zoom sutil original (scale 1.15) e preserva a flutuação
+            el.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1.15) translateY(var(--y-offset, 0px))`;
+          }
+
         } else {
           // Volta ao estado normal da mesa
           el.style.zIndex = "";

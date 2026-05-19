@@ -1057,7 +1057,8 @@ body.hide-religion .decks-wrapper {
 
 /* Container do Modal de Feedback */
 #feedbackModal .modal-actions-and-rules {
-    background: #171d26; /* Fundo para combinar com o Tally Dark */
+    background: #171d26;
+    /* Fundo para combinar com o Tally Dark */
     border: 2px solid var(--accent);
     border-radius: 15px;
     padding: 0;
@@ -1065,7 +1066,7 @@ body.hide-religion .decks-wrapper {
     display: flex;
     flex-direction: column;
     /* REMOVEMOS o overflow: hidden para o botão aparecer fora */
-    overflow: visible; 
+    overflow: visible;
 }
 
 /* Garante que o iframe respeite o arredondamento das bordas */
@@ -1073,7 +1074,8 @@ body.hide-religion .decks-wrapper {
     width: 100%;
     height: 100%;
     border: none;
-    border-radius: 13px; /* Um pouco menor que o container para encaixar */
+    border-radius: 13px;
+    /* Um pouco menor que o container para encaixar */
     display: block;
 }
 
@@ -2045,15 +2047,17 @@ body.hide-religion .decks-wrapper {
 @media (max-width: 768px) {
     :root {
         /* Reduz as cartas na mão para não passarem da tela */
-        --card-scale: 2.5; 
-        
+        --card-scale: 2.5;
+
         /* Controla o Deck de 30 cartas separadamente! 
            Pode deixar menor, maior ou tamanho real (1.0) */
-        --deck-scale: 0.95; 
+        --deck-scale: 0.95;
     }
 }
 
 #openFeedbackBtn {
-    background-color: #2ecc71; /* Verde moderno e limpo */
+    background-color: #2ecc71;
+    /* Verde moderno e limpo */
     color: white;
 }
+
