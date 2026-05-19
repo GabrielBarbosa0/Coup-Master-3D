@@ -217,6 +217,12 @@ function createCardElement(card) {
 
 // 1. Clique Simples: Alterna o Zoom e joga para a frente de tudo
   el.addEventListener('click', (e) => {
+    
+    // TRAVA DEFINITIVA E SIMPLES: A carta está fisicamente no cemitério ou no baralho?
+    if (el.closest('#freeArea') || el.closest('.deck-area')) {
+      return; // Se sim, mata o script aqui e não dá zoom!
+    }
+
     // Pequeno delay para garantir que não é o primeiro toque de um duplo clique
     if (e.detail === 1) { 
       setTimeout(() => {
@@ -252,6 +258,8 @@ function createCardElement(card) {
             // No Desktop: Usa o zoom sutil original (scale 1.15) e preserva a flutuação
             el.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1.15) translateY(var(--y-offset, 0px))`;
           }
+
+          
 
         } else {
           // Volta ao estado normal da mesa

@@ -2022,6 +2022,9 @@ body.hide-religion .decks-wrapper {
 }
 
 
+
+
+
 /* ==========================================
    CONFIGURAÇÃO PADRÃO (DESKTOP)
    ========================================== */
@@ -2033,6 +2036,13 @@ body.hide-religion .decks-wrapper {
 #deck {
     /* O deck ganha a sua própria variável de escala */
     --custom-scale: var(--deck-scale, 1.3);
+}
+
+/* === A SOLUÇÃO: EXCEÇÃO PARA O CEMITÉRIO === */
+.card.small {
+    /* Sobrescreve a escala gigante. As cartas do cemitério terão no máximo 
+       um zoom sutil de 1.05x (ou 1.0 para nenhum zoom) ao serem tocadas/hovered */
+    --custom-scale: 1.05 !important;
 }
 
 /* Define os valores base para Computador */
