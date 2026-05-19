@@ -670,34 +670,42 @@ function attachBalatroEffect(element, isDeck = false) {
   element.classList.add('balatro-effect');
 
   element.addEventListener('mousemove', (e) => {
+    // 1. O SEGREDO DA PERSPECTIVA: Remove a transição suave para que 
+    // a carta acompanhe o mouse em tempo real sem "lag" ou resistência!
+    element.style.transition = "none";
+
     const rect = element.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    // Sensibilidade da inclinação
-    const sensitivity = 2; // Aumente para suavizar, diminua para intensificar
+    // Sensibilidade da inclinação (2 é o padrão, pode baixar para 1.5 se quiser que ela "deite" ainda mais)
+    const sensitivity = 2; 
     const rotateX = -(y - centerY) / sensitivity;
     const rotateY = (x - centerX) / sensitivity;
 
     // Se for o DECK, não precisa da variável de onda (--y-offset)
     const wave = isDeck ? "0px" : "var(--y-offset)";
 
-    // A mágica: perspective + rotação + a onda atual
-    // No cálculo do efeito 3D / mousemove:
-    element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(var(--custom-scale, 1.3)) translateY(${wave})`;
+    // 2. O SEGREDO DO ZOOM: Elevamos o scale de 1.3 para 1.45 (ou 1.5 se preferir maior)
+    element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.3) translateY(${wave})`;
 
     // Brilho azul neon para as cartas e deck
     element.style.boxShadow = `${-rotateY * 0.5}px ${rotateX * 0.5}px 40px rgba(0, 191, 255, 0.4)`;
   });
 
   element.addEventListener('mouseleave', () => {
-    // Ao sair, remove o estilo inline para o CSS reassumir a flutuação
+    // 3. Devolve a transição suave ao tirar o mouse, para que ela volte à mesa macia 
+    // e para que o clique do mobile continue funcionando perfeitamente!
+    element.style.transition = "transform 0.2s ease, z-index 0.2s ease, box-shadow 0.2s ease";
     element.style.removeProperty('transform');
     element.style.removeProperty('box-shadow');
   });
 }
+
+
+
 
 /**
  * ROLAGEM AUTOMÁTICA DURANTE DRAG
