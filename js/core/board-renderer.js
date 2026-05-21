@@ -207,99 +207,7 @@ function createCardElement(card) {
     el.style.backgroundImage = `url('${imageUrl}')`;
   }
 
-  // =======================================================
-  // === NOVO: CONTROLE DE SCALE E Z-INDEX NO MOBILE ===
-  // =======================================================
-
-  // Garante que a carta começa com uma posição relativa para o z-index funcionar
-  el.style.position = "relative";
-  el.style.transition = "transform 0.2s ease, z-index 0.2s ease, box-shadow 0.2s ease";
-
-  // 1. Clique Simples: Alterna o Zoom e joga para a frente de tudo
-  el.addEventListener('click', (e) => {
-
-    // TRAVA DEFINITIVA E SIMPLES: A carta está fisicamente no cemitério ou no baralho?
-    if (el.closest('#freeArea') || el.closest('.deck-area')) {
-      return; // Se sim, mata o script aqui e não dá zoom!
-    }
-
-    // Pequeno delay para garantir que não é o primeiro toque de um duplo clique
-    if (e.detail === 1) {
-      setTimeout(() => {
-        // Se o utilizador fez clique duplo rápido, cancela esta execução do clique simples
-        if (el.dataset.doubleClicked === 'true') {
-          el.dataset.doubleClicked = 'false';
-          return;
-        }
-
-        const isAmplified = el.dataset.amplied === 'true';
-
-        // Remove o zoom de qualquer outra carta que tenha ficado aberta na mesa
-        document.querySelectorAll('.card').forEach(otherCard => {
-          if (otherCard !== el && otherCard.dataset.amplied === 'true') {
-            otherCard.style.transition = "transform 0.25s ease-out, z-index 0.25s ease-out, box-shadow 0.25s ease-out";
-            otherCard.style.zIndex = "";
-            otherCard.style.transform = "";
-            otherCard.style.boxShadow = "";
-            otherCard.dataset.amplied = 'false';
-          }
-        });
-
-        if (!isAmplified) {
-          // FORÇA A TRANSIÇÃO: Garante que o navegador vai animar o crescimento de forma fluida
-          el.style.transition = "transform 0.25s ease-out, z-index 0.25s ease-out, box-shadow 0.25s ease-out";
-
-          // Ativa o Zoom e coloca na camada superior (z-index 999)
-          el.style.zIndex = "999";
-          el.style.boxShadow = "0 10px 30px rgba(0,0,0,0.7)";
-          el.dataset.amplied = 'true';
-
-          // --- CONFIGURAÇÃO DINÂMICA DE ESCALA (MOBILE VS DESKTOP) ---
-          if (window.innerWidth <= 768) {
-            // No Mobile: Mantém o zoom grande (scale 2.5) para dar leitura no touch
-            el.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(2.5) translateY(0px)`;
-          } else {
-            // No Desktop: Usa o zoom sutil original (scale 1.15) e preserva a flutuação
-            el.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1.15) translateY(var(--y-offset, 0px))`;
-          }
-
-        } else {
-          // FORÇA A TRANSIÇÃO: Garante que ela vai diminuir suavemente de volta para a mesa
-          el.style.transition = "transform 0.25s ease-out, z-index 0.25s ease-out, box-shadow 0.25s ease-out";
-
-          // Volta ao estado normal da mesa
-          el.style.zIndex = "";
-          el.style.transform = "";
-          el.style.boxShadow = "";
-          el.dataset.amplied = 'false';
-        }
-      }, 220);
-    }
-  });
-
-  // 2. Clique Duplo Rápido: Reseta os estilos inline e envia de volta para o Deck
-  el.addEventListener('dblclick', () => {
-    el.dataset.doubleClicked = 'true';
-
-    // Limpa os estilos de ampliação antes de devolver
-    el.style.zIndex = "";
-    el.style.transform = "";
-    el.style.boxShadow = "";
-    el.dataset.amplied = 'false';
-
-    // Executa a tua função original de devolver a carta ao deck
-    returnCardToDeck(card.id);
-  });
-
-  // =======================================================
-
-
-
-  // =======================================================
-  // --- EVENTOS DE ARRASTAR (DRAG & DROP + TOUCH CALIBRADO) ---
-  // =======================================================
-
-  // Suporte para Mouse / Desktops
+  // --- EVENTOS DE ARRASTAR (DRAG & DROP) ---
   el.addEventListener('dragstart', (ev) => {
     ev.dataTransfer.setData('text/plain', card.id);
     ev.dataTransfer.effectAllowed = "move";
@@ -316,60 +224,7 @@ function createCardElement(card) {
     el.classList.remove('is-dragging');
   });
 
-  // --- SUPORTE TOUCH MOBILE ULTRA PRECISO (ANTI-DESLOCAMENTO) ---
-  let touchOffsetX = 0;
-  let touchOffsetY = 0;
-
-  el.addEventListener('touchstart', (ev) => {
-    const rect = el.getBoundingClientRect();
-    // Calcula a distância exata entre o clique do dedo e a borda da carta
-    touchOffsetX = ev.touches[0].clientX - rect.left;
-    touchOffsetY = ev.touches[0].clientY - rect.top;
-
-    el.classList.add('lifting');
-  }, { passive: true });
-
-  el.addEventListener('touchmove', (ev) => {
-    if (ev.cancelable) ev.preventDefault();
-
-    const touch = ev.touches[0];
-    el.style.position = 'fixed';
-    // Desloca a carta considerando o ponto exato onde o dedo tocou
-    el.style.left = `${touch.clientX - touchOffsetX}px`;
-    el.style.top = `${touch.clientY - touchOffsetY}px`;
-    el.style.zIndex = '9999';
-  }, { passive: false });
-
-  el.addEventListener('touchend', (ev) => {
-    el.classList.remove('lifting');
-    el.style.position = '';
-    el.style.left = '';
-    el.style.top = '';
-    el.style.zIndex = '';
-
-    const endX = ev.changedTouches[0].clientX;
-    const endY = ev.changedTouches[0].clientY;
-
-    // Oculta temporariamente para não interceptar o elementFromPoint
-    el.style.display = 'none';
-    const targetElement = document.elementFromPoint(endX, endY);
-    el.style.display = '';
-
-    const dropzone = targetElement?.closest('.player-area, #freeArea, #deck');
-
-    if (dropzone) {
-      if (dropzone.id === 'freeArea') {
-        moveCard(card.id, 'free');
-      } else if (dropzone.id === 'deck') {
-        moveCard(card.id, 'deck');
-      } else if (dropzone.classList.contains('player-area')) {
-        const pid = parseInt(dropzone.dataset.player);
-        moveCard(card.id, 'player', pid);
-      }
-    }
-  });
-
-  // --- INTERAÇÕES ADICIONAIS REINTEGRADAS ---
+  // --- INTERAÇÕES ADICIONAIS ---
   el.addEventListener('dblclick', () => {
     returnCardToDeck(card.id);
   });
@@ -670,10 +525,8 @@ function renderAll() {
  * arrasto e soltura de cartas ou ações de compra.
  */
 function setupDropzones() {
-
-  // --- NOVO: SUPORTE A TOQUE NO DECK PARA NAVEGADORES MOBILE ---
-  let deckGhostCard = null;
-
+  // --- CONFIGURAÇÃO DO DECK (BARALHO) ---
+  // Inicia a ação de compra ao arrastar o Deck
   deckEl.addEventListener('dragstart', (e) => {
     e.dataTransfer.setData('text/plain', 'DECK_DRAW_ACTION');
   });
@@ -736,25 +589,21 @@ function attachBalatroEffect(element, isDeck = false) {
   element.classList.add('balatro-effect');
 
   element.addEventListener('mousemove', (e) => {
-    // 1. O SEGREDO DA PERSPECTIVA: Remove a transição suave para que 
-    // a carta acompanhe o mouse em tempo real sem "lag" ou resistência!
-    element.style.transition = "none";
-
     const rect = element.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    // Sensibilidade da inclinação (2 é o padrão, pode baixar para 1.5 se quiser que ela "deite" ainda mais)
-    const sensitivity = 2;
+    // Sensibilidade da inclinação
+    const sensitivity = 2; // Aumente para suavizar, diminua para intensificar
     const rotateX = -(y - centerY) / sensitivity;
     const rotateY = (x - centerX) / sensitivity;
 
     // Se for o DECK, não precisa da variável de onda (--y-offset)
     const wave = isDeck ? "0px" : "var(--y-offset)";
 
-    // 2. O SEGREDO DO ZOOM: Elevamos o scale de 1.3 para 1.45 (ou 1.5 se preferir maior)
+    // A mágica: perspective + rotação + a onda atual
     element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.3) translateY(${wave})`;
 
     // Brilho azul neon para as cartas e deck
@@ -762,16 +611,11 @@ function attachBalatroEffect(element, isDeck = false) {
   });
 
   element.addEventListener('mouseleave', () => {
-    // 3. Devolve a transição suave ao tirar o mouse, para que ela volte à mesa macia 
-    // e para que o clique do mobile continue funcionando perfeitamente!
-    element.style.transition = "transform 0.2s ease, z-index 0.2s ease, box-shadow 0.2s ease";
+    // Ao sair, remove o estilo inline para o CSS reassumir a flutuação
     element.style.removeProperty('transform');
     element.style.removeProperty('box-shadow');
   });
 }
-
-
-
 
 /**
  * ROLAGEM AUTOMÁTICA DURANTE DRAG
@@ -1853,8 +1697,6 @@ document.getElementById('previewFlipCard').onclick = function () {
 
   if (typeof playSound === 'function') playSound('card-slide');
 };
-
-
 
 /**
  * APLICA UM PRESET DE CONFIGURAÇÃO DE BARALHO NOS INPUTS DO MODAL

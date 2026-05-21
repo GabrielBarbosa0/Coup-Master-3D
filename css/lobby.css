@@ -16,6 +16,19 @@
     --text: #e6eef6;
 }
 
+/* Força a anulação completa do motor de acessibilidade de alto contraste forçado */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+
+    html,
+    body,
+    .container,
+    .board,
+    .card {
+        forced-color-adjust: none !important;
+        -webkit-text-fill-color: currentcolor;
+    }
+}
+
 
 /* 1. Reset Global */
 * {
@@ -304,9 +317,6 @@ h2 {
 /* =======================================================
    === MODAIS, OVERLAYS E MENUS (Padronizado com o Jogo) ===
    ======================================================= */
-
-/* Caso o lobby.css ainda não tenha essa variável de cor */
-
 
 .modal-overlay {
     display: none;
@@ -631,13 +641,5 @@ input {
 
     #room-actions {
         padding-top: 10px;
-    }
-}
-
-/* Força a anulação completa do motor de acessibilidade de alto contraste forçado */
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-    html, body, .container, .board, .card {
-        forced-color-adjust: none !important;
-        -webkit-text-fill-color: currentcolor;
     }
 }

@@ -5,8 +5,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-  <meta name="color-scheme" content="dark">
-
   <title>Coup Master | Jogue Coup Online com os Amigos</title>
   <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
   <link rel="shortcut icon" href="assets/img/logo/favicon-coup-master.png" type="image/x-icon">
@@ -29,6 +27,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
+
+  <meta name="color-scheme" content="dark">
 
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
@@ -440,7 +440,8 @@
       <div class="settings-container">
 
         <div class="setting-row" style="justify-content: center; margin-top: 10px;">
-          <button id="openFeedbackBtn" class="settings-action-btn">
+          <button id="openFeedbackBtn" class="settings-action-btn"
+            style="background: #00FF73; border: 1px solid rgba(255, 255, 255, 0.1); color: #000;">
             Enviar Feedback / Bug
           </button>
         </div>
@@ -700,9 +701,10 @@
       </div>
     </div>
   </div>
+  
 
 
-  <div id="duelModal" class="modal-overlay" style="display: none;">
+    <div id="duelModal" class="modal-overlay" style="display: none;">
     <div class="modal-content" style="max-width: 320px; padding: 25px; text-align: center;">
       <h2 style="margin-bottom: 10px; font-size: 20px;">Configurar Duelo</h2>
       <p class="muted" style="margin-bottom: 20px; font-size: 14px;">Escolha a carta de troca que deseja usar nesta
