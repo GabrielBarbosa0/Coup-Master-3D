@@ -22,6 +22,8 @@
 }
 
 :root {
+    color-scheme: dark;
+    /* Avisa os motores de renderização que o app é nativamente dark */
     --bg: #171d26;
     --panel: #232a33;
     --accent: #1e90ff;

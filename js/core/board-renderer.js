@@ -293,7 +293,13 @@ function createCardElement(card) {
 
   // =======================================================
 
-  // --- EVENTOS DE ARRASTAR (DRAG & DROP) ---
+
+  
+  // =======================================================
+  // --- EVENTOS DE ARRASTAR (DRAG & DROP + TOUCH MOBILE) ---
+  // =======================================================
+  
+  // Suporte para Mouse / Desktops
   el.addEventListener('dragstart', (ev) => {
     ev.dataTransfer.setData('text/plain', card.id);
     ev.dataTransfer.effectAllowed = "move";
@@ -310,7 +316,52 @@ function createCardElement(card) {
     el.classList.remove('is-dragging');
   });
 
-  // --- INTERAÇÕES ADICIONAIS ---
+  // --- BLINDAGEM MOBILE (SAMSUNG INTERNET, SAFARI, ETC) ---
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  el.addEventListener('touchstart', (ev) => {
+    touchStartX = ev.touches[0].clientX;
+    touchStartY = ev.touches[0].clientY;
+    el.classList.add('lifting');
+  }, { passive: true });
+
+  el.addEventListener('touchmove', (ev) => {
+    if (ev.cancelable) ev.preventDefault();
+    
+    const touch = ev.touches[0];
+    el.style.position = 'fixed';
+    el.style.left = `${touch.clientX - 25}px`; 
+    el.style.top = `${touch.clientY - 35}px`;
+    el.style.zIndex = '9999';
+  }, { passive: false });
+
+  el.addEventListener('touchend', (ev) => {
+    el.classList.remove('lifting');
+    el.style.position = ''; 
+    el.style.left = '';
+    el.style.top = '';
+    el.style.zIndex = '';
+
+    const endX = ev.changedTouches[0].clientX;
+    const endY = ev.changedTouches[0].clientY;
+    const targetElement = document.elementFromPoint(endX, endY);
+
+    const dropzone = targetElement?.closest('.player-area, #freeArea, #deck');
+
+    if (dropzone) {
+      if (dropzone.id === 'freeArea') {
+        moveCard(card.id, 'free');
+      } else if (dropzone.id === 'deck') {
+        moveCard(card.id, 'deck');
+      } else if (dropzone.classList.contains('player-area')) {
+        const pid = parseInt(dropzone.dataset.player);
+        moveCard(card.id, 'player', pid);
+      }
+    }
+  });
+
+  // --- INTERAÇÕES ADICIONAIS REINTEGRADAS ---
   el.addEventListener('dblclick', () => {
     returnCardToDeck(card.id);
   });

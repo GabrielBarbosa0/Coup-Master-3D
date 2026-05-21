@@ -8,6 +8,8 @@
 }
 
 :root {
+    color-scheme: dark;
+    /* Avisa os motores de renderização que o app é nativamente dark */
     --bg: #14171e;
     --panel: #232a33;
     --accent: #1e90ff;
@@ -304,9 +306,7 @@ h2 {
    ======================================================= */
 
 /* Caso o lobby.css ainda não tenha essa variável de cor */
-:root {
-    --panel: #232a33;
-}
+
 
 .modal-overlay {
     display: none;
