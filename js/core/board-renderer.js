@@ -294,11 +294,11 @@ function createCardElement(card) {
   // =======================================================
 
 
-  
+
   // =======================================================
-  // --- EVENTOS DE ARRASTAR (DRAG & DROP + TOUCH MOBILE) ---
+  // --- EVENTOS DE ARRASTAR (DRAG & DROP + TOUCH CALIBRADO) ---
   // =======================================================
-  
+
   // Suporte para Mouse / Desktops
   el.addEventListener('dragstart', (ev) => {
     ev.dataTransfer.setData('text/plain', card.id);
@@ -316,36 +316,44 @@ function createCardElement(card) {
     el.classList.remove('is-dragging');
   });
 
-  // --- BLINDAGEM MOBILE (SAMSUNG INTERNET, SAFARI, ETC) ---
-  let touchStartX = 0;
-  let touchStartY = 0;
+  // --- SUPORTE TOUCH MOBILE ULTRA PRECISO (ANTI-DESLOCAMENTO) ---
+  let touchOffsetX = 0;
+  let touchOffsetY = 0;
 
   el.addEventListener('touchstart', (ev) => {
-    touchStartX = ev.touches[0].clientX;
-    touchStartY = ev.touches[0].clientY;
+    const rect = el.getBoundingClientRect();
+    // Calcula a distância exata entre o clique do dedo e a borda da carta
+    touchOffsetX = ev.touches[0].clientX - rect.left;
+    touchOffsetY = ev.touches[0].clientY - rect.top;
+
     el.classList.add('lifting');
   }, { passive: true });
 
   el.addEventListener('touchmove', (ev) => {
     if (ev.cancelable) ev.preventDefault();
-    
+
     const touch = ev.touches[0];
     el.style.position = 'fixed';
-    el.style.left = `${touch.clientX - 25}px`; 
-    el.style.top = `${touch.clientY - 35}px`;
+    // Desloca a carta considerando o ponto exato onde o dedo tocou
+    el.style.left = `${touch.clientX - touchOffsetX}px`;
+    el.style.top = `${touch.clientY - touchOffsetY}px`;
     el.style.zIndex = '9999';
   }, { passive: false });
 
   el.addEventListener('touchend', (ev) => {
     el.classList.remove('lifting');
-    el.style.position = ''; 
+    el.style.position = '';
     el.style.left = '';
     el.style.top = '';
     el.style.zIndex = '';
 
     const endX = ev.changedTouches[0].clientX;
     const endY = ev.changedTouches[0].clientY;
+
+    // Oculta temporariamente para não interceptar o elementFromPoint
+    el.style.display = 'none';
     const targetElement = document.elementFromPoint(endX, endY);
+    el.style.display = '';
 
     const dropzone = targetElement?.closest('.player-area, #freeArea, #deck');
 
@@ -662,8 +670,10 @@ function renderAll() {
  * arrasto e soltura de cartas ou ações de compra.
  */
 function setupDropzones() {
-  // --- CONFIGURAÇÃO DO DECK (BARALHO) ---
-  // Inicia a ação de compra ao arrastar o Deck
+
+  // --- NOVO: SUPORTE A TOQUE NO DECK PARA NAVEGADORES MOBILE ---
+  let deckGhostCard = null;
+
   deckEl.addEventListener('dragstart', (e) => {
     e.dataTransfer.setData('text/plain', 'DECK_DRAW_ACTION');
   });

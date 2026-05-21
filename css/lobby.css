@@ -633,3 +633,11 @@ input {
         padding-top: 10px;
     }
 }
+
+/* Força a anulação completa do motor de acessibilidade de alto contraste forçado */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    html, body, .container, .board, .card {
+        forced-color-adjust: none !important;
+        -webkit-text-fill-color: currentcolor;
+    }
+}

@@ -2100,3 +2100,11 @@ body.hide-religion .decks-wrapper {
     color: #000;
     box-shadow: 0 0 10px rgba(0, 191, 255, 0.4);
 }
+
+/* Força a anulação completa do motor de acessibilidade de alto contraste forçado */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    html, body, .container, .board, .card {
+        forced-color-adjust: none !important;
+        -webkit-text-fill-color: currentcolor;
+    }
+}
