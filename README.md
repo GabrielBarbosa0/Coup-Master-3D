@@ -143,6 +143,8 @@ O projeto segue princípios de:
 
 O projeto adota uma arquitetura modular baseada em responsabilidades bem definidas, separando os recursos estáticos (assets), as folhas de estilo (CSS) e o núcleo lógico do jogo (JS).
 
+```text
+
 Coup-Master/
 ├── 📂 assets/                  # Recursos de mídia estáticos
 │   ├── 📂 img/                 # Banco de imagens global
@@ -172,6 +174,7 @@ Coup-Master/
 ├── 📄 lobby.html               # Menu inicial de entrada e autenticação de usuários
 └── 📄 README.md                # Documentação técnica do projeto
 
+```
 
 ### 🔍 Descrição dos Principais Diretórios
 
