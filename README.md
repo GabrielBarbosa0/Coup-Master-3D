@@ -139,6 +139,49 @@ O projeto segue princípios de:
 
 ---
 
+## 📁 Estrutura de Pastas do Projeto
+
+O projeto adota uma arquitetura modular baseada em responsabilidades bem definidas, separando os recursos estáticos (assets), as folhas de estilo (CSS) e o núcleo lógico do jogo (JS).
+
+Coup-Master/
+├── 📂 assets/                  # Recursos de mídia estáticos
+│   ├── 📂 img/                 # Banco de imagens global
+│   │   ├── 📂 cards/           # Texturas das cartas divididas por expansões
+│   │   │   ├── 📂 base/        # Cartas do Jogo Base (Duque, Capitão, etc.)
+│   │   │   ├── 📂 promo/       # Cartas promocionais e extras
+│   │   │   ├── 📂 dlc1/        # Influências da Revolução
+│   │   │   └── 📂 dlc2/        # Influências do Asilo
+│   │   ├── 📂 icons/           # Ícones SVG e UI do tabuleiro
+│   │   └── 📂 logo/            # Identidade visual e favicons do projeto
+│   ├── 📂 sounds/              # Trilha sonora (bgm) e efeitos sonoros (vfx)
+│   └── 📂 video/               # Elementos de vídeo de fundo (background-smoke)
+├── 📂 css/                     # Estilização e folhas de estilo
+│   ├── lobby.css               # Design da interface do menu e salas
+│   └── main.css                # Layout do tabuleiro 2D e responsividade mobile
+├── 📂 js/                      # Núcleo lógico do ecossistema JavaScript
+│   ├── 📂 core/                # Scripts de infraestrutura e regras globais
+│   │   ├── firebase.js         # Inicialização e conexões com o banco de dados
+│   │   ├── gameState.js        # Sincronização do estado da partida em tempo real
+│   │   └── rules.js            # Definição matemática de cartas e baralhos
+│   ├── 📂 gamemode/            # Lógicas específicas por modo de jogo
+│   │   └── 📂 casual/          # Scripts dedicados à mesa clássica casual
+│   │       └── board-renderer.js # Manipulador do DOM e renderizador do tabuleiro 2D
+│   ├── auth-manager.js         # Gerenciamento de sessão e Google OAuth 2.0
+│   └── lobby-manager.js        # Fluxo de criação, faxina e entrada de salas
+├── 📄 index.html               # Tabuleiro principal do jogo em modo normal 2D
+├── 📄 lobby.html               # Menu inicial de entrada e autenticação de usuários
+└── 📄 README.md                # Documentação técnica do projeto
+
+
+### 🔍 Descrição dos Principais Diretórios
+
+* **`assets/img/cards/`**: Organizado estrategicamente em subpastas (`base`, `promo`, `dlc1`, `dlc2`) para permitir que o motor do jogo (`board-renderer.js`) monte dinamicamente as URLs das texturas com base no tipo e na expansão configurada nos presets de baralho.
+* **`js/core/`**: Funciona como o motor lógico invisível do jogo. O `gameState.js` escuta e injeta alterações diretamente no Firebase, garantindo que o jogo funcione como um sandbox em tempo real.
+* **`js/gamemode/casual/`**: Concentra a engine visual da mesa bidimensional através do script `board-renderer.js`, responsável por manipular o DOM de forma reativa conforme as atualizações da partida.
+* **Raiz (`.html`)**: Mantém os pontos de entrada do servidor web organizados de forma plana, simplificando os redirecionamentos diretos de rotas e parâmetros de URL (`?room=CODE`) entre o Lobby e o tabuleiro principal.
+
+---
+
 ## 🛠️ Instalação e Configuração
 
 ### 2️⃣ Crie o Projeto no Firebase
@@ -285,7 +328,6 @@ Durante o desenvolvimento deste projeto, foram aplicados conceitos como:
 - [ ] **Coup Workshop:** Web app integrado para criação, edição e exportação de cartas personalizadas para a comunidade.
 - [ ] **Expansões de Conteúdo:** Adição de novos sistemas de DLCs para integrar mecânicas complexas de forma modular.
 - [ ] **Theming Engine (Beta):** Suporte para troca dinâmica de nomes de cartas, nomes de áreas, estilos visuais e efeitos sonoros.
-
 
 
 ---
