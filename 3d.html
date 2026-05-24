@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>Coup Master 3D MVP</title>
+  <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="css/three-board.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/",
+        "@dimforge/rapier3d-compat": "https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.14.0/rapier.es.js"
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <main id="threeApp">
+    <canvas id="threeCanvas"></canvas>
+
+    <section class="hud top-left" aria-label="Mesa">
+      <h1>Coup Master 3D</h1>
+      <div class="status-row">
+        <span id="deckCount">Deck: 0</span>
+        <span id="tableCount">Mesa: 0</span>
+      </div>
+    </section>
+
+    <section class="hud top-right" aria-label="Controles">
+      <button id="drawBtn" type="button">Comprar</button>
+      <button id="resetBtn3d" type="button">Reset</button>
+    </section>
+
+    <nav id="playerTabs" class="player-tabs" aria-label="Jogadores"></nav>
+  </main>
+
+  <script type="module" src="js/three/app.js"></script>
+</body>
+
+</html>
