@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+﻿import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 
@@ -58,7 +58,7 @@ const CARD_LIBRARY = [
 
 const CARD_LABELS = {
   assassino: 'Assassino',
-  capitao: 'Capitao',
+  capitao: 'Capitão',
   condessa: 'Condessa',
   duque: 'Duque',
   embaixador: 'Embaixador',
@@ -123,6 +123,7 @@ init();
 resetMvp();
 animate();
 
+// Inicializa renderer, cena, camera, controles, fisica e eventos principais.
 function init() {
   app.renderer = new THREE.WebGLRenderer({
     canvas,
@@ -136,8 +137,8 @@ function init() {
   app.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   app.scene = new THREE.Scene();
-  app.scene.background = new THREE.Color(0x080c12);
-  app.scene.fog = new THREE.Fog(0x080c12, 11, 24);
+  app.scene.background = new THREE.Color(0x171d26);
+  app.scene.fog = new THREE.Fog(0x171d26, 18, 32);
 
   app.camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 80);
   app.camera.position.copy(getPlayerCameraPosition(state.activePlayer));
@@ -185,6 +186,7 @@ function init() {
   canvas.addEventListener('dblclick', onDoubleClick);
 }
 
+// Cria a iluminacao global e os pontos de destaque da mesa.
 function createLights() {
   const ambient = new THREE.HemisphereLight(0xb8d4ff, 0x151a22, 1.75);
   app.scene.add(ambient);
@@ -204,6 +206,7 @@ function createLights() {
   app.scene.add(rim);
 }
 
+// Monta a mesa visual, o feltro, o chao do limbo e o collider do tampo.
 function createTable() {
   const tableGeo = new THREE.CylinderGeometry(TABLE_RADIUS, TABLE_RADIUS, 0.34, 8, 1, false, Math.PI / 8);
   const tableMat = new THREE.MeshStandardMaterial({
@@ -228,7 +231,8 @@ function createTable() {
   app.scene.add(felt);
 
   const floorGeo = new THREE.PlaneGeometry(45, 45);
-  const floorMat = new THREE.MeshStandardMaterial({ color: 0x030406, roughness: 0.9 });
+  // cor do quadrado menor
+  const floorMat = new THREE.MeshBasicMaterial({ color: 0x171d26 });
   const floor = new THREE.Mesh(floorGeo, floorMat);
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = -0.34;
@@ -242,6 +246,7 @@ function createTable() {
   app.world.createCollider(groundCollider, groundBody);
 }
 
+// Adiciona paredes fisicas invisiveis ao redor da mesa octogonal.
 function createBoundaries() {
   const wallHeight = 0.52;
   const wallY = 0.24;
@@ -265,6 +270,7 @@ function createBoundaries() {
   }
 }
 
+// Cria as areas visuais onde cartas podem ser soltas.
 function createDropZones() {
   app.dropZones = [];
 
@@ -280,6 +286,7 @@ function createDropZones() {
   }
 }
 
+// Cria uma zona retangular de drop para a mao de um jogador.
 function makeZone(id, x, z, width, depth, color, opacity) {
   const geo = new THREE.PlaneGeometry(width, depth);
   const mat = new THREE.MeshBasicMaterial({
@@ -299,6 +306,7 @@ function makeZone(id, x, z, width, depth, color, opacity) {
   return zone;
 }
 
+// Cria a zona central octogonal de drop da mesa.
 function makeOctagonZone(id, x, z, radius, color, opacity) {
   const geo = new THREE.CircleGeometry(radius, 8);
   const mat = new THREE.MeshBasicMaterial({
@@ -319,6 +327,7 @@ function makeOctagonZone(id, x, z, radius, color, opacity) {
   return zone;
 }
 
+// Cria o deck visual central e prepara sua borda e collider.
 function createDeck() {
   const geo = createRoundedCardGeometry(CARD_W, CARD_H, DECK_BASE_HEIGHT, CARD_RADIUS);
   const materials = makeCardMaterials('assets/img/cards/base/back.png', false, 0xf4f7ff);
@@ -334,6 +343,7 @@ function createDeck() {
   updateDeckCollider();
 }
 
+// Adiciona o aro branco superior que destaca a borda do deck.
 function createDeckRim() {
   const outer = createRoundedRectShape(CARD_W, CARD_H, CARD_RADIUS);
   const inner = createRoundedRectShape(CARD_W - 0.07, CARD_H - 0.07, Math.max(0.01, CARD_RADIUS - 0.035));
@@ -356,6 +366,7 @@ function createDeckRim() {
   syncDeckRim();
 }
 
+// Retorna o deck para o centro e ressincroniza seus auxiliares.
 function resetDeckPosition() {
   if (!app.deckMesh) return;
 
@@ -365,6 +376,7 @@ function resetDeckPosition() {
   updateDeckCollider();
 }
 
+// Monta os botoes de selecao dos jogadores.
 function createPlayerTabs() {
   playerTabsEl.innerHTML = '';
 
@@ -378,6 +390,7 @@ function createPlayerTabs() {
   }
 }
 
+// Reinicia o estado do MVP 3D sem distribuir cartas automaticamente.
 function resetMvp() {
   app.isDealing = false;
   app.deckShuffle = null;
@@ -405,6 +418,7 @@ function resetMvp() {
   updateHud();
 }
 
+// Monta e embaralha o baralho base usado pelo modo 3D.
 function buildDeck() {
   const cards = [];
   let id = 1;
@@ -425,6 +439,7 @@ function buildDeck() {
   return shuffle(cards);
 }
 
+// Compra uma carta do deck e anima ate a mao do jogador.
 function drawCardToPlayer(playerId, animateDraw = true) {
   const data = state.deck.pop();
   if (!data) {
@@ -445,6 +460,7 @@ function drawCardToPlayer(playerId, animateDraw = true) {
   updateHud();
 }
 
+// Distribui ate duas cartas para cada assento com animacao sequencial.
 function dealInitialHands() {
   if (app.isDealing) return;
 
@@ -469,6 +485,7 @@ function dealInitialHands() {
   });
 }
 
+// Embaralha a ordem interna do deck e dispara a animacao visual.
 function shuffleDeck() {
   if (app.deckShuffle || state.deck.length <= 1) return;
 
@@ -481,6 +498,7 @@ function shuffleDeck() {
   };
 }
 
+// Calcula quais jogadores ainda precisam receber cartas iniciais.
 function getInitialDealQueue() {
   const queue = [];
   const seatedPlayers = state.players.map(player => player.id);
@@ -496,6 +514,7 @@ function getInitialDealQueue() {
   return queue;
 }
 
+// Retorna a posicao atual de origem para cartas saindo do deck.
 function getDeckDrawPosition(yOffset = 0.2) {
   if (!app.deckMesh) return new THREE.Vector3(0, yOffset, 0);
 
@@ -506,6 +525,7 @@ function getDeckDrawPosition(yOffset = 0.2) {
   );
 }
 
+// Cria mesh, corpo fisico e dados de runtime para uma carta.
 function createCardObject(data) {
   const texturePath = data.faceUp
     ? `assets/img/cards/${data.folder}/${data.type}.png`
@@ -546,6 +566,7 @@ function createCardObject(data) {
   return card;
 }
 
+// Gera a geometria extrudada da carta com cantos arredondados reais.
 function createRoundedCardGeometry(width, height, depth, radius, segments = 10) {
   const halfW = width / 2;
   const halfH = height / 2;
@@ -605,6 +626,7 @@ function createRoundedCardGeometry(width, height, depth, radius, segments = 10) 
   return geometry;
 }
 
+// Cria uma shape 2D de retangulo arredondado para geometrias planas.
 function createRoundedRectShape(width, height, radius) {
   const points = createRoundedRectPoints(width, height, radius, 12);
   const shape = new THREE.Shape();
@@ -620,6 +642,7 @@ function createRoundedRectShape(width, height, radius) {
   return shape;
 }
 
+// Calcula os pontos de arco usados nos cantos arredondados.
 function createRoundedRectPoints(width, height, radius, cornerSegments) {
   const halfW = width / 2;
   const halfH = height / 2;
@@ -648,6 +671,7 @@ function createRoundedRectPoints(width, height, radius, cornerSegments) {
   return points;
 }
 
+// Cria uma moeda fisica de ouro ou prata na mesa.
 function spawnCoin(type = 'gold') {
   const id = `coin-${app.objectId++}`;
   const isGold = type === 'gold';
@@ -683,6 +707,7 @@ function spawnCoin(type = 'gold') {
   updateHud();
 }
 
+// Cria um dado fisico e inicia uma rolagem curta.
 function spawnDie() {
   const id = `die-${app.objectId++}`;
   const geo = new THREE.BoxGeometry(DIE_SIZE, DIE_SIZE, DIE_SIZE);
@@ -712,6 +737,7 @@ function spawnDie() {
   updateHud();
 }
 
+// Cria os seis materiais texturizados das faces do dado.
 function makeDieMaterials() {
   return [1, 6, 2, 5, 3, 4].map((value) => new THREE.MeshStandardMaterial({
     map: makeDieFaceTexture(value),
@@ -720,6 +746,7 @@ function makeDieMaterials() {
   }));
 }
 
+// Desenha em canvas uma textura de face de dado.
 function makeDieFaceTexture(value) {
   const key = `die-face-${value}`;
   if (app.textures[key]) return app.textures[key];
@@ -757,6 +784,7 @@ function makeDieFaceTexture(value) {
   return texture;
 }
 
+// Cria materiais da lateral, frente e verso de uma carta.
 function makeCardMaterials(texturePath, faceUp, edgeColor = null) {
   const faceTexture = loadTexture(texturePath);
   const backTexture = loadTexture('assets/img/cards/base/back.png');
@@ -780,6 +808,7 @@ function makeCardMaterials(texturePath, faceUp, edgeColor = null) {
   return [edge, face, back];
 }
 
+// Carrega e reaproveita texturas com cache.
 function loadTexture(path) {
   if (app.textures[path]) return app.textures[path];
 
@@ -790,6 +819,7 @@ function loadTexture(path) {
   return texture;
 }
 
+// Atualiza jogador ativo, zonas de destaque e visibilidade das maos.
 function setActivePlayer(playerId) {
   state.activePlayer = playerId;
 
@@ -816,6 +846,7 @@ function setActivePlayer(playerId) {
   updateHud();
 }
 
+// Atualiza o material da carta quando ela vira ou muda de dono.
 function refreshCardMaterial(card) {
   const texturePath = card.data.faceUp
     ? `assets/img/cards/${card.data.folder}/${card.data.type}.png`
@@ -823,6 +854,7 @@ function refreshCardMaterial(card) {
   card.mesh.material = makeCardMaterials(texturePath, card.data.faceUp);
 }
 
+// Resolve clique inicial em deck, carta, pilha ou objeto.
 function onPointerDown(event) {
   setPointer(event);
 
@@ -889,6 +921,7 @@ function onPointerDown(event) {
   app.selectedObject = object;
 }
 
+// Detecta duplo clique proprio para devolver cartas ao deck.
 function isCardDoubleClick(card, event) {
   const now = performance.now();
   const previous = app.lastCardClick;
@@ -906,6 +939,7 @@ function isCardDoubleClick(card, event) {
   return Math.hypot(event.clientX - previous.x, event.clientY - previous.y) < 18;
 }
 
+// Atualiza tooltip e outline do objeto sob o mouse.
 function updatePointerHover(event) {
   setPointer(event);
   const hit = getIntersections([app.deckMesh, ...getCardMeshes(), ...getObjectMeshes()])[0];
@@ -929,6 +963,7 @@ function updatePointerHover(event) {
   showHoverTooltip(label, event.clientX, event.clientY);
 }
 
+// Converte o mesh atingido pelo raycast no objeto logico correto.
 function getHoverPiece(mesh) {
   if (mesh.userData.deck) return { mesh: app.deckMesh, kind: 'deck' };
 
@@ -939,6 +974,7 @@ function getHoverPiece(mesh) {
   return object || null;
 }
 
+// Define o texto acessivel exibido no tooltip de hover.
 function getHoverLabel(piece) {
   if (!piece) return '';
   if (piece.kind === 'deck') return 'Baralho';
@@ -949,6 +985,7 @@ function getHoverLabel(piece) {
   return '';
 }
 
+// Cria a malha de outline branca ao redor do objeto em hover.
 function setHoverOutline(piece) {
   clearHoverOutline();
 
@@ -967,6 +1004,7 @@ function setHoverOutline(piece) {
   syncHoverOutline();
 }
 
+// Mantem a outline alinhada com o objeto em movimento.
 function syncHoverOutline() {
   if (!app.hoverOutline || !app.hoveredPiece) return;
   app.hoverOutline.position.copy(app.hoveredPiece.mesh.position);
@@ -974,12 +1012,14 @@ function syncHoverOutline() {
   app.hoverOutline.scale.copy(app.hoveredPiece.mesh.scale).multiplyScalar(1.018);
 }
 
+// Remove estado visual de hover e tooltip.
 function clearPointerHover() {
   app.hoveredPiece = null;
   clearHoverOutline();
   hideHoverTooltip();
 }
 
+// Descarta a geometria e material da outline atual.
 function clearHoverOutline() {
   if (!app.hoverOutline) return;
   app.scene.remove(app.hoverOutline);
@@ -988,6 +1028,7 @@ function clearHoverOutline() {
   app.hoverOutline = null;
 }
 
+// Mostra o tooltip perto do cursor.
 function showHoverTooltip(label, x, y) {
   hoverTooltipEl.textContent = label;
   hoverTooltipEl.style.display = 'block';
@@ -995,10 +1036,12 @@ function showHoverTooltip(label, x, y) {
   hoverTooltipEl.style.top = `${y}px`;
 }
 
+// Oculta o tooltip de hover.
 function hideHoverTooltip() {
   hoverTooltipEl.style.display = 'none';
 }
 
+// Prepara uma peca para arrasto cinematico sem empurrar outros objetos.
 function beginDrag(event, piece, mode) {
   event.preventDefault();
   clearPointerHover();
@@ -1024,6 +1067,7 @@ function beginDrag(event, piece, mode) {
   }
 }
 
+// Atualiza gestos pendentes, arrastos e hover durante movimento do mouse.
 function onPointerMove(event) {
   if (app.pendingDeckDrag && !app.dragged) {
     const dx = event.clientX - app.pendingDeckDrag.x;
@@ -1091,6 +1135,7 @@ function onPointerMove(event) {
   updateHoveredDrop(event);
 }
 
+// Finaliza clique, arrasto de objeto, deck, pilha ou carta.
 function onPointerUp(event) {
   if (app.pendingDeckDrag && !app.dragged) {
     canvas.releasePointerCapture?.(event.pointerId);
@@ -1165,6 +1210,7 @@ function onPointerUp(event) {
   app.dragOrigin = null;
 }
 
+// Retira uma carta do deck para arrastar rapidamente.
 function startDeckCardDrag(event) {
   const data = state.deck.pop();
   if (!data) {
@@ -1192,6 +1238,7 @@ function startDeckCardDrag(event) {
   updateHud();
 }
 
+// Inicia o arrasto do deck inteiro apos segurar o clique.
 function startDeckDrag(event) {
   app.pendingDeckDrag = null;
   event.preventDefault();
@@ -1210,12 +1257,14 @@ function startDeckDrag(event) {
   app.dragOffset.y = 0;
 }
 
+// Finaliza o arrasto do deck e atualiza seu collider.
 function finishDeckDrag() {
   app.dragOrigin = null;
   syncDeckRim();
   updateDeckCollider();
 }
 
+// Retira a carta do topo de uma pilha para arrastar.
 function startTableStackTopCardDrag(event) {
   const stack = getPendingTableStack();
   if (!stack) {
@@ -1242,6 +1291,7 @@ function startTableStackTopCardDrag(event) {
   app.pendingStackDrag = null;
 }
 
+// Inicia o arrasto de uma pilha inteira de cartas.
 function startTableStackDrag(event) {
   const stack = getPendingTableStack();
   if (!stack) {
@@ -1277,21 +1327,25 @@ function startTableStackDrag(event) {
   }
 }
 
+// Finaliza o arrasto de pilha e restaura colisoes.
 function finishTableStackDrag(stack) {
   app.dragOrigin = null;
   stack.cards.forEach((id) => setPieceSensor(app.cards.get(id), false));
   layoutTableStack(stack, false);
 }
 
+// Busca a pilha associada ao gesto pendente atual.
 function getPendingTableStack() {
   if (!app.pendingStackDrag) return null;
   return app.tableStacks.find(stack => stack.id === app.pendingStackDrag.stackId) || null;
 }
 
+// Liga ou desliga colisao fisica durante o arrasto de uma peca.
 function setPieceSensor(piece, enabled) {
   piece?.collider?.setSensor?.(enabled);
 }
 
+// Devolve moeda ou dado ao modo fisico depois do arrasto.
 function finishObjectDrag(object, wasDragged) {
   setPieceSensor(object, false);
   object.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true);
@@ -1304,6 +1358,7 @@ function finishObjectDrag(object, wasDragged) {
   }
 }
 
+// Fallback de duplo clique nativo para devolver carta ao deck.
 function onDoubleClick(event) {
   setPointer(event);
   const hits = getIntersections(getCardMeshes());
@@ -1314,6 +1369,7 @@ function onDoubleClick(event) {
   if (card) tryReturnCardToDeck(card);
 }
 
+// Devolve carta ao deck respeitando cooldown contra cliques duplicados.
 function tryReturnCardToDeck(card) {
   if (!card || card.data.location === 'deck') return false;
 
@@ -1325,6 +1381,7 @@ function tryReturnCardToDeck(card) {
   return true;
 }
 
+// Centraliza camera, remove objetos ou vira carta via teclado.
 function onKeyDown(event) {
   if (event.code === 'Space') {
     event.preventDefault();
@@ -1347,6 +1404,7 @@ function onKeyDown(event) {
   flipCard(app.selectedCard);
 }
 
+// Inicia animacao de foco da camera para o jogador ativo.
 function focusTableCamera() {
   app.cameraFocus = {
     progress: 0,
@@ -1357,6 +1415,7 @@ function focusTableCamera() {
   };
 }
 
+// Calcula a posicao padrao da camera para um jogador.
 function getPlayerCameraPosition(playerId) {
   const angle = getPlayerAngle(playerId);
   return new THREE.Vector3(
@@ -1366,6 +1425,7 @@ function getPlayerCameraPosition(playerId) {
   );
 }
 
+// Anima a carta virando horizontalmente e troca a face no meio.
 function flipCard(card) {
   if (card.flip) return;
   removeCardFromTableStack(card);
@@ -1394,6 +1454,7 @@ function flipCard(card) {
   };
 }
 
+// Cancela arrasto e devolve a carta ao local de origem.
 function restoreDraggedCard(card) {
   setPieceSensor(card, false);
   const origin = app.dragOrigin;
@@ -1412,6 +1473,7 @@ function restoreDraggedCard(card) {
   card.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
 }
 
+// Move uma carta para a mao de um jogador.
 function moveCardToPlayer(card, playerId) {
   setPieceSensor(card, false);
   const oldOwner = card.data.owner;
@@ -1427,6 +1489,7 @@ function moveCardToPlayer(card, playerId) {
   updateHud();
 }
 
+// Solta a carta na mesa ou agrupa em pilha compativel.
 function moveCardToTable(card) {
   setPieceSensor(card, false);
   const oldOwner = card.data.owner;
@@ -1455,6 +1518,7 @@ function moveCardToTable(card) {
   updateHud();
 }
 
+// Remove a carta da cena e devolve seus dados ao deck.
 function returnCardToDeck(card) {
   clearPointerHover();
   setPieceSensor(card, false);
@@ -1473,6 +1537,7 @@ function returnCardToDeck(card) {
   updateHud();
 }
 
+// Remove a carta de maos, mesa e pilhas antes de mover.
 function removeCardFromCollections(card) {
   removeCardFromTableStack(card);
   state.tableCards = state.tableCards.filter(data => data.id !== card.id);
@@ -1481,11 +1546,13 @@ function removeCardFromCollections(card) {
   });
 }
 
+// Retorna a pilha a que uma carta pertence, se houver.
 function getCardStack(card) {
   if (!card?.data.stackId) return null;
   return app.tableStacks.find(stack => stack.id === card.data.stackId) || null;
 }
 
+// Procura uma pilha de mesa com mesmo lado visivel e proximidade.
 function findCompatibleTableStack(card, position) {
   const existingStack = app.tableStacks.find((stack) => {
     if (stack.faceUp !== card.data.faceUp) return false;
@@ -1505,6 +1572,7 @@ function findCompatibleTableStack(card, position) {
   return createTableStack(app.cards.get(targetData.id));
 }
 
+// Cria uma nova pilha de mesa a partir de uma carta base.
 function createTableStack(baseCard) {
   const stack = {
     id: `stack-${app.stackId++}`,
@@ -1520,6 +1588,7 @@ function createTableStack(baseCard) {
   return stack;
 }
 
+// Adiciona carta a uma pilha e realinha o conjunto.
 function addCardToTableStack(card, stack) {
   setPieceSensor(card, false);
   removeCardFromTableStack(card);
@@ -1539,6 +1608,7 @@ function addCardToTableStack(card, stack) {
   layoutTableStack(stack);
 }
 
+// Remove carta de uma pilha e desfaz pilhas com uma carta so.
 function removeCardFromTableStack(card) {
   setPieceSensor(card, false);
   const stackId = card.data.stackId;
@@ -1564,6 +1634,7 @@ function removeCardFromTableStack(card) {
   layoutTableStack(stack);
 }
 
+// Reposiciona as cartas de uma pilha em camadas.
 function layoutTableStack(stack, animateLayout = true) {
   stack.cards = stack.cards.filter(id => app.cards.has(id));
   stack.cards.forEach((id, index) => {
@@ -1583,6 +1654,7 @@ function layoutTableStack(stack, animateLayout = true) {
   });
 }
 
+// Move todas as cartas de uma pilha durante o arrasto.
 function moveTableStack(stack, x, z) {
   stack.position.x = x;
   stack.position.z = z;
@@ -1601,6 +1673,7 @@ function moveTableStack(stack, x, z) {
   });
 }
 
+// Resolve qual carta esta no topo de uma pilha.
 function getTopStackCard(card) {
   const stackId = card.data.stackId;
   if (!stackId) return card;
@@ -1611,6 +1684,7 @@ function getTopStackCard(card) {
   return app.cards.get(stack.cards[stack.cards.length - 1]) || card;
 }
 
+// Rola todos os dados existentes ou cria um dado se nao houver nenhum.
 function rollDice() {
   const dice = [...app.objects.values()].filter(object => object.kind === 'die');
   if (dice.length === 0) {
@@ -1621,6 +1695,7 @@ function rollDice() {
   dice.forEach((die, index) => rollSingleDie(die, index * 0.12));
 }
 
+// Aplica impulso e rotacao aleatoria a um dado.
 function rollSingleDie(die, delay = 0) {
   window.setTimeout(() => {
     const angle = random(0, Math.PI * 2);
@@ -1639,6 +1714,7 @@ function rollSingleDie(die, delay = 0) {
   }, delay * 1000);
 }
 
+// Remove moedas e dados da mesa.
 function clearTableObjects(update = true) {
   clearPointerHover();
   app.objects.forEach((object) => {
@@ -1650,6 +1726,7 @@ function clearTableObjects(update = true) {
   if (update) updateHud();
 }
 
+// Remove um objeto solto especifico da mesa.
 function removeTableObject(object) {
   clearPointerHover();
   app.scene.remove(object.mesh);
@@ -1659,6 +1736,7 @@ function removeTableObject(object) {
   updateHud();
 }
 
+// Anima uma carta em arco ate uma posicao alvo.
 function tossTo(card, target, rotationY, lift = 0.25) {
   const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rotationY, 0));
   const start = card.mesh.position.clone();
@@ -1672,6 +1750,7 @@ function tossTo(card, target, rotationY, lift = 0.25) {
   card.targetQuat = quat;
 }
 
+// Posiciona uma carta imediatamente no mundo fisico e visual.
 function placeCard(card, position, rotationY, dynamic = true) {
   const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rotationY, 0));
   card.mesh.position.copy(position);
@@ -1681,6 +1760,7 @@ function placeCard(card, position, rotationY, dynamic = true) {
   card.body.setBodyType(dynamic ? RAPIER.RigidBodyType.Dynamic : RAPIER.RigidBodyType.KinematicPositionBased, true);
 }
 
+// Organiza e anima as cartas da mao de um jogador.
 function layoutPlayerHand(playerId, lift = 0.16) {
   const player = state.players[playerId - 1];
   if (!player) return;
@@ -1694,6 +1774,7 @@ function layoutPlayerHand(playerId, lift = 0.16) {
   });
 }
 
+// Calcula a posicao de uma carta dentro da mao.
 function getHandCardPosition(playerId, cardIndex, handCount = null) {
   const seat = getPlayerSeatPosition(playerId);
   const player = state.players[playerId - 1];
@@ -1716,6 +1797,7 @@ function getHandCardPosition(playerId, cardIndex, handCount = null) {
   return base;
 }
 
+// Calcula a rotacao de uma carta na mao do jogador.
 function getHandRotation(playerId, cardIndex = null, handCount = null) {
   const baseRotation = -getPlayerAngle(playerId) - Math.PI / 2;
   if (cardIndex === null || handCount === null || handCount <= 1) return baseRotation;
@@ -1724,6 +1806,7 @@ function getHandRotation(playerId, cardIndex = null, handCount = null) {
   return baseRotation + (cardIndex - centerIndex) * HAND_LADDER_ROTATION;
 }
 
+// Retorna a posicao do assento de um jogador na mesa.
 function getPlayerSeatPosition(playerId) {
   const angle = getPlayerAngle(playerId);
   return {
@@ -1732,10 +1815,12 @@ function getPlayerSeatPosition(playerId) {
   };
 }
 
+// Calcula o angulo radial de um jogador no octogono.
 function getPlayerAngle(playerId) {
   return -Math.PI / 2 + Math.PI / 8 + ((playerId - 1) / PLAYER_COUNT) * Math.PI * 2;
 }
 
+// Atualiza destaque visual de zona de drop sob o cursor.
 function updateHoveredDrop(event) {
   const drop = findDropZoneAtPointer(event);
   if (drop === app.hoveredDrop) return;
@@ -1747,6 +1832,7 @@ function updateHoveredDrop(event) {
   }
 }
 
+// Remove destaque visual da zona de drop atual.
 function clearDropHover() {
   if (!app.hoveredDrop) return;
   app.hoveredDrop.material.opacity = app.hoveredDrop.userData.playerId === state.activePlayer
@@ -1755,12 +1841,14 @@ function clearDropHover() {
   app.hoveredDrop = null;
 }
 
+// Encontra a zona de jogador sob o ponteiro.
 function findDropZoneAtPointer(event) {
   setPointer(event);
   const hits = getIntersections(app.dropZones.filter(zone => zone.name !== 'table'));
   return hits[0]?.object || null;
 }
 
+// Verifica se o ponteiro esta sobre o deck central.
 function isPointerOverDeck(event) {
   if (!app.deckMesh?.visible) return false;
 
@@ -1773,31 +1861,37 @@ function isPointerOverDeck(event) {
   return Math.hypot(point.x - app.deckMesh.position.x, point.z - app.deckMesh.position.z) < 0.95;
 }
 
+// Projeta o raio do mouse no plano de arrasto da mesa.
 function rayToPlane(event, out) {
   setPointer(event);
   app.raycaster.setFromCamera(app.pointer, app.camera);
   return app.raycaster.ray.intersectPlane(app.dragPlane, out);
 }
 
+// Executa raycast contra uma lista de objetos 3D.
 function getIntersections(objects) {
   app.raycaster.setFromCamera(app.pointer, app.camera);
   return app.raycaster.intersectObjects(objects, false);
 }
 
+// Lista os meshes de todas as cartas ativas.
 function getCardMeshes() {
   return [...app.cards.values()].map(card => card.mesh);
 }
 
+// Lista os meshes de moedas e dados ativos.
 function getObjectMeshes() {
   return [...app.objects.values()].map(object => object.mesh);
 }
 
+// Converte coordenadas de tela em coordenadas normalizadas para raycast.
 function setPointer(event) {
   const rect = canvas.getBoundingClientRect();
   app.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
   app.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 }
 
+// Loop principal de animacao, fisica e renderizacao.
 function animate() {
   requestAnimationFrame(animate);
 
@@ -1816,6 +1910,7 @@ function animate() {
   app.renderer.render(app.scene, app.camera);
 }
 
+// Atualiza animacoes de cartas em movimento.
 function updateCardTweens(dt) {
   app.cards.forEach((card) => {
     if (!card.target) return;
@@ -1837,6 +1932,7 @@ function updateCardTweens(dt) {
   });
 }
 
+// Sincroniza meshes visuais com corpos fisicos.
 function syncPhysicsMeshes() {
   app.cards.forEach((card) => {
     const pos = card.body.translation();
@@ -1855,6 +1951,7 @@ function syncPhysicsMeshes() {
   syncHoverOutline();
 }
 
+// Atualiza animacoes de flip das cartas.
 function updateFlipTweens(dt) {
   app.cards.forEach((card) => {
     if (!card.flip) return;
@@ -1894,6 +1991,7 @@ function updateFlipTweens(dt) {
   });
 }
 
+// Interpola a camera ate a vista padrao do jogador ativo.
 function updateCameraFocus(dt) {
   if (!app.cameraFocus) return;
 
@@ -1911,6 +2009,7 @@ function updateCameraFocus(dt) {
   }
 }
 
+// Atualiza a animacao visual de embaralhar o deck.
 function updateDeckShuffle(dt) {
   if (!app.deckShuffle || !app.deckMesh) return;
 
@@ -1936,6 +2035,7 @@ function updateDeckShuffle(dt) {
   }
 }
 
+// Resgata cartas e objetos que caem fora da mesa.
 function rescueLimboPieces() {
   app.cards.forEach((card) => {
     if (card.target || card.flip) return;
@@ -1951,10 +2051,12 @@ function rescueLimboPieces() {
   });
 }
 
+// Detecta se uma peca caiu abaixo ou longe demais da mesa.
 function isInLimbo(pos) {
   return pos.y < LIMBO_Y || Math.hypot(pos.x, pos.z) > LIMBO_RADIUS;
 }
 
+// Reposiciona uma peca perdida de volta ao centro da mesa.
 function resetPieceToTable(piece, y) {
   const angle = random(0, Math.PI * 2);
   const radius = random(0, 0.55);
@@ -1971,12 +2073,14 @@ function resetPieceToTable(piece, y) {
   piece.body.setAngvel({ x: 0, y: random(-0.25, 0.25), z: 0 }, true);
 }
 
+// Ajusta camera e renderer quando a janela muda de tamanho.
 function resize() {
   app.camera.aspect = window.innerWidth / window.innerHeight;
   app.camera.updateProjectionMatrix();
   app.renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+// Atualiza contadores e visibilidade do deck no HUD.
 function updateHud() {
   deckCountEl.textContent = `Deck: ${state.deck.length}`;
   tableCountEl.textContent = `Mesa: ${state.tableCards.length}`;
@@ -1991,6 +2095,7 @@ function updateHud() {
   }
 }
 
+// Mantem o aro visual do deck alinhado ao deck.
 function syncDeckRim() {
   if (!app.deckRim || !app.deckMesh) return;
 
@@ -2004,6 +2109,7 @@ function syncDeckRim() {
   app.deckRim.visible = app.deckMesh.visible;
 }
 
+// Recria o collider fisico fixo do deck.
 function updateDeckCollider() {
   if (app.deckBody) {
     app.world.removeRigidBody(app.deckBody);
@@ -2025,6 +2131,7 @@ function updateDeckCollider() {
   app.world.createCollider(collider, app.deckBody);
 }
 
+// Embaralha uma lista usando Fisher-Yates.
 function shuffle(cards) {
   for (let i = cards.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -2033,20 +2140,24 @@ function shuffle(cards) {
   return cards;
 }
 
+// Retorna numero aleatorio entre minimo e maximo.
 function random(min, max) {
   return min + Math.random() * (max - min);
 }
 
+// Aplica easing de desaceleracao para animacoes.
 function easeOutCubic(t) {
   return 1 - Math.pow(1 - t, 3);
 }
 
+// Aplica easing suave de entrada e saida.
 function easeInOutCubic(t) {
   return t < 0.5
     ? 4 * t * t * t
     : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
+// Converte rotacao Euler do Three.js para quaternion do Rapier.
 function rapierQuatFromEuler(x, y, z) {
   const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(x, y, z));
   return { x: quat.x, y: quat.y, z: quat.z, w: quat.w };
