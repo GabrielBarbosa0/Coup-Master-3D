@@ -12,6 +12,7 @@
   --muted: rgba(237, 244, 255, 0.62);
   --accent: #3da3ff;
   --active: #18f28a;
+  --gold: #f6c35b;
 }
 
 html,
@@ -72,10 +73,12 @@ body,
 .top-right {
   top: max(14px, env(safe-area-inset-top));
   right: max(14px, env(safe-area-inset-right));
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(68px, 1fr));
   gap: 8px;
   padding: 8px;
   border-radius: 8px;
+  width: min(376px, calc(100vw - 28px));
 }
 
 button {
@@ -99,6 +102,72 @@ button:focus-visible {
 
 .top-right button {
   padding: 0 12px;
+}
+
+#goldCoinBtn {
+  border-color: rgba(246, 195, 91, 0.48);
+  color: #ffe6af;
+}
+
+#goldCoinBtn:hover,
+#goldCoinBtn:focus-visible {
+  border-color: rgba(246, 195, 91, 0.86);
+  background: rgba(246, 195, 91, 0.16);
+}
+
+#silverCoinBtn {
+  border-color: rgba(212, 224, 238, 0.42);
+  color: #eef5ff;
+}
+
+#silverCoinBtn:hover,
+#silverCoinBtn:focus-visible {
+  border-color: rgba(230, 240, 252, 0.86);
+  background: rgba(212, 224, 238, 0.16);
+}
+
+#rollBtn {
+  border-color: rgba(24, 242, 138, 0.42);
+}
+
+#rollBtn:hover,
+#rollBtn:focus-visible {
+  border-color: rgba(24, 242, 138, 0.86);
+  background: rgba(24, 242, 138, 0.14);
+}
+
+.help-panel {
+  left: max(14px, env(safe-area-inset-left));
+  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 58px);
+  display: flex;
+  gap: 10px;
+  max-width: min(620px, calc(100vw - 28px));
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.hover-tooltip {
+  position: fixed;
+  z-index: 12;
+  left: 0;
+  top: 0;
+  display: none;
+  max-width: 220px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 6px;
+  background: rgba(7, 10, 15, 0.86);
+  color: var(--text);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.36);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  pointer-events: none;
+  transform: translate(12px, 12px);
+  white-space: nowrap;
 }
 
 .player-tabs {
@@ -138,10 +207,18 @@ button:focus-visible {
   .top-right {
     top: auto;
     right: max(14px, env(safe-area-inset-right));
-    bottom: calc(max(14px, env(safe-area-inset-bottom)) + 58px);
+    bottom: calc(max(14px, env(safe-area-inset-bottom)) + 104px);
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .player-tabs {
     grid-template-columns: repeat(4, 1fr);
+  }
+
+  .help-panel {
+    right: max(14px, env(safe-area-inset-right));
+    bottom: calc(max(14px, env(safe-area-inset-bottom)) + 58px);
+    justify-content: center;
+    flex-wrap: wrap;
   }
 }

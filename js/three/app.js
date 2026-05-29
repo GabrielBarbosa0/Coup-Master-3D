@@ -1,18 +1,26 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 
 const canvas = document.getElementById('threeCanvas');
 const deckCountEl = document.getElementById('deckCount');
 const tableCountEl = document.getElementById('tableCount');
+const objectCountEl = document.getElementById('objectCount');
+const hoverTooltipEl = document.getElementById('hoverTooltip');
 const playerTabsEl = document.getElementById('playerTabs');
 const drawBtn = document.getElementById('drawBtn');
+const goldCoinBtn = document.getElementById('goldCoinBtn');
+const silverCoinBtn = document.getElementById('silverCoinBtn');
+const diceBtn = document.getElementById('diceBtn');
+const rollBtn = document.getElementById('rollBtn');
+const clearObjectsBtn = document.getElementById('clearObjectsBtn');
+const shuffleBtn = document.getElementById('shuffleBtn');
+const dealBtn = document.getElementById('dealBtn');
 const resetBtn = document.getElementById('resetBtn3d');
 
 const CARD_W = 0.72;
 const CARD_H = 1.04;
-const CARD_D = 0.035;
+const CARD_D = 0.035 / 5;
 const CARD_RADIUS = 0.055;
 const TABLE_RADIUS = 4.65;
 const FELT_RADIUS = 4.18;
@@ -20,11 +28,24 @@ const PLAY_RADIUS = 3.62;
 const PLAYER_COUNT = 8;
 const HAND_RADIUS = 3.28;
 const CARD_REST_Y = 0.068;
-const DECK_BASE_HEIGHT = 0.38;
+const DECK_BASE_HEIGHT = 0.38 * 0.4;
 const HAND_LADDER_SPACING = 0.36;
 const HAND_LADDER_DEPTH = 0.075;
 const HAND_LADDER_LIFT = 0.012;
 const HAND_LADDER_ROTATION = 0.035;
+const SILVER_COIN_RADIUS = 0.16;
+const GOLD_COIN_RADIUS = SILVER_COIN_RADIUS * 1.1;
+const COIN_HEIGHT = 0.055 / 3;
+const DIE_SIZE = 0.42;
+const DECK_DRAG_HOLD_MS = 260;
+const CARD_RETURN_COOLDOWN_MS = 300;
+const LIMBO_Y = -2.2;
+const LIMBO_RADIUS = TABLE_RADIUS + 2.2;
+const TABLE_STACK_RADIUS = 0.58;
+const TABLE_STACK_GAP = 0.012;
+const DEFAULT_CAMERA_HEIGHT = 7.6;
+const DEFAULT_CAMERA_DISTANCE = 7.8;
+const DEFAULT_CAMERA_TARGET = new THREE.Vector3(0, 0, 0);
 
 const CARD_LIBRARY = [
   { type: 'duque', folder: 'base' },
@@ -34,6 +55,15 @@ const CARD_LIBRARY = [
   { type: 'embaixador', folder: 'base' },
   { type: 'inquisidor', folder: 'base' }
 ];
+
+const CARD_LABELS = {
+  assassino: 'Assassino',
+  capitao: 'Capitao',
+  condessa: 'Condessa',
+  duque: 'Duque',
+  embaixador: 'Embaixador',
+  inquisidor: 'Inquisidor'
+};
 
 const state = {
   activePlayer: 1,
@@ -53,19 +83,37 @@ const app = {
   world: null,
   table: null,
   deckMesh: null,
+  deckBody: null,
+  deckRim: null,
   raycaster: new THREE.Raycaster(),
   pointer: new THREE.Vector2(),
   dragPlane: new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.12),
   dragPoint: new THREE.Vector3(),
   dragOffset: new THREE.Vector3(),
   dragged: null,
+  dragMode: null,
+  dragQuat: null,
   dragOrigin: null,
   dragStart: null,
+  pendingDeckDrag: null,
+  pendingStackDrag: null,
   hasDragged: false,
+  lastCardClick: null,
+  lastCardReturnAt: 0,
   selectedCard: null,
+  selectedObject: null,
   hoveredDrop: null,
+  hoveredPiece: null,
+  hoverOutline: null,
+  cameraFocus: null,
+  deckShuffle: null,
   cards: new Map(),
+  objects: new Map(),
+  tableStacks: [],
   dropZones: [],
+  objectId: 1,
+  stackId: 1,
+  isDealing: false,
   lastTime: performance.now(),
   textures: {}
 };
@@ -88,14 +136,14 @@ function init() {
   app.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   app.scene = new THREE.Scene();
-  app.scene.background = new THREE.Color(0x05070a);
-  app.scene.fog = new THREE.Fog(0x05070a, 9, 22);
+  app.scene.background = new THREE.Color(0x080c12);
+  app.scene.fog = new THREE.Fog(0x080c12, 11, 24);
 
   app.camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 80);
-  app.camera.position.set(0, 7.6, 7.8);
+  app.camera.position.copy(getPlayerCameraPosition(state.activePlayer));
 
   app.controls = new OrbitControls(app.camera, canvas);
-  app.controls.target.set(0, 0, 0);
+  app.controls.target.copy(DEFAULT_CAMERA_TARGET);
   app.controls.enableDamping = true;
   app.controls.dampingFactor = 0.08;
   app.controls.minDistance = 5;
@@ -103,6 +151,11 @@ function init() {
   app.controls.maxPolarAngle = Math.PI * 0.48;
   app.controls.minPolarAngle = Math.PI * 0.19;
   app.controls.screenSpacePanning = false;
+  app.controls.mouseButtons = {
+    LEFT: THREE.MOUSE.ROTATE,
+    MIDDLE: THREE.MOUSE.PAN,
+    RIGHT: null
+  };
 
   app.world = new RAPIER.World({ x: 0, y: -9.82, z: 0 });
   app.world.timestep = 1 / 60;
@@ -115,6 +168,13 @@ function init() {
   createPlayerTabs();
 
   drawBtn.addEventListener('click', () => drawCardToPlayer(state.activePlayer));
+  goldCoinBtn.addEventListener('click', () => spawnCoin('gold'));
+  silverCoinBtn.addEventListener('click', () => spawnCoin('silver'));
+  diceBtn.addEventListener('click', () => spawnDie());
+  rollBtn.addEventListener('click', rollDice);
+  clearObjectsBtn.addEventListener('click', clearTableObjects);
+  shuffleBtn.addEventListener('click', shuffleDeck);
+  dealBtn.addEventListener('click', dealInitialHands);
   resetBtn.addEventListener('click', resetMvp);
   window.addEventListener('resize', resize);
   canvas.addEventListener('pointerdown', onPointerDown);
@@ -126,10 +186,10 @@ function init() {
 }
 
 function createLights() {
-  const ambient = new THREE.HemisphereLight(0x8fb8ff, 0x090a0d, 1.2);
+  const ambient = new THREE.HemisphereLight(0xb8d4ff, 0x151a22, 1.75);
   app.scene.add(ambient);
 
-  const key = new THREE.DirectionalLight(0xe8f5ff, 2.2);
+  const key = new THREE.DirectionalLight(0xf3f8ff, 2.55);
   key.position.set(-3, 7, 5);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
@@ -139,7 +199,7 @@ function createLights() {
   key.shadow.camera.bottom = -8;
   app.scene.add(key);
 
-  const rim = new THREE.PointLight(0x2d8cff, 22, 11);
+  const rim = new THREE.PointLight(0x4aa6ff, 28, 12);
   rim.position.set(3.8, 2.2, -3.2);
   app.scene.add(rim);
 }
@@ -176,7 +236,7 @@ function createTable() {
   app.scene.add(floor);
 
   const groundBody = app.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0, -0.005, 0));
-  const groundCollider = RAPIER.ColliderDesc.cylinder(0.05, PLAY_RADIUS);
+  const groundCollider = RAPIER.ColliderDesc.cylinder(0.05, TABLE_RADIUS);
   groundCollider.setFriction(1.25);
   groundCollider.setRestitution(0.12);
   app.world.createCollider(groundCollider, groundBody);
@@ -208,7 +268,7 @@ function createBoundaries() {
 function createDropZones() {
   app.dropZones = [];
 
-  const tableZone = makeZone('table', 0, 0, PLAY_RADIUS * 1.38, PLAY_RADIUS * 1.38, 0x1d5d8f, 0.08);
+  const tableZone = makeOctagonZone('table', 0, 0, PLAY_RADIUS * 1.38 * 0.45, 0x1d5d8f, 0.08);
   app.dropZones.push(tableZone);
 
   for (let i = 1; i <= PLAYER_COUNT; i++) {
@@ -239,9 +299,29 @@ function makeZone(id, x, z, width, depth, color, opacity) {
   return zone;
 }
 
+function makeOctagonZone(id, x, z, radius, color, opacity) {
+  const geo = new THREE.CircleGeometry(radius, 8);
+  const mat = new THREE.MeshBasicMaterial({
+    color,
+    transparent: true,
+    opacity,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
+  const zone = new THREE.Mesh(geo, mat);
+  zone.name = id;
+  zone.userData.dropZone = true;
+  zone.userData.baseOpacity = opacity;
+  zone.rotation.x = -Math.PI / 2;
+  zone.rotation.z = Math.PI / 8;
+  zone.position.set(x, 0.031, z);
+  app.scene.add(zone);
+  return zone;
+}
+
 function createDeck() {
-  const geo = new RoundedBoxGeometry(CARD_W, DECK_BASE_HEIGHT, CARD_H, 5, CARD_RADIUS);
-  const materials = makeCardMaterials('assets/img/cards/base/back.png', false);
+  const geo = createRoundedCardGeometry(CARD_W, CARD_H, DECK_BASE_HEIGHT, CARD_RADIUS);
+  const materials = makeCardMaterials('assets/img/cards/base/back.png', false, 0xf4f7ff);
   app.deckMesh = new THREE.Mesh(geo, materials);
   app.deckMesh.position.set(0, CARD_REST_Y + DECK_BASE_HEIGHT / 2, 0);
   app.deckMesh.rotation.y = -0.12;
@@ -250,6 +330,39 @@ function createDeck() {
   app.deckMesh.name = 'deck';
   app.deckMesh.userData.deck = true;
   app.scene.add(app.deckMesh);
+  createDeckRim();
+  updateDeckCollider();
+}
+
+function createDeckRim() {
+  const outer = createRoundedRectShape(CARD_W, CARD_H, CARD_RADIUS);
+  const inner = createRoundedRectShape(CARD_W - 0.07, CARD_H - 0.07, Math.max(0.01, CARD_RADIUS - 0.035));
+  const rimShape = outer;
+  rimShape.holes.push(inner);
+
+  const geo = new THREE.ShapeGeometry(rimShape, 14);
+  geo.rotateX(Math.PI / 2);
+  const mat = new THREE.MeshBasicMaterial({
+    color: 0xf4f7ff,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.94,
+    depthWrite: false
+  });
+
+  app.deckRim = new THREE.Mesh(geo, mat);
+  app.deckRim.name = 'deck-rim';
+  app.scene.add(app.deckRim);
+  syncDeckRim();
+}
+
+function resetDeckPosition() {
+  if (!app.deckMesh) return;
+
+  app.deckMesh.position.set(0, CARD_REST_Y + DECK_BASE_HEIGHT / 2, 0);
+  app.deckMesh.rotation.y = -0.12;
+  syncDeckRim();
+  updateDeckCollider();
 }
 
 function createPlayerTabs() {
@@ -266,22 +379,27 @@ function createPlayerTabs() {
 }
 
 function resetMvp() {
+  app.isDealing = false;
+  app.deckShuffle = null;
+  app.pendingDeckDrag = null;
+  app.pendingStackDrag = null;
+  dealBtn.disabled = false;
+  shuffleBtn.disabled = false;
+
   app.cards.forEach((card) => {
     app.scene.remove(card.mesh);
     app.world.removeRigidBody(card.body);
   });
   app.cards.clear();
+  app.tableStacks = [];
+  clearTableObjects(false);
 
   state.deck = buildDeck();
   state.tableCards = [];
   state.players.forEach(player => {
     player.cards = [];
   });
-
-  for (let i = 1; i <= PLAYER_COUNT; i++) {
-    drawCardToPlayer(i, false);
-    drawCardToPlayer(i, false);
-  }
+  resetDeckPosition();
 
   setActivePlayer(1);
   updateHud();
@@ -321,17 +439,78 @@ function drawCardToPlayer(playerId, animateDraw = true) {
 
   const card = createCardObject(data);
   const target = getHandCardPosition(playerId, state.players[playerId - 1].cards.length - 1);
-  const start = animateDraw ? new THREE.Vector3(0, 1.0, 0) : target.clone().add(new THREE.Vector3(0, 0.35, 0));
+  const start = animateDraw ? getDeckDrawPosition(1.0) : target.clone().add(new THREE.Vector3(0, 0.35, 0));
   placeCard(card, start, getHandRotation(playerId), false);
   layoutPlayerHand(playerId, animateDraw ? 0.34 : 0);
   updateHud();
+}
+
+function dealInitialHands() {
+  if (app.isDealing) return;
+
+  const dealQueue = getInitialDealQueue();
+  if (dealQueue.length === 0 || state.deck.length === 0) return;
+
+  app.isDealing = true;
+  dealBtn.disabled = true;
+
+  const totalCards = Math.min(dealQueue.length, state.deck.length);
+  let completed = 0;
+  dealQueue.forEach((playerId, index) => {
+    window.setTimeout(() => {
+      drawCardToPlayer(playerId, true);
+      completed += 1;
+
+      if (completed >= totalCards) {
+        app.isDealing = false;
+        dealBtn.disabled = false;
+      }
+    }, index * 140);
+  });
+}
+
+function shuffleDeck() {
+  if (app.deckShuffle || state.deck.length <= 1) return;
+
+  state.deck = shuffle(state.deck);
+  shuffleBtn.disabled = true;
+  app.deckShuffle = {
+    progress: 0,
+    startRotation: app.deckMesh.rotation.y,
+    startPosition: app.deckMesh.position.clone()
+  };
+}
+
+function getInitialDealQueue() {
+  const queue = [];
+  const seatedPlayers = state.players.map(player => player.id);
+
+  for (let round = 0; round < 2; round++) {
+    seatedPlayers.forEach((playerId) => {
+      if (state.players[playerId - 1].cards.length <= round) {
+        queue.push(playerId);
+      }
+    });
+  }
+
+  return queue;
+}
+
+function getDeckDrawPosition(yOffset = 0.2) {
+  if (!app.deckMesh) return new THREE.Vector3(0, yOffset, 0);
+
+  return new THREE.Vector3(
+    app.deckMesh.position.x,
+    app.deckMesh.position.y + yOffset,
+    app.deckMesh.position.z
+  );
 }
 
 function createCardObject(data) {
   const texturePath = data.faceUp
     ? `assets/img/cards/${data.folder}/${data.type}.png`
     : 'assets/img/cards/base/back.png';
-  const geo = new RoundedBoxGeometry(CARD_W, CARD_D, CARD_H, 5, CARD_RADIUS);
+  const geo = createRoundedCardGeometry(CARD_W, CARD_H, CARD_D, CARD_RADIUS);
   const mesh = new THREE.Mesh(geo, makeCardMaterials(texturePath, data.faceUp));
   mesh.castShadow = true;
   mesh.receiveShadow = true;
@@ -348,7 +527,7 @@ function createCardObject(data) {
   collider.setDensity(0.36);
   collider.setFriction(1.6);
   collider.setRestitution(0.08);
-  app.world.createCollider(collider, body);
+  const bodyCollider = app.world.createCollider(collider, body);
 
   app.scene.add(mesh);
 
@@ -357,21 +536,235 @@ function createCardObject(data) {
     data,
     mesh,
     body,
+    collider: bodyCollider,
     target: null,
-    targetQuat: null
+    targetQuat: null,
+    flip: null
   };
 
   app.cards.set(data.id, card);
   return card;
 }
 
-function makeCardMaterials(texturePath, faceUp) {
+function createRoundedCardGeometry(width, height, depth, radius, segments = 10) {
+  const halfW = width / 2;
+  const halfH = height / 2;
+  const halfD = depth / 2;
+  const points = createRoundedRectPoints(width, height, radius, segments);
+
+  const triangles = THREE.ShapeUtils.triangulateShape(points, []);
+  const positions = [];
+  const normals = [];
+  const uvs = [];
+  const groups = [];
+
+  const pushVertex = (point, y, normal) => {
+    positions.push(point.x, y, point.y);
+    normals.push(normal.x, normal.y, normal.z);
+    uvs.push(1 - ((point.x + halfW) / width), (point.y + halfH) / height);
+  };
+
+  const pushTriangle = (a, b, c, y, normal, materialIndex) => {
+    const start = positions.length / 3;
+    pushVertex(points[a], y, normal);
+    pushVertex(points[b], y, normal);
+    pushVertex(points[c], y, normal);
+    groups.push({ start, count: 3, materialIndex });
+  };
+
+  triangles.forEach(([a, b, c]) => {
+    pushTriangle(c, b, a, halfD, new THREE.Vector3(0, 1, 0), 1);
+    pushTriangle(a, b, c, -halfD, new THREE.Vector3(0, -1, 0), 2);
+  });
+
+  points.forEach((point, index) => {
+    const next = points[(index + 1) % points.length];
+    const edgeX = next.x - point.x;
+    const edgeZ = next.y - point.y;
+    const normal = new THREE.Vector3(edgeZ, 0, -edgeX).normalize();
+    const start = positions.length / 3;
+
+    positions.push(point.x, halfD, point.y, point.x, -halfD, point.y, next.x, -halfD, next.y);
+    positions.push(point.x, halfD, point.y, next.x, -halfD, next.y, next.x, halfD, next.y);
+
+    for (let i = 0; i < 6; i++) {
+      normals.push(normal.x, normal.y, normal.z);
+    }
+
+    uvs.push(0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1);
+    groups.push({ start, count: 6, materialIndex: 0 });
+  });
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  groups.forEach(group => geometry.addGroup(group.start, group.count, group.materialIndex));
+  geometry.computeBoundingSphere();
+
+  return geometry;
+}
+
+function createRoundedRectShape(width, height, radius) {
+  const points = createRoundedRectPoints(width, height, radius, 12);
+  const shape = new THREE.Shape();
+
+  points.forEach((point, index) => {
+    if (index === 0) {
+      shape.moveTo(point.x, point.y);
+    } else {
+      shape.lineTo(point.x, point.y);
+    }
+  });
+
+  return shape;
+}
+
+function createRoundedRectPoints(width, height, radius, cornerSegments) {
+  const halfW = width / 2;
+  const halfH = height / 2;
+  const r = Math.min(radius, halfW, halfH);
+  const points = [];
+  const corners = [
+    { x: halfW - r, y: -halfH + r, start: -Math.PI / 2, end: 0 },
+    { x: halfW - r, y: halfH - r, start: 0, end: Math.PI / 2 },
+    { x: -halfW + r, y: halfH - r, start: Math.PI / 2, end: Math.PI },
+    { x: -halfW + r, y: -halfH + r, start: Math.PI, end: Math.PI * 1.5 }
+  ];
+
+  corners.forEach((corner, cornerIndex) => {
+    for (let i = 0; i <= cornerSegments; i++) {
+      if (cornerIndex > 0 && i === 0) continue;
+
+      const t = i / cornerSegments;
+      const angle = corner.start + (corner.end - corner.start) * t;
+      points.push(new THREE.Vector2(
+        corner.x + Math.cos(angle) * r,
+        corner.y + Math.sin(angle) * r
+      ));
+    }
+  });
+
+  return points;
+}
+
+function spawnCoin(type = 'gold') {
+  const id = `coin-${app.objectId++}`;
+  const isGold = type === 'gold';
+  const radius = isGold ? GOLD_COIN_RADIUS : SILVER_COIN_RADIUS;
+  const geo = new THREE.CylinderGeometry(radius, radius, COIN_HEIGHT, 40);
+  const mat = new THREE.MeshStandardMaterial({
+    color: isGold ? 0xf0b94a : 0xd4e0ee,
+    roughness: isGold ? 0.38 : 0.32,
+    metalness: isGold ? 0.72 : 0.82
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  mesh.name = id;
+  mesh.userData.objectId = id;
+  mesh.userData.kind = isGold ? 'gold-coin' : 'silver-coin';
+
+  const body = app.world.createRigidBody(
+    RAPIER.RigidBodyDesc.dynamic()
+      .setTranslation(random(-0.5, 0.5), 1.2, random(-0.5, 0.5))
+      .setRotation(rapierQuatFromEuler(random(-0.3, 0.3), random(0, Math.PI * 2), random(-0.3, 0.3)))
+      .setLinearDamping(1.65)
+      .setAngularDamping(1.95)
+  );
+  const collider = RAPIER.ColliderDesc.cylinder(COIN_HEIGHT / 2, radius);
+  collider.setDensity(1.2);
+  collider.setFriction(1.4);
+  collider.setRestitution(0.18);
+  const bodyCollider = app.world.createCollider(collider, body);
+
+  app.scene.add(mesh);
+  app.objects.set(id, { id, kind: mesh.userData.kind, mesh, body, collider: bodyCollider });
+  updateHud();
+}
+
+function spawnDie() {
+  const id = `die-${app.objectId++}`;
+  const geo = new THREE.BoxGeometry(DIE_SIZE, DIE_SIZE, DIE_SIZE);
+  const mesh = new THREE.Mesh(geo, makeDieMaterials());
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  mesh.name = id;
+  mesh.userData.objectId = id;
+  mesh.userData.kind = 'die';
+
+  const body = app.world.createRigidBody(
+    RAPIER.RigidBodyDesc.dynamic()
+      .setTranslation(random(-0.55, 0.55), 1.55, random(-0.55, 0.55))
+      .setRotation(rapierQuatFromEuler(random(0, Math.PI), random(0, Math.PI), random(0, Math.PI)))
+      .setLinearDamping(0.75)
+      .setAngularDamping(0.85)
+  );
+  const collider = RAPIER.ColliderDesc.cuboid(DIE_SIZE / 2, DIE_SIZE / 2, DIE_SIZE / 2);
+  collider.setDensity(0.7);
+  collider.setFriction(0.82);
+  collider.setRestitution(0.42);
+  const bodyCollider = app.world.createCollider(collider, body);
+
+  app.scene.add(mesh);
+  app.objects.set(id, { id, kind: 'die', mesh, body, collider: bodyCollider });
+  rollSingleDie(app.objects.get(id), 0.75);
+  updateHud();
+}
+
+function makeDieMaterials() {
+  return [1, 6, 2, 5, 3, 4].map((value) => new THREE.MeshStandardMaterial({
+    map: makeDieFaceTexture(value),
+    roughness: 0.48,
+    metalness: 0.02
+  }));
+}
+
+function makeDieFaceTexture(value) {
+  const key = `die-face-${value}`;
+  if (app.textures[key]) return app.textures[key];
+
+  const dieCanvas = document.createElement('canvas');
+  dieCanvas.width = 256;
+  dieCanvas.height = 256;
+  const ctx = dieCanvas.getContext('2d');
+  ctx.fillStyle = '#f5f1e9';
+  ctx.fillRect(0, 0, 256, 256);
+  ctx.strokeStyle = '#c7b79b';
+  ctx.lineWidth = 12;
+  ctx.strokeRect(12, 12, 232, 232);
+  ctx.fillStyle = '#10151c';
+
+  const pipMap = {
+    1: [[128, 128]],
+    2: [[76, 76], [180, 180]],
+    3: [[76, 76], [128, 128], [180, 180]],
+    4: [[76, 76], [180, 76], [76, 180], [180, 180]],
+    5: [[76, 76], [180, 76], [128, 128], [76, 180], [180, 180]],
+    6: [[76, 68], [180, 68], [76, 128], [180, 128], [76, 188], [180, 188]]
+  };
+
+  pipMap[value].forEach(([x, y]) => {
+    ctx.beginPath();
+    ctx.arc(x, y, 18, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  const texture = new THREE.CanvasTexture(dieCanvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = Math.min(app.renderer.capabilities.getMaxAnisotropy(), 8);
+  app.textures[key] = texture;
+  return texture;
+}
+
+function makeCardMaterials(texturePath, faceUp, edgeColor = null) {
   const faceTexture = loadTexture(texturePath);
   const backTexture = loadTexture('assets/img/cards/base/back.png');
   const edge = new THREE.MeshStandardMaterial({
-    color: faceUp ? 0x161d28 : 0x0e1420,
+    color: edgeColor ?? (faceUp ? 0x161d28 : 0x0e1420),
     roughness: 0.7,
-    metalness: 0.05
+    metalness: 0.05,
+    side: THREE.DoubleSide
   });
   const face = new THREE.MeshStandardMaterial({
     map: faceTexture,
@@ -384,7 +777,7 @@ function makeCardMaterials(texturePath, faceUp) {
     metalness: 0.02
   });
 
-  return [edge, edge, face, back, edge, edge];
+  return [edge, face, back];
 }
 
 function loadTexture(path) {
@@ -433,36 +826,197 @@ function refreshCardMaterial(card) {
 function onPointerDown(event) {
   setPointer(event);
 
-  const hits = getIntersections([app.deckMesh, ...getCardMeshes()]);
+  const hits = getIntersections([app.deckMesh, ...getCardMeshes(), ...getObjectMeshes()]);
   const hit = hits[0];
   if (!hit) return;
 
   if (hit.object.userData.deck) {
-    drawCardToPlayer(state.activePlayer);
+    event.preventDefault();
+    canvas.setPointerCapture(event.pointerId);
+    app.controls.enabled = false;
+    app.pendingDeckDrag = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      startedAt: performance.now()
+    };
     return;
   }
 
-  const card = app.cards.get(hit.object.userData.cardId);
-  if (!card) return;
+  const hitCard = app.cards.get(hit.object.userData.cardId);
+  if (hitCard) {
+    const stack = getCardStack(hitCard);
+    let card = stack ? getTopStackCard(hitCard) : hitCard;
+
+    if (isCardDoubleClick(card, event)) {
+      event.preventDefault();
+      app.lastCardClick = null;
+      tryReturnCardToDeck(card);
+      return;
+    }
+
+    if (stack) {
+      event.preventDefault();
+      canvas.setPointerCapture(event.pointerId);
+      app.controls.enabled = false;
+      app.selectedCard = card;
+      app.pendingStackDrag = {
+        pointerId: event.pointerId,
+        stackId: stack.id,
+        x: event.clientX,
+        y: event.clientY,
+        startedAt: performance.now()
+      };
+      return;
+    }
+
+    event.preventDefault();
+    removeCardFromTableStack(card);
+    beginDrag(event, card, 'card');
+    app.selectedCard = card;
+    app.dragOrigin = {
+      owner: card.data.owner,
+      location: card.data.location
+    };
+    return;
+  }
+
+  const object = app.objects.get(hit.object.userData.objectId);
+  if (!object) return;
 
   event.preventDefault();
-  canvas.setPointerCapture(event.pointerId);
-  app.controls.enabled = false;
-  app.dragged = card;
-  app.selectedCard = card;
-  app.dragStart = { x: event.clientX, y: event.clientY };
-  app.hasDragged = false;
-  app.dragOrigin = {
-    owner: card.data.owner,
-    location: card.data.location
+  beginDrag(event, object, 'object');
+  app.selectedObject = object;
+}
+
+function isCardDoubleClick(card, event) {
+  const now = performance.now();
+  const previous = app.lastCardClick;
+  app.lastCardClick = {
+    cardId: card.id,
+    time: now,
+    x: event.clientX,
+    y: event.clientY
   };
 
-  card.body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true);
-  card.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-  card.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+  if (!previous) return false;
+  if (previous.cardId !== card.id) return false;
+  if (now - previous.time > 340) return false;
+
+  return Math.hypot(event.clientX - previous.x, event.clientY - previous.y) < 18;
+}
+
+function updatePointerHover(event) {
+  setPointer(event);
+  const hit = getIntersections([app.deckMesh, ...getCardMeshes(), ...getObjectMeshes()])[0];
+  if (!hit) {
+    clearPointerHover();
+    return;
+  }
+
+  const piece = getHoverPiece(hit.object);
+  const label = getHoverLabel(piece);
+  if (!piece || !label) {
+    clearPointerHover();
+    return;
+  }
+
+  if (app.hoveredPiece !== piece) {
+    setHoverOutline(piece);
+  }
+
+  app.hoveredPiece = piece;
+  showHoverTooltip(label, event.clientX, event.clientY);
+}
+
+function getHoverPiece(mesh) {
+  if (mesh.userData.deck) return { mesh: app.deckMesh, kind: 'deck' };
+
+  const card = app.cards.get(mesh.userData.cardId);
+  if (card) return getTopStackCard(card);
+
+  const object = app.objects.get(mesh.userData.objectId);
+  return object || null;
+}
+
+function getHoverLabel(piece) {
+  if (!piece) return '';
+  if (piece.kind === 'deck') return 'Baralho';
+  if (piece.kind === 'gold-coin') return 'Moeda de ouro';
+  if (piece.kind === 'silver-coin') return 'Moeda de prata';
+  if (piece.kind === 'die') return 'Dado';
+  if (piece.data) return piece.data.faceUp ? (CARD_LABELS[piece.data.type] || piece.data.type) : 'Carta fechada';
+  return '';
+}
+
+function setHoverOutline(piece) {
+  clearHoverOutline();
+
+  const outline = new THREE.LineSegments(
+    new THREE.EdgesGeometry(piece.mesh.geometry, 18),
+    new THREE.LineBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.95,
+      depthTest: false
+    })
+  );
+  outline.renderOrder = 20;
+  app.scene.add(outline);
+  app.hoverOutline = outline;
+  syncHoverOutline();
+}
+
+function syncHoverOutline() {
+  if (!app.hoverOutline || !app.hoveredPiece) return;
+  app.hoverOutline.position.copy(app.hoveredPiece.mesh.position);
+  app.hoverOutline.quaternion.copy(app.hoveredPiece.mesh.quaternion);
+  app.hoverOutline.scale.copy(app.hoveredPiece.mesh.scale).multiplyScalar(1.018);
+}
+
+function clearPointerHover() {
+  app.hoveredPiece = null;
+  clearHoverOutline();
+  hideHoverTooltip();
+}
+
+function clearHoverOutline() {
+  if (!app.hoverOutline) return;
+  app.scene.remove(app.hoverOutline);
+  app.hoverOutline.geometry.dispose();
+  app.hoverOutline.material.dispose();
+  app.hoverOutline = null;
+}
+
+function showHoverTooltip(label, x, y) {
+  hoverTooltipEl.textContent = label;
+  hoverTooltipEl.style.display = 'block';
+  hoverTooltipEl.style.left = `${x}px`;
+  hoverTooltipEl.style.top = `${y}px`;
+}
+
+function hideHoverTooltip() {
+  hoverTooltipEl.style.display = 'none';
+}
+
+function beginDrag(event, piece, mode) {
+  event.preventDefault();
+  clearPointerHover();
+  canvas.setPointerCapture(event.pointerId);
+  app.controls.enabled = false;
+  app.dragged = piece;
+  app.dragMode = mode;
+  app.dragQuat = piece.mesh.quaternion.clone();
+  app.dragStart = { x: event.clientX, y: event.clientY };
+  app.hasDragged = false;
+
+  setPieceSensor(piece, true);
+  piece.body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true);
+  piece.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+  piece.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
 
   if (rayToPlane(event, app.dragPoint)) {
-    const pos = card.mesh.position;
+    const pos = piece.mesh.position;
     app.dragOffset.copy(pos).sub(app.dragPoint);
     app.dragOffset.y = 0.5;
   } else {
@@ -471,9 +1025,35 @@ function onPointerDown(event) {
 }
 
 function onPointerMove(event) {
-  if (!app.dragged) return;
+  if (app.pendingDeckDrag && !app.dragged) {
+    const dx = event.clientX - app.pendingDeckDrag.x;
+    const dy = event.clientY - app.pendingDeckDrag.y;
+    if (Math.hypot(dx, dy) <= 6) return;
+    if (performance.now() - app.pendingDeckDrag.startedAt >= DECK_DRAG_HOLD_MS) {
+      startDeckDrag(event);
+    } else {
+      startDeckCardDrag(event);
+    }
+  }
+
+  if (app.pendingStackDrag && !app.dragged) {
+    const dx = event.clientX - app.pendingStackDrag.x;
+    const dy = event.clientY - app.pendingStackDrag.y;
+    if (Math.hypot(dx, dy) <= 6) return;
+    if (performance.now() - app.pendingStackDrag.startedAt >= DECK_DRAG_HOLD_MS) {
+      startTableStackDrag(event);
+    } else {
+      startTableStackTopCardDrag(event);
+    }
+  }
+
+  if (!app.dragged) {
+    updatePointerHover(event);
+    return;
+  }
 
   event.preventDefault();
+  clearPointerHover();
   if (app.dragStart) {
     const dx = event.clientX - app.dragStart.x;
     const dy = event.clientY - app.dragStart.y;
@@ -487,20 +1067,54 @@ function onPointerMove(event) {
   if (distance > PLAY_RADIUS) {
     next.multiplyScalar(PLAY_RADIUS / distance);
   }
+
+  if (app.dragMode === 'deck') {
+    app.deckMesh.position.x = next.x;
+    app.deckMesh.position.z = next.z;
+    syncDeckRim();
+    updateDeckCollider();
+    return;
+  }
+
+  if (app.dragMode === 'stack') {
+    moveTableStack(app.dragged, next.x, next.z);
+    return;
+  }
+
   next.y = 0.42;
 
-  const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.18, app.dragged.mesh.rotation.y, 0.08));
+  const quat = app.dragMode === 'card'
+    ? app.dragQuat
+    : new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.18, app.dragged.mesh.rotation.y, 0.08));
   app.dragged.body.setNextKinematicTranslation(next);
   app.dragged.body.setNextKinematicRotation(quat);
   updateHoveredDrop(event);
 }
 
 function onPointerUp(event) {
+  if (app.pendingDeckDrag && !app.dragged) {
+    canvas.releasePointerCapture?.(event.pointerId);
+    app.controls.enabled = true;
+    app.pendingDeckDrag = null;
+    drawCardToPlayer(state.activePlayer);
+    return;
+  }
+
+  if (app.pendingStackDrag && !app.dragged) {
+    canvas.releasePointerCapture?.(event.pointerId);
+    app.controls.enabled = true;
+    app.pendingStackDrag = null;
+    return;
+  }
+
   if (!app.dragged) return;
 
-  const card = app.dragged;
+  const piece = app.dragged;
+  const mode = app.dragMode;
   const wasDragged = app.hasDragged;
   app.dragged = null;
+  app.dragMode = null;
+  app.dragQuat = null;
   app.dragStart = null;
   app.hasDragged = false;
   app.controls.enabled = true;
@@ -508,6 +1122,22 @@ function onPointerUp(event) {
   canvas.releasePointerCapture?.(event.pointerId);
   clearDropHover();
 
+  if (mode === 'object') {
+    finishObjectDrag(piece, wasDragged);
+    return;
+  }
+
+  if (mode === 'deck') {
+    finishDeckDrag();
+    return;
+  }
+
+  if (mode === 'stack') {
+    finishTableStackDrag(piece);
+    return;
+  }
+
+  const card = piece;
   if (!wasDragged) {
     restoreDraggedCard(card);
     app.dragOrigin = null;
@@ -535,6 +1165,145 @@ function onPointerUp(event) {
   app.dragOrigin = null;
 }
 
+function startDeckCardDrag(event) {
+  const data = state.deck.pop();
+  if (!data) {
+    app.pendingDeckDrag = null;
+    app.controls.enabled = true;
+    return;
+  }
+
+  data.owner = null;
+  data.location = 'deck';
+  data.faceUp = false;
+
+  const card = createCardObject(data);
+  const deckTopY = app.deckMesh.position.y + (DECK_BASE_HEIGHT * app.deckMesh.scale.y) / 2 + CARD_D;
+  placeCard(card, new THREE.Vector3(app.deckMesh.position.x, deckTopY, app.deckMesh.position.z), app.deckMesh.rotation.y, false);
+
+  beginDrag(event, card, 'card');
+  app.selectedCard = card;
+  app.hasDragged = true;
+  app.dragOrigin = {
+    owner: null,
+    location: 'deck'
+  };
+  app.pendingDeckDrag = null;
+  updateHud();
+}
+
+function startDeckDrag(event) {
+  app.pendingDeckDrag = null;
+  event.preventDefault();
+  app.controls.enabled = false;
+  app.dragged = app.deckMesh;
+  app.dragMode = 'deck';
+  app.dragStart = { x: event.clientX, y: event.clientY };
+  app.hasDragged = true;
+
+  if (rayToPlane(event, app.dragPoint)) {
+    app.dragOffset.copy(app.deckMesh.position).sub(app.dragPoint);
+    app.dragOffset.y = 0;
+  } else {
+    app.dragOffset.set(0, 0, 0);
+  }
+  app.dragOffset.y = 0;
+}
+
+function finishDeckDrag() {
+  app.dragOrigin = null;
+  syncDeckRim();
+  updateDeckCollider();
+}
+
+function startTableStackTopCardDrag(event) {
+  const stack = getPendingTableStack();
+  if (!stack) {
+    app.pendingStackDrag = null;
+    app.controls.enabled = true;
+    return;
+  }
+
+  const card = app.cards.get(stack.cards[stack.cards.length - 1]);
+  if (!card) {
+    app.pendingStackDrag = null;
+    app.controls.enabled = true;
+    return;
+  }
+
+  removeCardFromTableStack(card);
+  beginDrag(event, card, 'card');
+  app.selectedCard = card;
+  app.hasDragged = true;
+  app.dragOrigin = {
+    owner: null,
+    location: 'table'
+  };
+  app.pendingStackDrag = null;
+}
+
+function startTableStackDrag(event) {
+  const stack = getPendingTableStack();
+  if (!stack) {
+    app.pendingStackDrag = null;
+    app.controls.enabled = true;
+    return;
+  }
+
+  app.pendingStackDrag = null;
+  event.preventDefault();
+  app.controls.enabled = false;
+  app.dragged = stack;
+  app.dragMode = 'stack';
+  app.dragStart = { x: event.clientX, y: event.clientY };
+  app.hasDragged = true;
+
+  stack.cards.forEach((id) => {
+    const card = app.cards.get(id);
+    if (!card) return;
+    card.target = null;
+    card.flip = null;
+    setPieceSensor(card, true);
+    card.body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true);
+    card.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+    card.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+  });
+
+  if (rayToPlane(event, app.dragPoint)) {
+    app.dragOffset.copy(stack.position).sub(app.dragPoint);
+    app.dragOffset.y = 0;
+  } else {
+    app.dragOffset.set(0, 0, 0);
+  }
+}
+
+function finishTableStackDrag(stack) {
+  app.dragOrigin = null;
+  stack.cards.forEach((id) => setPieceSensor(app.cards.get(id), false));
+  layoutTableStack(stack, false);
+}
+
+function getPendingTableStack() {
+  if (!app.pendingStackDrag) return null;
+  return app.tableStacks.find(stack => stack.id === app.pendingStackDrag.stackId) || null;
+}
+
+function setPieceSensor(piece, enabled) {
+  piece?.collider?.setSensor?.(enabled);
+}
+
+function finishObjectDrag(object, wasDragged) {
+  setPieceSensor(object, false);
+  object.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true);
+  object.body.setTranslation(object.mesh.position, true);
+  object.body.setRotation(object.mesh.quaternion, true);
+
+  if (wasDragged) {
+    object.body.setLinvel({ x: random(-0.2, 0.2), y: -0.2, z: random(-0.2, 0.2) }, true);
+    object.body.setAngvel({ x: random(-0.3, 0.3), y: random(-0.45, 0.45), z: random(-0.3, 0.3) }, true);
+  }
+}
+
 function onDoubleClick(event) {
   setPointer(event);
   const hits = getIntersections(getCardMeshes());
@@ -542,10 +1311,34 @@ function onDoubleClick(event) {
   if (!hit) return;
 
   const card = app.cards.get(hit.object.userData.cardId);
-  if (card && !card.data.faceUp) returnCardToDeck(card);
+  if (card) tryReturnCardToDeck(card);
+}
+
+function tryReturnCardToDeck(card) {
+  if (!card || card.data.location === 'deck') return false;
+
+  const now = performance.now();
+  if (now - app.lastCardReturnAt < CARD_RETURN_COOLDOWN_MS) return false;
+
+  app.lastCardReturnAt = now;
+  returnCardToDeck(card);
+  return true;
 }
 
 function onKeyDown(event) {
+  if (event.code === 'Space') {
+    event.preventDefault();
+    focusTableCamera();
+    return;
+  }
+
+  if (event.key === 'Delete' || event.key === 'Backspace') {
+    if (!app.selectedObject) return;
+    event.preventDefault();
+    removeTableObject(app.selectedObject);
+    return;
+  }
+
   if (event.key.toLowerCase() !== 'f') return;
   if (!app.selectedCard) return;
   if (app.selectedCard.data.location === 'deck') return;
@@ -554,12 +1347,55 @@ function onKeyDown(event) {
   flipCard(app.selectedCard);
 }
 
+function focusTableCamera() {
+  app.cameraFocus = {
+    progress: 0,
+    startPosition: app.camera.position.clone(),
+    startTarget: app.controls.target.clone(),
+    endPosition: getPlayerCameraPosition(state.activePlayer),
+    endTarget: DEFAULT_CAMERA_TARGET.clone()
+  };
+}
+
+function getPlayerCameraPosition(playerId) {
+  const angle = getPlayerAngle(playerId);
+  return new THREE.Vector3(
+    Math.cos(angle) * DEFAULT_CAMERA_DISTANCE,
+    DEFAULT_CAMERA_HEIGHT,
+    Math.sin(angle) * DEFAULT_CAMERA_DISTANCE
+  );
+}
+
 function flipCard(card) {
-  card.data.faceUp = !card.data.faceUp;
-  refreshCardMaterial(card);
+  if (card.flip) return;
+  removeCardFromTableStack(card);
+
+  const startPosition = card.mesh.position.clone();
+  const startQuat = card.mesh.quaternion.clone();
+  const liftPosition = startPosition.clone();
+  liftPosition.y += 0.24;
+  const liftQuat = startQuat.clone().multiply(
+    new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI * 0.92)
+  );
+
+  card.target = null;
+  card.body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true);
+  card.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+  card.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+  card.flip = {
+    progress: 0,
+    startPosition,
+    liftPosition,
+    startQuat,
+    liftQuat,
+    nextFaceUp: !card.data.faceUp,
+    swapped: false,
+    restoreDynamic: !card.data.owner && card.data.location === 'table'
+  };
 }
 
 function restoreDraggedCard(card) {
+  setPieceSensor(card, false);
   const origin = app.dragOrigin;
   if (!origin) {
     moveCardToTable(card);
@@ -577,6 +1413,7 @@ function restoreDraggedCard(card) {
 }
 
 function moveCardToPlayer(card, playerId) {
+  setPieceSensor(card, false);
   const oldOwner = card.data.owner;
   removeCardFromCollections(card);
   card.data.owner = playerId;
@@ -591,15 +1428,23 @@ function moveCardToPlayer(card, playerId) {
 }
 
 function moveCardToTable(card) {
+  setPieceSensor(card, false);
   const oldOwner = card.data.owner;
   removeCardFromCollections(card);
   card.data.owner = null;
   card.data.location = 'table';
-  card.data.faceUp = true;
   state.tableCards.push(card.data);
   refreshCardMaterial(card);
 
   const pos = card.mesh.position.clone();
+  const stack = findCompatibleTableStack(card, pos);
+  if (stack) {
+    addCardToTableStack(card, stack);
+    if (oldOwner) layoutPlayerHand(oldOwner, 0.12);
+    updateHud();
+    return;
+  }
+
   card.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true);
   card.body.setTranslation({ x: pos.x, y: 0.28, z: pos.z }, true);
   card.body.setRotation(card.mesh.quaternion, true);
@@ -611,6 +1456,8 @@ function moveCardToTable(card) {
 }
 
 function returnCardToDeck(card) {
+  clearPointerHover();
+  setPieceSensor(card, false);
   const oldOwner = card.data.owner;
   removeCardFromCollections(card);
   card.data.owner = null;
@@ -627,10 +1474,189 @@ function returnCardToDeck(card) {
 }
 
 function removeCardFromCollections(card) {
+  removeCardFromTableStack(card);
   state.tableCards = state.tableCards.filter(data => data.id !== card.id);
   state.players.forEach((player) => {
     player.cards = player.cards.filter(data => data.id !== card.id);
   });
+}
+
+function getCardStack(card) {
+  if (!card?.data.stackId) return null;
+  return app.tableStacks.find(stack => stack.id === card.data.stackId) || null;
+}
+
+function findCompatibleTableStack(card, position) {
+  const existingStack = app.tableStacks.find((stack) => {
+    if (stack.faceUp !== card.data.faceUp) return false;
+    return Math.hypot(stack.position.x - position.x, stack.position.z - position.z) < TABLE_STACK_RADIUS;
+  });
+  if (existingStack) return existingStack;
+
+  const targetData = state.tableCards.find((data) => {
+    if (data.id === card.id || data.stackId || data.faceUp !== card.data.faceUp) return false;
+
+    const target = app.cards.get(data.id);
+    if (!target) return false;
+    return Math.hypot(target.mesh.position.x - position.x, target.mesh.position.z - position.z) < TABLE_STACK_RADIUS;
+  });
+
+  if (!targetData) return null;
+  return createTableStack(app.cards.get(targetData.id));
+}
+
+function createTableStack(baseCard) {
+  const stack = {
+    id: `stack-${app.stackId++}`,
+    faceUp: baseCard.data.faceUp,
+    cards: [baseCard.id],
+    position: baseCard.mesh.position.clone(),
+    rotationY: baseCard.mesh.rotation.y
+  };
+
+  baseCard.data.stackId = stack.id;
+  app.tableStacks.push(stack);
+  layoutTableStack(stack);
+  return stack;
+}
+
+function addCardToTableStack(card, stack) {
+  setPieceSensor(card, false);
+  removeCardFromTableStack(card);
+  card.data.stackId = stack.id;
+  card.data.owner = null;
+  card.data.location = 'table';
+  card.data.faceUp = stack.faceUp;
+  refreshCardMaterial(card);
+  if (!state.tableCards.some(data => data.id === card.id)) {
+    state.tableCards.push(card.data);
+  }
+
+  if (!stack.cards.includes(card.id)) {
+    stack.cards.push(card.id);
+  }
+
+  layoutTableStack(stack);
+}
+
+function removeCardFromTableStack(card) {
+  setPieceSensor(card, false);
+  const stackId = card.data.stackId;
+  if (!stackId) return;
+
+  const stack = app.tableStacks.find(item => item.id === stackId);
+  card.data.stackId = null;
+  if (!stack) return;
+
+  stack.cards = stack.cards.filter(id => id !== card.id);
+  if (stack.cards.length <= 1) {
+    const remaining = app.cards.get(stack.cards[0]);
+    if (remaining) {
+      remaining.data.stackId = null;
+      remaining.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true);
+      remaining.body.setLinvel({ x: 0, y: -0.04, z: 0 }, true);
+      remaining.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    }
+    app.tableStacks = app.tableStacks.filter(item => item.id !== stack.id);
+    return;
+  }
+
+  layoutTableStack(stack);
+}
+
+function layoutTableStack(stack, animateLayout = true) {
+  stack.cards = stack.cards.filter(id => app.cards.has(id));
+  stack.cards.forEach((id, index) => {
+    const card = app.cards.get(id);
+    if (!card) return;
+
+    const position = new THREE.Vector3(
+      stack.position.x,
+      CARD_REST_Y + index * (CARD_D + TABLE_STACK_GAP),
+      stack.position.z
+    );
+    if (animateLayout) {
+      tossTo(card, position, stack.rotationY, 0.06);
+    } else {
+      placeCard(card, position, stack.rotationY, false);
+    }
+  });
+}
+
+function moveTableStack(stack, x, z) {
+  stack.position.x = x;
+  stack.position.z = z;
+  const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, stack.rotationY, 0));
+
+  stack.cards.forEach((id, index) => {
+    const card = app.cards.get(id);
+    if (!card) return;
+
+    card.body.setNextKinematicTranslation({
+      x,
+      y: CARD_REST_Y + index * (CARD_D + TABLE_STACK_GAP),
+      z
+    });
+    card.body.setNextKinematicRotation(quat);
+  });
+}
+
+function getTopStackCard(card) {
+  const stackId = card.data.stackId;
+  if (!stackId) return card;
+
+  const stack = app.tableStacks.find(item => item.id === stackId);
+  if (!stack || stack.cards.length === 0) return card;
+
+  return app.cards.get(stack.cards[stack.cards.length - 1]) || card;
+}
+
+function rollDice() {
+  const dice = [...app.objects.values()].filter(object => object.kind === 'die');
+  if (dice.length === 0) {
+    spawnDie();
+    return;
+  }
+
+  dice.forEach((die, index) => rollSingleDie(die, index * 0.12));
+}
+
+function rollSingleDie(die, delay = 0) {
+  window.setTimeout(() => {
+    const angle = random(0, Math.PI * 2);
+    const radius = random(0.35, 0.9);
+    const position = {
+      x: Math.cos(angle) * radius,
+      y: 1.15 + random(0, 0.4),
+      z: Math.sin(angle) * radius
+    };
+
+    die.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true);
+    die.body.setTranslation(position, true);
+    die.body.setRotation(rapierQuatFromEuler(random(0, Math.PI), random(0, Math.PI), random(0, Math.PI)), true);
+    die.body.setLinvel({ x: random(-1.2, 1.2), y: random(1.0, 1.8), z: random(-1.2, 1.2) }, true);
+    die.body.setAngvel({ x: random(-10, 10), y: random(-10, 10), z: random(-10, 10) }, true);
+  }, delay * 1000);
+}
+
+function clearTableObjects(update = true) {
+  clearPointerHover();
+  app.objects.forEach((object) => {
+    app.scene.remove(object.mesh);
+    app.world.removeRigidBody(object.body);
+  });
+  app.objects.clear();
+  app.selectedObject = null;
+  if (update) updateHud();
+}
+
+function removeTableObject(object) {
+  clearPointerHover();
+  app.scene.remove(object.mesh);
+  app.world.removeRigidBody(object.body);
+  app.objects.delete(object.id);
+  if (app.selectedObject?.id === object.id) app.selectedObject = null;
+  updateHud();
 }
 
 function tossTo(card, target, rotationY, lift = 0.25) {
@@ -691,7 +1717,7 @@ function getHandCardPosition(playerId, cardIndex, handCount = null) {
 }
 
 function getHandRotation(playerId, cardIndex = null, handCount = null) {
-  const baseRotation = -getPlayerAngle(playerId) + Math.PI / 2;
+  const baseRotation = -getPlayerAngle(playerId) - Math.PI / 2;
   if (cardIndex === null || handCount === null || handCount <= 1) return baseRotation;
 
   const centerIndex = (handCount - 1) / 2;
@@ -762,6 +1788,10 @@ function getCardMeshes() {
   return [...app.cards.values()].map(card => card.mesh);
 }
 
+function getObjectMeshes() {
+  return [...app.objects.values()].map(object => object.mesh);
+}
+
 function setPointer(event) {
   const rect = canvas.getBoundingClientRect();
   app.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -776,6 +1806,10 @@ function animate() {
   app.lastTime = now;
 
   updateCardTweens(dt);
+  updateFlipTweens(dt);
+  updateCameraFocus(dt);
+  updateDeckShuffle(dt);
+  rescueLimboPieces();
   app.world.step();
   syncPhysicsMeshes();
   app.controls.update();
@@ -810,6 +1844,131 @@ function syncPhysicsMeshes() {
     card.mesh.position.set(pos.x, pos.y, pos.z);
     card.mesh.quaternion.set(rot.x, rot.y, rot.z, rot.w);
   });
+
+  app.objects.forEach((object) => {
+    const pos = object.body.translation();
+    const rot = object.body.rotation();
+    object.mesh.position.set(pos.x, pos.y, pos.z);
+    object.mesh.quaternion.set(rot.x, rot.y, rot.z, rot.w);
+  });
+
+  syncHoverOutline();
+}
+
+function updateFlipTweens(dt) {
+  app.cards.forEach((card) => {
+    if (!card.flip) return;
+
+    const flip = card.flip;
+    flip.progress = Math.min(1, flip.progress + dt * 3.8);
+    const t = easeInOutCubic(flip.progress);
+    const rising = t < 0.5;
+    const localT = rising ? t * 2 : (t - 0.5) * 2;
+    const pos = rising
+      ? flip.startPosition.clone().lerp(flip.liftPosition, localT)
+      : flip.liftPosition.clone().lerp(flip.startPosition, localT);
+    const quat = rising
+      ? flip.startQuat.clone().slerp(flip.liftQuat, localT)
+      : flip.liftQuat.clone().slerp(flip.startQuat, localT);
+
+    if (!flip.swapped && flip.progress >= 0.5) {
+      card.data.faceUp = flip.nextFaceUp;
+      refreshCardMaterial(card);
+      flip.swapped = true;
+    }
+
+    card.body.setNextKinematicTranslation(pos);
+    card.body.setNextKinematicRotation(quat);
+
+    if (flip.progress >= 1) {
+      card.body.setNextKinematicTranslation(flip.startPosition);
+      card.body.setNextKinematicRotation(flip.startQuat);
+      card.flip = null;
+
+      if (flip.restoreDynamic) {
+        card.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true);
+        card.body.setLinvel({ x: 0, y: -0.08, z: 0 }, true);
+        card.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      }
+    }
+  });
+}
+
+function updateCameraFocus(dt) {
+  if (!app.cameraFocus) return;
+
+  const focus = app.cameraFocus;
+  focus.progress = Math.min(1, focus.progress + dt * 2.4);
+  const t = easeInOutCubic(focus.progress);
+
+  app.camera.position.copy(focus.startPosition).lerp(focus.endPosition, t);
+  app.controls.target.copy(focus.startTarget).lerp(focus.endTarget, t);
+
+  if (focus.progress >= 1) {
+    app.camera.position.copy(focus.endPosition);
+    app.controls.target.copy(focus.endTarget);
+    app.cameraFocus = null;
+  }
+}
+
+function updateDeckShuffle(dt) {
+  if (!app.deckShuffle || !app.deckMesh) return;
+
+  const shuffleState = app.deckShuffle;
+  shuffleState.progress = Math.min(1, shuffleState.progress + dt * 2.8);
+  const t = shuffleState.progress;
+  const shake = Math.sin(t * Math.PI * 14) * (1 - t);
+  const wobble = Math.sin(t * Math.PI * 22) * (1 - t);
+
+  app.deckMesh.rotation.y = shuffleState.startRotation + t * Math.PI * 2 + wobble * 0.16;
+  app.deckMesh.position.x = shuffleState.startPosition.x + shake * 0.08;
+  app.deckMesh.position.z = shuffleState.startPosition.z + Math.cos(t * Math.PI * 12) * (1 - t) * 0.05;
+  syncDeckRim();
+  updateDeckCollider();
+
+  if (t >= 1) {
+    app.deckMesh.rotation.y = shuffleState.startRotation;
+    app.deckMesh.position.copy(shuffleState.startPosition);
+    app.deckShuffle = null;
+    shuffleBtn.disabled = false;
+    syncDeckRim();
+    updateDeckCollider();
+  }
+}
+
+function rescueLimboPieces() {
+  app.cards.forEach((card) => {
+    if (card.target || card.flip) return;
+    const pos = card.body.translation();
+    if (!isInLimbo(pos)) return;
+    resetPieceToTable(card, 0.34);
+  });
+
+  app.objects.forEach((object) => {
+    const pos = object.body.translation();
+    if (!isInLimbo(pos)) return;
+    resetPieceToTable(object, object.kind.includes('coin') ? 0.28 : 0.48);
+  });
+}
+
+function isInLimbo(pos) {
+  return pos.y < LIMBO_Y || Math.hypot(pos.x, pos.z) > LIMBO_RADIUS;
+}
+
+function resetPieceToTable(piece, y) {
+  const angle = random(0, Math.PI * 2);
+  const radius = random(0, 0.55);
+  const position = {
+    x: Math.cos(angle) * radius,
+    y,
+    z: Math.sin(angle) * radius
+  };
+
+  piece.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true);
+  piece.body.setTranslation(position, true);
+  piece.body.setRotation(rapierQuatFromEuler(0, random(0, Math.PI * 2), 0), true);
+  piece.body.setLinvel({ x: random(-0.08, 0.08), y: 0, z: random(-0.08, 0.08) }, true);
+  piece.body.setAngvel({ x: 0, y: random(-0.25, 0.25), z: 0 }, true);
 }
 
 function resize() {
@@ -821,13 +1980,49 @@ function resize() {
 function updateHud() {
   deckCountEl.textContent = `Deck: ${state.deck.length}`;
   tableCountEl.textContent = `Mesa: ${state.tableCards.length}`;
+  objectCountEl.textContent = `Objetos: ${app.objects.size}`;
 
   if (app.deckMesh) {
-    const deckScale = Math.max(0.12, state.deck.length / 30);
-    app.deckMesh.scale.y = deckScale;
-    app.deckMesh.position.y = CARD_REST_Y + (DECK_BASE_HEIGHT * deckScale) / 2;
+    app.deckMesh.scale.y = 1;
+    app.deckMesh.position.y = CARD_REST_Y + DECK_BASE_HEIGHT / 2;
     app.deckMesh.visible = state.deck.length > 0;
+    syncDeckRim();
+    updateDeckCollider();
   }
+}
+
+function syncDeckRim() {
+  if (!app.deckRim || !app.deckMesh) return;
+
+  const deckHeight = DECK_BASE_HEIGHT * app.deckMesh.scale.y;
+  app.deckRim.position.set(
+    app.deckMesh.position.x,
+    app.deckMesh.position.y + deckHeight / 2 + 0.004,
+    app.deckMesh.position.z
+  );
+  app.deckRim.rotation.set(0, app.deckMesh.rotation.y, 0);
+  app.deckRim.visible = app.deckMesh.visible;
+}
+
+function updateDeckCollider() {
+  if (app.deckBody) {
+    app.world.removeRigidBody(app.deckBody);
+    app.deckBody = null;
+  }
+
+  if (!app.deckMesh?.visible || state.deck.length <= 0) return;
+
+  const deckHeight = DECK_BASE_HEIGHT * app.deckMesh.scale.y;
+  app.deckBody = app.world.createRigidBody(
+    RAPIER.RigidBodyDesc.fixed()
+      .setTranslation(app.deckMesh.position.x, app.deckMesh.position.y, app.deckMesh.position.z)
+      .setRotation(rapierQuatFromEuler(0, app.deckMesh.rotation.y, 0))
+  );
+
+  const collider = RAPIER.ColliderDesc.cuboid(CARD_W / 2, deckHeight / 2, CARD_H / 2);
+  collider.setFriction(1.35);
+  collider.setRestitution(0.08);
+  app.world.createCollider(collider, app.deckBody);
 }
 
 function shuffle(cards) {
@@ -844,6 +2039,12 @@ function random(min, max) {
 
 function easeOutCubic(t) {
   return 1 - Math.pow(1 - t, 3);
+}
+
+function easeInOutCubic(t) {
+  return t < 0.5
+    ? 4 * t * t * t
+    : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
 function rapierQuatFromEuler(x, y, z) {

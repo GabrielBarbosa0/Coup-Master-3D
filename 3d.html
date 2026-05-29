@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="color-scheme" content="dark">
-  <title>Coup Master 3D MVP</title>
+  <title>Coup Master 3D</title>
   <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="stylesheet" href="css/three-board.css">
@@ -25,17 +25,32 @@
     <canvas id="threeCanvas"></canvas>
 
     <section class="hud top-left" aria-label="Mesa">
-      <h1>Coup Master 3D</h1>
       <div class="status-row">
         <span id="deckCount">Deck: 0</span>
         <span id="tableCount">Mesa: 0</span>
+        <span id="objectCount">Objetos: 0</span>
       </div>
     </section>
 
     <section class="hud top-right" aria-label="Controles">
       <button id="drawBtn" type="button">Comprar</button>
+      <button id="goldCoinBtn" type="button">Ouro</button>
+      <button id="silverCoinBtn" type="button">Prata</button>
+      <button id="diceBtn" type="button">Dado</button>
+      <button id="rollBtn" type="button">Rolar</button>
+      <button id="clearObjectsBtn" type="button">Limpar</button>
+      <button id="shuffleBtn" type="button">Embaralhar</button>
+      <button id="dealBtn" type="button">Distribuir</button>
       <button id="resetBtn3d" type="button">Reset</button>
     </section>
+
+    <!-- <section class="hud help-panel" aria-label="Atalhos">
+      <span>F vira carta</span>
+      <span>Del remove objeto</span>
+      <span>Duplo clique recolhe carta fechada</span>
+    </section> -->
+
+    <div id="hoverTooltip" class="hover-tooltip" role="status" aria-live="polite"></div>
 
     <nav id="playerTabs" class="player-tabs" aria-label="Jogadores"></nav>
   </main>
