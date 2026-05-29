@@ -26,7 +26,7 @@ const TABLE_RADIUS = 4.65;
 const FELT_RADIUS = 4.18;
 const PLAY_RADIUS = 3.62;
 const PLAYER_COUNT = 8;
-const HAND_RADIUS = 3.28;
+const HAND_RADIUS = 3.08;
 const CARD_REST_Y = 0.068;
 const DECK_BASE_HEIGHT = 0.38 * 0.4;
 const HAND_LADDER_SPACING = 0.36;
@@ -43,6 +43,7 @@ const LIMBO_Y = -2.2;
 const LIMBO_RADIUS = TABLE_RADIUS + 2.2;
 const TABLE_STACK_RADIUS = 0.58;
 const TABLE_STACK_GAP = 0.012;
+const DECK_ROTATION_Y = 0;
 const DEFAULT_CAMERA_HEIGHT = 7.6;
 const DEFAULT_CAMERA_DISTANCE = 7.8;
 const DEFAULT_CAMERA_TARGET = new THREE.Vector3(0, 0, 0);
@@ -280,7 +281,7 @@ function createDropZones() {
 
   for (let i = 1; i <= PLAYER_COUNT; i++) {
     const pos = getPlayerSeatPosition(i);
-    const zone = makeZone(`player-${i}`, pos.x, pos.z, 1.95, 1.28, i === state.activePlayer ? 0x18f28a : 0x3da3ff, 0.16);
+    const zone = makeZone(`player-${i}`, pos.x, pos.z, 1.90, 1.25, i === state.activePlayer ? 0x18f28a : 0x3da3ff, 0.16);
     zone.userData.playerId = i;
     zone.rotation.z = -getPlayerAngle(i) + Math.PI / 2;
     app.dropZones.push(zone);
@@ -334,7 +335,7 @@ function createDeck() {
   const materials = makeDeckHitMaterials();
   app.deckMesh = new THREE.Mesh(geo, materials);
   app.deckMesh.position.set(0, CARD_REST_Y + DECK_BASE_HEIGHT / 2, 0);
-  app.deckMesh.rotation.y = -0.12;
+  app.deckMesh.rotation.y = DECK_ROTATION_Y;
   app.deckMesh.castShadow = false;
   app.deckMesh.receiveShadow = false;
   app.deckMesh.name = 'deck';
@@ -390,7 +391,7 @@ function resetDeckPosition() {
   if (!app.deckMesh) return;
 
   app.deckMesh.position.set(0, CARD_REST_Y + DECK_BASE_HEIGHT / 2, 0);
-  app.deckMesh.rotation.y = -0.12;
+  app.deckMesh.rotation.y = DECK_ROTATION_Y;
   syncDeckRim();
   updateDeckCollider();
 }
@@ -2013,7 +2014,7 @@ function getPlayerSeatPosition(playerId) {
 
 // Calcula o angulo radial de um jogador no octogono.
 function getPlayerAngle(playerId) {
-  return -Math.PI / 2 + Math.PI / 8 + ((playerId - 1) / PLAYER_COUNT) * Math.PI * 2;
+  return -Math.PI / 2 + ((playerId - 1) / PLAYER_COUNT) * Math.PI * 2;
 }
 
 // Atualiza destaque visual de zona de drop sob o cursor.
