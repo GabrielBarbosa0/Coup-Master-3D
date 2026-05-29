@@ -107,6 +107,7 @@ const app = {
   hoverOutline: null,
   cameraFocus: null,
   deckShuffle: null,
+  stackShuffleTimers: new Map(),
   cards: new Map(),
   objects: new Map(),
   tableStacks: [],
@@ -330,17 +331,35 @@ function makeOctagonZone(id, x, z, radius, color, opacity) {
 // Cria o deck visual central e prepara sua borda e collider.
 function createDeck() {
   const geo = createRoundedCardGeometry(CARD_W, CARD_H, DECK_BASE_HEIGHT, CARD_RADIUS);
-  const materials = makeCardMaterials('assets/img/cards/base/back.png', false, 0xf4f7ff);
+  const materials = makeDeckHitMaterials();
   app.deckMesh = new THREE.Mesh(geo, materials);
   app.deckMesh.position.set(0, CARD_REST_Y + DECK_BASE_HEIGHT / 2, 0);
   app.deckMesh.rotation.y = -0.12;
-  app.deckMesh.castShadow = true;
-  app.deckMesh.receiveShadow = true;
+  app.deckMesh.castShadow = false;
+  app.deckMesh.receiveShadow = false;
   app.deckMesh.name = 'deck';
   app.deckMesh.userData.deck = true;
+  addDeckVisualLayers(app.deckMesh);
   app.scene.add(app.deckMesh);
   createDeckRim();
   updateDeckCollider();
+}
+
+// Preenche o deck com oito cartas visuais reais em vez de uma lateral lisa.
+function addDeckVisualLayers(deckMesh) {
+  const layerCount = 8;
+  const layerGap = 0.004;
+  const layerDepth = (DECK_BASE_HEIGHT - layerGap * (layerCount - 1)) / layerCount;
+  const layerGeo = createRoundedCardGeometry(CARD_W, CARD_H, layerDepth, CARD_RADIUS);
+
+  for (let i = 0; i < layerCount; i++) {
+    const layer = new THREE.Mesh(layerGeo, makeDeckLayerMaterials(i === layerCount - 1));
+    layer.position.y = -DECK_BASE_HEIGHT / 2 + layerDepth / 2 + i * (layerDepth + layerGap);
+    layer.castShadow = i === layerCount - 1;
+    layer.receiveShadow = true;
+    layer.name = `deck-layer-${i + 1}`;
+    deckMesh.add(layer);
+  }
 }
 
 // Adiciona o aro branco superior que destaca a borda do deck.
@@ -396,6 +415,8 @@ function resetMvp() {
   app.deckShuffle = null;
   app.pendingDeckDrag = null;
   app.pendingStackDrag = null;
+  app.stackShuffleTimers.forEach(timer => window.clearTimeout(timer));
+  app.stackShuffleTimers.clear();
   dealBtn.disabled = false;
   shuffleBtn.disabled = false;
 
@@ -496,6 +517,25 @@ function shuffleDeck() {
     startRotation: app.deckMesh.rotation.y,
     startPosition: app.deckMesh.position.clone()
   };
+}
+
+// Embaralha o deck ou a pilha de cartas atualmente sob o mouse.
+function shuffleHoveredCards() {
+  const piece = app.hoveredPiece;
+  if (!piece) return false;
+
+  if (piece.kind === 'deck') {
+    if (state.deck.length <= 1) return false;
+    shuffleDeck();
+    return true;
+  }
+
+  if (!piece.data) return false;
+  const stack = getCardStack(piece);
+  if (!stack || stack.cards.length <= 1) return false;
+
+  shuffleTableStack(stack);
+  return true;
 }
 
 // Calcula quais jogadores ainda precisam receber cartas iniciais.
@@ -808,6 +848,44 @@ function makeCardMaterials(texturePath, faceUp, edgeColor = null) {
   return [edge, face, back];
 }
 
+// Cria materiais invisiveis para o hitbox clicavel do deck.
+function makeDeckHitMaterials() {
+  const hit = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    colorWrite: false
+  });
+
+  return [hit, hit, hit];
+}
+
+// Cria materiais de uma camada individual visivel do deck.
+function makeDeckLayerMaterials(showBack) {
+  const backTexture = loadTexture('assets/img/cards/base/back.png');
+  const edge = new THREE.MeshStandardMaterial({
+    color: 0xf2f6ff,
+    roughness: 0.62,
+    metalness: 0.03,
+    side: THREE.DoubleSide
+  });
+  const top = new THREE.MeshStandardMaterial({
+    map: showBack ? backTexture : null,
+    color: showBack ? 0xffffff : 0xf8fbff,
+    roughness: 0.62,
+    metalness: 0.02
+  });
+  const bottom = new THREE.MeshStandardMaterial({
+    color: 0xe4ecf8,
+    roughness: 0.66,
+    metalness: 0.03,
+    side: THREE.DoubleSide
+  });
+
+  return [edge, top, bottom];
+}
+
 // Carrega e reaproveita texturas com cache.
 function loadTexture(path) {
   if (app.textures[path]) return app.textures[path];
@@ -960,6 +1038,7 @@ function updatePointerHover(event) {
   }
 
   app.hoveredPiece = piece;
+  selectHoveredPiece(piece);
   showHoverTooltip(label, event.clientX, event.clientY);
 }
 
@@ -1017,6 +1096,20 @@ function clearPointerHover() {
   app.hoveredPiece = null;
   clearHoverOutline();
   hideHoverTooltip();
+}
+
+// Seleciona automaticamente o objeto sob o mouse para atalhos de teclado.
+function selectHoveredPiece(piece) {
+  if (piece?.data) {
+    app.selectedCard = piece;
+    app.selectedObject = null;
+    return;
+  }
+
+  if (piece?.kind && piece.kind !== 'deck') {
+    app.selectedObject = piece;
+    app.selectedCard = null;
+  }
 }
 
 // Descarta a geometria e material da outline atual.
@@ -1178,7 +1271,7 @@ function onPointerUp(event) {
   }
 
   if (mode === 'stack') {
-    finishTableStackDrag(piece);
+    finishTableStackDrag(piece, event);
     return;
   }
 
@@ -1306,6 +1399,10 @@ function startTableStackDrag(event) {
   app.dragged = stack;
   app.dragMode = 'stack';
   app.dragStart = { x: event.clientX, y: event.clientY };
+  app.dragOrigin = {
+    location: 'stack',
+    position: stack.position.clone()
+  };
   app.hasDragged = true;
 
   stack.cards.forEach((id) => {
@@ -1327,9 +1424,22 @@ function startTableStackDrag(event) {
   }
 }
 
-// Finaliza o arrasto de pilha e restaura colisoes.
-function finishTableStackDrag(stack) {
+// Finaliza o arrasto de pilha, juntando pilhas fechadas ao deck quando cabivel.
+function finishTableStackDrag(stack, event) {
+  const origin = app.dragOrigin;
   app.dragOrigin = null;
+
+  if (isStackOverDeck(stack, event)) {
+    if (!stack.faceUp) {
+      returnTableStackToDeck(stack);
+      return;
+    }
+
+    if (origin?.position) {
+      moveTableStack(stack, origin.position.x, origin.position.z);
+    }
+  }
+
   stack.cards.forEach((id) => setPieceSensor(app.cards.get(id), false));
   layoutTableStack(stack, false);
 }
@@ -1393,6 +1503,12 @@ function onKeyDown(event) {
     if (!app.selectedObject) return;
     event.preventDefault();
     removeTableObject(app.selectedObject);
+    return;
+  }
+
+  if (event.key.toLowerCase() === 'r') {
+    if (!shuffleHoveredCards()) return;
+    event.preventDefault();
     return;
   }
 
@@ -1537,6 +1653,40 @@ function returnCardToDeck(card) {
   updateHud();
 }
 
+// Devolve uma pilha fechada inteira ao deck sem revelar suas cartas.
+function returnTableStackToDeck(stack) {
+  clearPointerHover();
+  const timer = app.stackShuffleTimers.get(stack.id);
+  if (timer) {
+    window.clearTimeout(timer);
+    app.stackShuffleTimers.delete(stack.id);
+  }
+
+  const ids = stack.cards.slice();
+  ids.forEach((id) => {
+    const card = app.cards.get(id);
+    if (!card) return;
+
+    setPieceSensor(card, false);
+    card.target = null;
+    card.flip = null;
+    card.data.stackId = null;
+    card.data.owner = null;
+    card.data.location = 'deck';
+    card.data.faceUp = false;
+    state.deck.push(card.data);
+
+    app.scene.remove(card.mesh);
+    app.world.removeRigidBody(card.body);
+    app.cards.delete(card.id);
+  });
+
+  state.tableCards = state.tableCards.filter(data => !ids.includes(data.id));
+  app.tableStacks = app.tableStacks.filter(item => item.id !== stack.id);
+  if (app.selectedCard && ids.includes(app.selectedCard.id)) app.selectedCard = null;
+  updateHud();
+}
+
 // Remove a carta de maos, mesa e pilhas antes de mover.
 function removeCardFromCollections(card) {
   removeCardFromTableStack(card);
@@ -1608,6 +1758,46 @@ function addCardToTableStack(card, stack) {
   layoutTableStack(stack);
 }
 
+// Embaralha a ordem de uma pilha de mesa com uma pequena animacao visual.
+function shuffleTableStack(stack) {
+  if (!stack || stack.cards.length <= 1) return;
+
+  const existingTimer = app.stackShuffleTimers.get(stack.id);
+  if (existingTimer) {
+    window.clearTimeout(existingTimer);
+    app.stackShuffleTimers.delete(stack.id);
+  }
+
+  const currentOrder = stack.cards.slice();
+  const nextOrder = shuffle(currentOrder.slice());
+  if (nextOrder.every((id, index) => id === currentOrder[index])) {
+    nextOrder.push(nextOrder.shift());
+  }
+
+  currentOrder.forEach((id, index) => {
+    const card = app.cards.get(id);
+    if (!card) return;
+
+    const angle = (index / currentOrder.length) * Math.PI * 2 + random(-0.25, 0.25);
+    const radius = random(0.05, 0.16);
+    const position = new THREE.Vector3(
+      stack.position.x + Math.cos(angle) * radius,
+      CARD_REST_Y + index * (CARD_D + TABLE_STACK_GAP) + 0.03,
+      stack.position.z + Math.sin(angle) * radius
+    );
+
+    tossTo(card, position, stack.rotationY + random(-0.35, 0.35), 0.1);
+  });
+
+  const timer = window.setTimeout(() => {
+    stack.cards = nextOrder;
+    layoutTableStack(stack, true);
+    app.stackShuffleTimers.delete(stack.id);
+  }, 190);
+
+  app.stackShuffleTimers.set(stack.id, timer);
+}
+
 // Remove carta de uma pilha e desfaz pilhas com uma carta so.
 function removeCardFromTableStack(card) {
   setPieceSensor(card, false);
@@ -1620,6 +1810,12 @@ function removeCardFromTableStack(card) {
 
   stack.cards = stack.cards.filter(id => id !== card.id);
   if (stack.cards.length <= 1) {
+    const timer = app.stackShuffleTimers.get(stack.id);
+    if (timer) {
+      window.clearTimeout(timer);
+      app.stackShuffleTimers.delete(stack.id);
+    }
+
     const remaining = app.cards.get(stack.cards[0]);
     if (remaining) {
       remaining.data.stackId = null;
@@ -1859,6 +2055,13 @@ function isPointerOverDeck(event) {
   if (!rayToPlane(event, point)) return false;
 
   return Math.hypot(point.x - app.deckMesh.position.x, point.z - app.deckMesh.position.z) < 0.95;
+}
+
+// Verifica se uma pilha esta sobre o deck pelo ponteiro ou pela posicao do conjunto.
+function isStackOverDeck(stack, event) {
+  if (!app.deckMesh?.visible || !stack) return false;
+  if (event && isPointerOverDeck(event)) return true;
+  return Math.hypot(stack.position.x - app.deckMesh.position.x, stack.position.z - app.deckMesh.position.z) < 0.72;
 }
 
 // Projeta o raio do mouse no plano de arrasto da mesa.

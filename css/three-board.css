@@ -70,15 +70,16 @@ body,
   white-space: nowrap;
 }
 
-.top-right {
-  top: max(14px, env(safe-area-inset-top));
-  right: max(14px, env(safe-area-inset-right));
+.quick-actions {
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
   display: grid;
-  grid-template-columns: repeat(3, minmax(68px, 1fr));
+  grid-template-columns: repeat(9, minmax(74px, 1fr));
   gap: 8px;
   padding: 8px;
   border-radius: 8px;
-  width: min(376px, calc(100vw - 28px));
+  width: min(860px, calc(100vw - 28px));
+  transform: translateX(-50%);
 }
 
 button {
@@ -88,7 +89,7 @@ button {
   background: rgba(255, 255, 255, 0.08);
   color: var(--text);
   font: inherit;
-  font-size: 13px;
+  font-size: 8px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -100,7 +101,7 @@ button:focus-visible {
   outline: none;
 }
 
-.top-right button {
+.quick-actions button {
   padding: 0 12px;
 }
 
@@ -174,7 +175,7 @@ button:focus-visible {
   position: fixed;
   z-index: 10;
   left: 50%;
-  bottom: max(14px, env(safe-area-inset-bottom));
+  top: max(14px, env(safe-area-inset-top));
   display: grid;
   grid-template-columns: repeat(8, minmax(34px, 1fr));
   gap: 6px;
@@ -204,15 +205,14 @@ button:focus-visible {
     font-size: 14px;
   }
 
-  .top-right {
-    top: auto;
-    right: max(14px, env(safe-area-inset-right));
-    bottom: calc(max(14px, env(safe-area-inset-bottom)) + 104px);
+  .quick-actions {
+    bottom: max(14px, env(safe-area-inset-bottom));
     grid-template-columns: repeat(3, 1fr);
   }
 
   .player-tabs {
     grid-template-columns: repeat(4, 1fr);
+    width: min(360px, calc(100vw - 28px));
   }
 
   .help-panel {
