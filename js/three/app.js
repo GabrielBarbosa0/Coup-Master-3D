@@ -25,6 +25,7 @@ const CARD_RADIUS = 0.055;
 const TABLE_RADIUS = 4.65;
 const FELT_RADIUS = 4.18;
 const PLAY_RADIUS = 3.62;
+const TABLE_PHYSICS_RADIUS = TABLE_RADIUS * Math.cos(Math.PI / 8);
 const PLAYER_COUNT = 8;
 const HAND_RADIUS = 3.08;
 const CARD_REST_Y = 0.068;
@@ -242,7 +243,7 @@ function createTable() {
   app.scene.add(floor);
 
   const groundBody = app.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0, -0.005, 0));
-  const groundCollider = RAPIER.ColliderDesc.cylinder(0.05, TABLE_RADIUS);
+  const groundCollider = RAPIER.ColliderDesc.cylinder(0.05, TABLE_PHYSICS_RADIUS);
   groundCollider.setFriction(1.25);
   groundCollider.setRestitution(0.12);
   app.world.createCollider(groundCollider, groundBody);
@@ -250,8 +251,8 @@ function createTable() {
 
 // Adiciona paredes fisicas invisiveis ao redor da mesa octogonal.
 function createBoundaries() {
-  const wallHeight = 0.52;
-  const wallY = 0.24;
+  const wallHeight = 0.08;
+  const wallY = -0.01;
   const wallThickness = 0.18;
   const sideLength = 2 * TABLE_RADIUS * Math.sin(Math.PI / 8);
   const apothem = TABLE_RADIUS * Math.cos(Math.PI / 8);
