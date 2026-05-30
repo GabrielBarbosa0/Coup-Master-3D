@@ -354,7 +354,7 @@ function createDeck() {
 // Recria a pilha visual do deck com uma camada para cada carta real.
 function updateDeckVisualLayers(force = false) {
   if (!app.deckMesh) return;
-  const layerCount = state.deck.length;
+  const layerCount = getVisibleDeckLayerCount();
   if (!force && app.deckVisualCount === layerCount) return;
 
   clearDeckVisualLayers();
@@ -2380,13 +2380,19 @@ function updateHud() {
 
 // Retorna a altura visual/fisica atual do deck real.
 function getDeckHeight() {
-  if (state.deck.length <= 1) return CARD_D;
-  return state.deck.length * CARD_D + (state.deck.length - 1) * DECK_STACK_GAP;
+  const layerCount = getVisibleDeckLayerCount();
+  if (layerCount <= 1) return CARD_D;
+  return layerCount * CARD_D + (layerCount - 1) * DECK_STACK_GAP;
 }
 
 // Retorna o espacamento vertical entre cartas reais do deck.
 function getDeckLayerStep() {
   return CARD_D + DECK_STACK_GAP;
+}
+
+// Limita a altura visual do deck sem alterar a quantidade real de cartas.
+function getVisibleDeckLayerCount() {
+  return Math.min(state.deck.length, 8);
 }
 
 // Mantem o hitbox invisivel do deck com a mesma altura da pilha real.
