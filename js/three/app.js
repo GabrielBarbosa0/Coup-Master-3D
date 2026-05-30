@@ -1519,7 +1519,12 @@ function onKeyDown(event) {
   if (app.selectedCard.data.location === 'deck') return;
 
   event.preventDefault();
-  flipCard(app.selectedCard);
+  const stack = getCardStack(app.selectedCard);
+  if (stack && stack.cards.length > 1) {
+    flipTableStack(stack);
+  } else {
+    flipCard(app.selectedCard);
+  }
 }
 
 // Inicia animacao de foco da camera para o jogador ativo.
@@ -1547,7 +1552,24 @@ function getPlayerCameraPosition(playerId) {
 function flipCard(card) {
   if (card.flip) return;
   removeCardFromTableStack(card);
+  startCardFlip(card, !card.data.faceUp, !card.data.owner && card.data.location === 'table');
+}
 
+// Vira todas as cartas de uma pilha como uma unica orientacao de grupo.
+function flipTableStack(stack) {
+  if (!stack || stack.cards.length <= 1) return;
+  const cards = stack.cards.map(id => app.cards.get(id)).filter(Boolean);
+  if (cards.some(card => card.flip)) return;
+
+  const nextFaceUp = !stack.faceUp;
+  stack.faceUp = nextFaceUp;
+  cards.forEach((card) => {
+    startCardFlip(card, nextFaceUp, false);
+  });
+}
+
+// Inicia a animacao de flip de uma carta sem decidir sua origem.
+function startCardFlip(card, nextFaceUp, restoreDynamic) {
   const startPosition = card.mesh.position.clone();
   const startQuat = card.mesh.quaternion.clone();
   const liftPosition = startPosition.clone();
@@ -1566,9 +1588,9 @@ function flipCard(card) {
     liftPosition,
     startQuat,
     liftQuat,
-    nextFaceUp: !card.data.faceUp,
+    nextFaceUp,
     swapped: false,
-    restoreDynamic: !card.data.owner && card.data.location === 'table'
+    restoreDynamic
   };
 }
 
