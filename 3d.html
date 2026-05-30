@@ -33,9 +33,33 @@
         <span id="tableCount">Mesa: 0</span>
         <span id="objectCount">Objetos: 0</span>
       </div>
-      <button id="settingsBtn3d" class="settings-btn" type="button" title="Configurações" aria-label="Configurações">
-        <img src="assets/img/icons/settings.svg" alt="">
-      </button>
+    </section>
+
+    <section class="hud top-actions" aria-label="Menus rápidos">
+      <div class="hud-actions" aria-label="Menus rápidos">
+        <button id="musicBtn3d" class="settings-btn music-toggle-btn" type="button" title="Mutar música"
+          aria-label="Mutar música" aria-pressed="false">
+          <img src="assets/img/icons/music_note.svg" alt="">
+        </button>
+        <button id="altRulesBtn3d" class="settings-btn" type="button" title="Regras alternativas"
+          aria-label="Regras alternativas">
+          <img src="assets/img/icons/parchment.svg" alt="">
+        </button>
+        <button id="spectatorBtn3d" class="settings-btn spectator-btn" type="button" title="Modo espectador"
+          aria-label="Modo espectador">
+          <img src="assets/img/icons/ghost.svg" alt="">
+        </button>
+        <button id="fullscreenBtn3d" class="settings-btn" type="button" title="Tela cheia" aria-label="Tela cheia">
+          <img src="assets/img/icons/fullscreen.svg" alt="">
+        </button>
+        <button id="infoBtn3d" class="settings-btn" type="button" title="Variações" aria-label="Variações">
+          <img src="assets/img/icons/info.svg" alt="">
+        </button>
+        <button id="settingsBtn3d" class="settings-btn" type="button" title="Configurações"
+          aria-label="Configurações">
+          <img src="assets/img/icons/settings.svg" alt="">
+        </button>
+      </div>
     </section>
 
     <nav id="playerTabs" class="player-tabs" aria-label="Jogadores"></nav>
@@ -52,11 +76,6 @@
       <button id="resetBtn3d" type="button">Reset</button>
     </section>
 
-    <!-- <section class="hud help-panel" aria-label="Atalhos">
-      <span>F vira carta</span>
-      <span>Del remove objeto</span>
-      <span>Duplo clique recolhe carta fechada</span>
-    </section> -->
 
     <div id="hoverTooltip" class="hover-tooltip" role="status" aria-live="polite"></div>
 
@@ -79,13 +98,6 @@
           </div>
 
           <div class="setting-row" style="justify-content: center; margin-top: 20px;">
-            <button id="openRuleCardsBtn" type="button"
-              style="background: #6f5cff; color: white; padding: 10px; border: 0; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold;">
-              Variações
-            </button>
-          </div>
-
-          <div class="setting-row" style="justify-content: center;">
             <button id="openDeckConfigBtn" type="button"
               style="background: #1e90ff; color: white; padding: 10px; border: 0; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold;">
               Configurar Baralho
@@ -254,6 +266,31 @@
         </div>
 
         <div id="ruleCardsCounter" class="rule-cards-counter" aria-live="polite">1 / 2</div>
+      </div>
+    </div>
+
+    <div id="altRulesModal" class="modal-overlay" style="display: none;">
+      <div class="modal-actions-and-rules rule-cards-modal">
+        <button id="closeAltRulesBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+
+        <button id="altRulePrevBtn" class="rule-nav-btn rule-nav-prev" type="button"
+          aria-label="Regra anterior">‹</button>
+        <button id="altRuleNextBtn" class="rule-nav-btn rule-nav-next" type="button"
+          aria-label="Próxima regra">›</button>
+
+        <div id="altRuleFlipCard" class="rule-flip-card" role="button" tabindex="0"
+          aria-label="Alternar regra alternativa">
+          <div class="rule-flip-card-inner">
+            <div class="rule-flip-card-face rule-flip-card-front">
+              <img id="altRuleFrontImg" src="assets/img/guides/alternative-rules1.png" alt="Regra alternativa">
+            </div>
+            <div class="rule-flip-card-face rule-flip-card-back">
+              <img id="altRuleBackImg" src="assets/img/guides/alternative-rules2.png" alt="Regra alternativa">
+            </div>
+          </div>
+        </div>
+
+        <div id="altRuleCounter" class="rule-cards-counter" aria-live="polite">1 / 4</div>
       </div>
     </div>
 

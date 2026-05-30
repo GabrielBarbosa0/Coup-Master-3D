@@ -17,13 +17,17 @@ const clearObjectsBtn = document.getElementById('clearObjectsBtn');
 const shuffleBtn = document.getElementById('shuffleBtn');
 const dealBtn = document.getElementById('dealBtn');
 const resetBtn = document.getElementById('resetBtn3d');
+const infoBtn = document.getElementById('infoBtn3d');
+const altRulesBtn = document.getElementById('altRulesBtn3d');
+const spectatorBtn = document.getElementById('spectatorBtn3d');
+const fullscreenBtn = document.getElementById('fullscreenBtn3d');
 const settingsBtn = document.getElementById('settingsBtn3d');
+const musicBtn = document.getElementById('musicBtn3d');
 const settingsModal = document.getElementById('settingsModal');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 const openFeedbackBtn = document.getElementById('openFeedbackBtn');
 const feedbackModal = document.getElementById('feedbackModal');
 const closeFeedbackBtn = document.getElementById('closeFeedbackBtn');
-const openRuleCardsBtn = document.getElementById('openRuleCardsBtn');
 const ruleCardsModal = document.getElementById('ruleCardsModal');
 const closeRuleCardsBtn = document.getElementById('closeRuleCardsBtn');
 const ruleFlipCard = document.getElementById('ruleFlipCard');
@@ -32,6 +36,14 @@ const ruleBackImg = document.getElementById('ruleBackImg');
 const rulePrevBtn = document.getElementById('rulePrevBtn');
 const ruleNextBtn = document.getElementById('ruleNextBtn');
 const ruleCardsCounter = document.getElementById('ruleCardsCounter');
+const altRulesModal = document.getElementById('altRulesModal');
+const closeAltRulesBtn = document.getElementById('closeAltRulesBtn');
+const altRuleFlipCard = document.getElementById('altRuleFlipCard');
+const altRuleFrontImg = document.getElementById('altRuleFrontImg');
+const altRuleBackImg = document.getElementById('altRuleBackImg');
+const altRulePrevBtn = document.getElementById('altRulePrevBtn');
+const altRuleNextBtn = document.getElementById('altRuleNextBtn');
+const altRuleCounter = document.getElementById('altRuleCounter');
 const openDeckConfigBtn = document.getElementById('openDeckConfigBtn');
 const configModal = document.getElementById('configModal');
 const closeConfigModalBtn = document.getElementById('closeConfigModalBtn');
@@ -131,6 +143,13 @@ const RULE_CARD_GROUPS = {
   shadows: ['pistoleiro', 'magnata', 'estrategista', 'ladrao', 'vigarista', 'xerife']
 };
 
+const ALT_RULE_IMAGES = [
+  'assets/img/guides/alternative-rules1.png',
+  'assets/img/guides/alternative-rules2.png',
+  'assets/img/guides/alternative-rules3.png',
+  'assets/img/guides/alternative-rules4.png'
+];
+
 const state = {
   activePlayer: 1,
   deckConfig: { ...DEFAULT_DECK_CONFIG },
@@ -179,6 +198,7 @@ const app = {
   stackShuffleTimers: new Map(),
   ruleImages: [],
   ruleImageIndex: 0,
+  altRuleIndex: 0,
   cards: new Map(),
   objects: new Map(),
   tableStacks: [],
@@ -186,6 +206,8 @@ const app = {
   objectId: 1,
   stackId: 1,
   isDealing: false,
+  musicStarted: false,
+  musicMuted: false,
   lastTime: performance.now(),
   textures: {}
 };
@@ -240,6 +262,7 @@ function init() {
   createDeck();
   createPlayerTabs();
   setupSettingsModal();
+  setupMusicControls();
 
   drawBtn.addEventListener('click', () => drawCardToPlayer(state.activePlayer));
   goldCoinBtn.addEventListener('click', () => spawnCoin('gold'));
@@ -518,13 +541,17 @@ function setupSettingsModal() {
     openModal(feedbackModal);
   });
   closeFeedbackBtn?.addEventListener('click', () => closeModal(feedbackModal));
-  openRuleCardsBtn?.addEventListener('click', () => {
-    closeModal(settingsModal);
-    openRuleCardsModal();
+  infoBtn?.addEventListener('click', openRuleCardsModal);
+  altRulesBtn?.addEventListener('click', openAltRulesModal);
+  spectatorBtn?.addEventListener('click', () => {
+    spectatorBtn.blur();
   });
+  fullscreenBtn?.addEventListener('click', toggleFullscreen);
+  document.addEventListener('fullscreenchange', syncFullscreenButton);
+  syncFullscreenButton();
+
   closeRuleCardsBtn?.addEventListener('click', () => {
     closeModal(ruleCardsModal);
-    openModal(settingsModal);
   });
   rulePrevBtn?.addEventListener('click', (event) => {
     event.stopPropagation();
@@ -539,6 +566,22 @@ function setupSettingsModal() {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       stepRuleCard(1);
+    }
+  });
+  closeAltRulesBtn?.addEventListener('click', () => closeModal(altRulesModal));
+  altRulePrevBtn?.addEventListener('click', (event) => {
+    event.stopPropagation();
+    stepAltRuleCard(-1);
+  });
+  altRuleNextBtn?.addEventListener('click', (event) => {
+    event.stopPropagation();
+    stepAltRuleCard(1);
+  });
+  altRuleFlipCard?.addEventListener('click', () => stepAltRuleCard(1));
+  altRuleFlipCard?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      stepAltRuleCard(1);
     }
   });
 
@@ -563,15 +606,123 @@ function setupSettingsModal() {
     button.addEventListener('click', () => applyDeckPreset(button.dataset.preset));
   });
 
-  volumeSlider?.addEventListener('input', () => {
-    if (bgmAudio) bgmAudio.volume = Number(volumeSlider.value);
-  });
-
   document.querySelectorAll('.modal-overlay').forEach((overlay) => {
     overlay.addEventListener('click', (event) => {
       if (event.target === overlay) closeModal(overlay);
     });
   });
+}
+
+// Alterna a página 3D entre tela cheia e modo normal.
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen?.().catch(() => {});
+  } else {
+    document.exitFullscreen?.().catch(() => {});
+  }
+}
+
+// Atualiza o rótulo acessível do botão de tela cheia.
+function syncFullscreenButton() {
+  if (!fullscreenBtn) return;
+  const isFullscreen = Boolean(document.fullscreenElement);
+  fullscreenBtn.setAttribute('aria-pressed', String(isFullscreen));
+  fullscreenBtn.setAttribute('aria-label', isFullscreen ? 'Sair da tela cheia' : 'Tela cheia');
+  fullscreenBtn.title = isFullscreen ? 'Sair da tela cheia' : 'Tela cheia';
+}
+
+// Liga a trilha de fundo ao primeiro gesto do jogador e aos controles de volume.
+function setupMusicControls() {
+  if (!bgmAudio) return;
+
+  bgmAudio.volume = Number(volumeSlider?.value ?? 0.1);
+  bgmAudio.muted = app.musicMuted;
+  syncMusicButton();
+
+  musicBtn?.addEventListener('click', () => {
+    app.musicMuted = !app.musicMuted;
+    bgmAudio.muted = app.musicMuted;
+    if (!app.musicMuted) startBackgroundMusic();
+    syncMusicButton();
+  });
+
+  volumeSlider?.addEventListener('input', () => {
+    bgmAudio.volume = Number(volumeSlider.value);
+    if (bgmAudio.volume > 0 && app.musicMuted) {
+      app.musicMuted = false;
+      bgmAudio.muted = false;
+      syncMusicButton();
+    }
+  });
+
+  window.addEventListener('pointerdown', startBackgroundMusic, { once: true });
+  window.addEventListener('keydown', startBackgroundMusic, { once: true });
+}
+
+// Tenta iniciar a música respeitando o bloqueio de autoplay dos navegadores.
+function startBackgroundMusic() {
+  if (!bgmAudio || app.musicMuted || app.musicStarted) return;
+  bgmAudio.play()
+    .then(() => {
+      app.musicStarted = true;
+    })
+    .catch(() => {});
+}
+
+// Atualiza o estado visual e acessível do botão de música.
+function syncMusicButton() {
+  if (!musicBtn) return;
+  musicBtn.classList.toggle('is-muted', app.musicMuted);
+  musicBtn.setAttribute('aria-pressed', String(app.musicMuted));
+  musicBtn.setAttribute('aria-label', app.musicMuted ? 'Ativar música' : 'Mutar música');
+  musicBtn.title = app.musicMuted ? 'Ativar música' : 'Mutar música';
+}
+
+// Abre o modal com o carrossel de regras alternativas.
+function openAltRulesModal() {
+  app.altRuleIndex = 0;
+  altRuleFlipCard?.classList.remove('is-flipped');
+  syncAltRuleImages();
+  openModal(altRulesModal);
+}
+
+// Avança ou volta no carrossel das regras alternativas.
+function stepAltRuleCard(direction) {
+  app.altRuleIndex = (app.altRuleIndex + direction + ALT_RULE_IMAGES.length) % ALT_RULE_IMAGES.length;
+  altRuleFlipCard?.classList.toggle('is-flipped');
+  window.setTimeout(syncAltRuleImages, 260);
+}
+
+// Mantém a carta alternativa atual, a próxima face e o contador sincronizados.
+function syncAltRuleImages() {
+  const currentImage = ALT_RULE_IMAGES[app.altRuleIndex];
+  const nextImage = ALT_RULE_IMAGES[(app.altRuleIndex + 1) % ALT_RULE_IMAGES.length];
+  const currentAlt = `Regra alternativa ${app.altRuleIndex + 1}`;
+  const nextAlt = `Regra alternativa ${(app.altRuleIndex + 1) % ALT_RULE_IMAGES.length + 1}`;
+
+  if (altRuleFlipCard?.classList.contains('is-flipped')) {
+    if (altRuleBackImg) {
+      altRuleBackImg.src = currentImage;
+      altRuleBackImg.alt = currentAlt;
+    }
+    if (altRuleFrontImg) {
+      altRuleFrontImg.src = nextImage;
+      altRuleFrontImg.alt = nextAlt;
+    }
+  } else {
+    if (altRuleFrontImg) {
+      altRuleFrontImg.src = currentImage;
+      altRuleFrontImg.alt = currentAlt;
+    }
+    if (altRuleBackImg) {
+      altRuleBackImg.src = nextImage;
+      altRuleBackImg.alt = nextAlt;
+    }
+  }
+
+  if (altRuleCounter) {
+    altRuleCounter.textContent = `${app.altRuleIndex + 1} / ${ALT_RULE_IMAGES.length}`;
+  }
 }
 
 // Abre o modal de variações com as cartas calculadas pela configuração do baralho.
