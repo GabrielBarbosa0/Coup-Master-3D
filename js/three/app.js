@@ -20,7 +20,7 @@ const resetBtn = document.getElementById('resetBtn3d');
 
 const CARD_W = 0.72;
 const CARD_H = 1.04;
-const CARD_D = 0.035 / 5;
+const CARD_D = (0.035 / 5) * 0.9 * 0.95 * 0.9;
 const CARD_RADIUS = 0.055;
 const TABLE_RADIUS = 4.65;
 const FELT_RADIUS = 4.18;
@@ -44,6 +44,7 @@ const LIMBO_Y = -2.2;
 const LIMBO_RADIUS = TABLE_RADIUS + 2.2;
 const TABLE_STACK_RADIUS = 0.58;
 const TABLE_STACK_GAP = 0.012;
+const DECK_STACK_GAP = TABLE_STACK_GAP;
 const DECK_ROTATION_Y = 0;
 const DEFAULT_CAMERA_HEIGHT = 7.6;
 const DEFAULT_CAMERA_DISTANCE = 7.8;
@@ -109,6 +110,8 @@ const app = {
   hoverOutline: null,
   cameraFocus: null,
   deckShuffle: null,
+  deckVisualCount: -1,
+  deckHitHeight: 0,
   stackShuffleTimers: new Map(),
   cards: new Map(),
   objects: new Map(),
@@ -335,32 +338,54 @@ function createDeck() {
   const geo = createRoundedCardGeometry(CARD_W, CARD_H, DECK_BASE_HEIGHT, CARD_RADIUS);
   const materials = makeDeckHitMaterials();
   app.deckMesh = new THREE.Mesh(geo, materials);
-  app.deckMesh.position.set(0, CARD_REST_Y + DECK_BASE_HEIGHT / 2, 0);
+  app.deckMesh.position.set(0, CARD_REST_Y + getDeckHeight() / 2, 0);
   app.deckMesh.rotation.y = DECK_ROTATION_Y;
   app.deckMesh.castShadow = false;
   app.deckMesh.receiveShadow = false;
   app.deckMesh.name = 'deck';
   app.deckMesh.userData.deck = true;
-  addDeckVisualLayers(app.deckMesh);
+  syncDeckHitboxGeometry();
+  updateDeckVisualLayers();
   app.scene.add(app.deckMesh);
   createDeckRim();
   updateDeckCollider();
 }
 
-// Preenche o deck com oito cartas visuais reais em vez de uma lateral lisa.
-function addDeckVisualLayers(deckMesh) {
-  const layerCount = 8;
-  const layerGap = 0.004;
-  const layerDepth = (DECK_BASE_HEIGHT - layerGap * (layerCount - 1)) / layerCount;
-  const layerGeo = createRoundedCardGeometry(CARD_W, CARD_H, layerDepth, CARD_RADIUS);
+// Recria a pilha visual do deck com uma camada para cada carta real.
+function updateDeckVisualLayers(force = false) {
+  if (!app.deckMesh) return;
+  const layerCount = state.deck.length;
+  if (!force && app.deckVisualCount === layerCount) return;
+
+  clearDeckVisualLayers();
+  app.deckVisualCount = layerCount;
+  if (layerCount <= 0) return;
+
+  const layerGeo = createRoundedCardGeometry(CARD_W, CARD_H, CARD_D, CARD_RADIUS);
+  const deckHeight = getDeckHeight();
 
   for (let i = 0; i < layerCount; i++) {
     const layer = new THREE.Mesh(layerGeo, makeDeckLayerMaterials(i === layerCount - 1));
-    layer.position.y = -DECK_BASE_HEIGHT / 2 + layerDepth / 2 + i * (layerDepth + layerGap);
+    layer.position.y = -deckHeight / 2 + CARD_D / 2 + i * getDeckLayerStep();
     layer.castShadow = i === layerCount - 1;
     layer.receiveShadow = true;
     layer.name = `deck-layer-${i + 1}`;
-    deckMesh.add(layer);
+    app.deckMesh.add(layer);
+  }
+}
+
+// Remove camadas visuais antigas do deck antes de reconstruir.
+function clearDeckVisualLayers() {
+  if (!app.deckMesh) return;
+
+  while (app.deckMesh.children.length > 0) {
+    const child = app.deckMesh.children.pop();
+    child.geometry?.dispose?.();
+    if (Array.isArray(child.material)) {
+      child.material.forEach(material => material.dispose?.());
+    } else {
+      child.material?.dispose?.();
+    }
   }
 }
 
@@ -391,7 +416,8 @@ function createDeckRim() {
 function resetDeckPosition() {
   if (!app.deckMesh) return;
 
-  app.deckMesh.position.set(0, CARD_REST_Y + DECK_BASE_HEIGHT / 2, 0);
+  syncDeckHitboxGeometry();
+  app.deckMesh.position.set(0, CARD_REST_Y + getDeckHeight() / 2, 0);
   app.deckMesh.rotation.y = DECK_ROTATION_Y;
   syncDeckRim();
   updateDeckCollider();
@@ -1062,13 +1088,42 @@ function getHoverLabel(piece) {
   if (piece.kind === 'gold-coin') return 'Moeda de ouro';
   if (piece.kind === 'silver-coin') return 'Moeda de prata';
   if (piece.kind === 'die') return 'Dado';
-  if (piece.data) return piece.data.faceUp ? (CARD_LABELS[piece.data.type] || piece.data.type) : 'Carta fechada';
+  if (piece.data) return getCardHoverLabel(piece);
   return '';
+}
+
+// Monta o texto de hover para carta solta ou pilha aberta.
+function getCardHoverLabel(card) {
+  if (!card.data.faceUp) return 'Carta fechada';
+
+  const stack = getCardStack(card);
+  if (!stack || stack.cards.length <= 1) {
+    return CARD_LABELS[card.data.type] || card.data.type;
+  }
+
+  return getStackHoverLabel(stack);
+}
+
+// Resume uma pilha aberta por quantidade de personagens.
+function getStackHoverLabel(stack) {
+  const counts = new Map();
+  stack.cards.forEach((id) => {
+    const card = app.cards.get(id);
+    if (!card) return;
+    const label = CARD_LABELS[card.data.type] || card.data.type;
+    counts.set(label, (counts.get(label) || 0) + 1);
+  });
+
+  return [...counts.entries()]
+    .sort(([a], [b]) => a.localeCompare(b, 'pt-BR'))
+    .map(([label, count]) => `${label} ${count}`)
+    .join('\n');
 }
 
 // Cria a malha de outline branca ao redor do objeto em hover.
 function setHoverOutline(piece) {
   clearHoverOutline();
+  if (piece.kind === 'deck' && state.deck.length <= 0) return;
 
   const outline = new THREE.LineSegments(
     new THREE.EdgesGeometry(piece.mesh.geometry, 18),
@@ -1319,7 +1374,8 @@ function startDeckCardDrag(event) {
   data.faceUp = false;
 
   const card = createCardObject(data);
-  const deckTopY = app.deckMesh.position.y + (DECK_BASE_HEIGHT * app.deckMesh.scale.y) / 2 + CARD_D;
+  updateHud();
+  const deckTopY = app.deckMesh.position.y + getDeckHeight() / 2 + CARD_D;
   placeCard(card, new THREE.Vector3(app.deckMesh.position.x, deckTopY, app.deckMesh.position.z), app.deckMesh.rotation.y, false);
 
   beginDrag(event, card, 'card');
@@ -1330,7 +1386,6 @@ function startDeckCardDrag(event) {
     location: 'deck'
   };
   app.pendingDeckDrag = null;
-  updateHud();
 }
 
 // Inicia o arrasto do deck inteiro apos segurar o clique.
@@ -2070,7 +2125,7 @@ function findDropZoneAtPointer(event) {
 
 // Verifica se o ponteiro esta sobre o deck central.
 function isPointerOverDeck(event) {
-  if (!app.deckMesh?.visible) return false;
+  if (!app.deckMesh) return false;
 
   setPointer(event);
   if (getIntersections([app.deckMesh]).length > 0) return true;
@@ -2083,7 +2138,7 @@ function isPointerOverDeck(event) {
 
 // Verifica se uma pilha esta sobre o deck pelo ponteiro ou pela posicao do conjunto.
 function isStackOverDeck(stack, event) {
-  if (!app.deckMesh?.visible || !stack) return false;
+  if (!app.deckMesh || !stack) return false;
   if (event && isPointerOverDeck(event)) return true;
   return Math.hypot(stack.position.x - app.deckMesh.position.x, stack.position.z - app.deckMesh.position.z) < 0.72;
 }
@@ -2314,26 +2369,49 @@ function updateHud() {
   objectCountEl.textContent = `Objetos: ${app.objects.size}`;
 
   if (app.deckMesh) {
-    app.deckMesh.scale.y = 1;
-    app.deckMesh.position.y = CARD_REST_Y + DECK_BASE_HEIGHT / 2;
-    app.deckMesh.visible = state.deck.length > 0;
+    app.deckMesh.visible = true;
+    syncDeckHitboxGeometry();
+    app.deckMesh.position.y = CARD_REST_Y + getDeckHeight() / 2;
+    updateDeckVisualLayers();
     syncDeckRim();
     updateDeckCollider();
   }
+}
+
+// Retorna a altura visual/fisica atual do deck real.
+function getDeckHeight() {
+  if (state.deck.length <= 1) return CARD_D;
+  return state.deck.length * CARD_D + (state.deck.length - 1) * DECK_STACK_GAP;
+}
+
+// Retorna o espacamento vertical entre cartas reais do deck.
+function getDeckLayerStep() {
+  return CARD_D + DECK_STACK_GAP;
+}
+
+// Mantem o hitbox invisivel do deck com a mesma altura da pilha real.
+function syncDeckHitboxGeometry() {
+  if (!app.deckMesh) return;
+  const deckHeight = getDeckHeight();
+  if (Math.abs(app.deckHitHeight - deckHeight) < 0.0001) return;
+
+  app.deckMesh.geometry.dispose();
+  app.deckMesh.geometry = createRoundedCardGeometry(CARD_W, CARD_H, deckHeight, CARD_RADIUS);
+  app.deckHitHeight = deckHeight;
 }
 
 // Mantem o aro visual do deck alinhado ao deck.
 function syncDeckRim() {
   if (!app.deckRim || !app.deckMesh) return;
 
-  const deckHeight = DECK_BASE_HEIGHT * app.deckMesh.scale.y;
+  const deckHeight = getDeckHeight();
   app.deckRim.position.set(
     app.deckMesh.position.x,
     app.deckMesh.position.y + deckHeight / 2 + 0.004,
     app.deckMesh.position.z
   );
   app.deckRim.rotation.set(0, app.deckMesh.rotation.y, 0);
-  app.deckRim.visible = app.deckMesh.visible;
+  app.deckRim.visible = state.deck.length > 0;
 }
 
 // Recria o collider fisico fixo do deck.
@@ -2343,9 +2421,9 @@ function updateDeckCollider() {
     app.deckBody = null;
   }
 
-  if (!app.deckMesh?.visible || state.deck.length <= 0) return;
+  if (!app.deckMesh || state.deck.length <= 0) return;
 
-  const deckHeight = DECK_BASE_HEIGHT * app.deckMesh.scale.y;
+  const deckHeight = getDeckHeight();
   app.deckBody = app.world.createRigidBody(
     RAPIER.RigidBodyDesc.fixed()
       .setTranslation(app.deckMesh.position.x, app.deckMesh.position.y, app.deckMesh.position.z)

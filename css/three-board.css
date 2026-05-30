@@ -168,7 +168,7 @@ button:focus-visible {
   line-height: 1.2;
   pointer-events: none;
   transform: translate(12px, 12px);
-  white-space: nowrap;
+  white-space: pre-line;
 }
 
 .player-tabs {
