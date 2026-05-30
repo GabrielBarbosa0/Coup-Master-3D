@@ -17,6 +17,27 @@ const clearObjectsBtn = document.getElementById('clearObjectsBtn');
 const shuffleBtn = document.getElementById('shuffleBtn');
 const dealBtn = document.getElementById('dealBtn');
 const resetBtn = document.getElementById('resetBtn3d');
+const settingsBtn = document.getElementById('settingsBtn3d');
+const settingsModal = document.getElementById('settingsModal');
+const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+const openFeedbackBtn = document.getElementById('openFeedbackBtn');
+const feedbackModal = document.getElementById('feedbackModal');
+const closeFeedbackBtn = document.getElementById('closeFeedbackBtn');
+const openRuleCardsBtn = document.getElementById('openRuleCardsBtn');
+const ruleCardsModal = document.getElementById('ruleCardsModal');
+const closeRuleCardsBtn = document.getElementById('closeRuleCardsBtn');
+const ruleFlipCard = document.getElementById('ruleFlipCard');
+const ruleFrontImg = document.getElementById('ruleFrontImg');
+const ruleBackImg = document.getElementById('ruleBackImg');
+const rulePrevBtn = document.getElementById('rulePrevBtn');
+const ruleNextBtn = document.getElementById('ruleNextBtn');
+const ruleCardsCounter = document.getElementById('ruleCardsCounter');
+const openDeckConfigBtn = document.getElementById('openDeckConfigBtn');
+const configModal = document.getElementById('configModal');
+const closeConfigModalBtn = document.getElementById('closeConfigModalBtn');
+const applyDeckConfigBtn = document.getElementById('applyDeckConfigBtn');
+const volumeSlider = document.getElementById('volumeSlider');
+const bgmAudio = document.getElementById('bgmAudio');
 
 const CARD_W = 0.72;
 const CARD_H = 1.04;
@@ -56,20 +77,63 @@ const CARD_LIBRARY = [
   { type: 'assassino', folder: 'base' },
   { type: 'condessa', folder: 'base' },
   { type: 'embaixador', folder: 'base' },
-  { type: 'inquisidor', folder: 'base' }
+  { type: 'inquisidor', folder: 'base' },
+  { type: 'bufao', folder: 'promo' },
+  { type: 'burocrata', folder: 'promo' },
+  { type: 'benfeitor', folder: 'promo' },
+  { type: 'burgues', folder: 'promo' },
+  { type: 'marionetista', folder: 'dlc1' },
+  { type: 'diplomata', folder: 'dlc1' },
+  { type: 'mercenario', folder: 'dlc1' },
+  { type: 'bispo', folder: 'dlc1' },
+  { type: 'tesoureiro', folder: 'dlc1' },
+  { type: 'vigilante', folder: 'dlc1' },
+  { type: 'pistoleiro', folder: 'dlc2' },
+  { type: 'magnata', folder: 'dlc2' },
+  { type: 'estrategista', folder: 'dlc2' },
+  { type: 'ladrao', folder: 'dlc2' },
+  { type: 'vigarista', folder: 'dlc2' },
+  { type: 'xerife', folder: 'dlc2' }
 ];
 
 const CARD_LABELS = {
   assassino: 'Assassino',
+  benfeitor: 'Benfeitor',
+  bispo: 'Bispo',
+  bufao: 'Bufão',
+  burocrata: 'Burocrata',
+  burgues: 'Burguês',
   capitao: 'Capitão',
   condessa: 'Condessa',
+  diplomata: 'Diplomata',
   duque: 'Duque',
   embaixador: 'Embaixador',
-  inquisidor: 'Inquisidor'
+  estrategista: 'Estrategista',
+  inquisidor: 'Inquisidor',
+  ladrao: 'Ladrão',
+  magnata: 'Magnata',
+  marionetista: 'Marionetista',
+  mercenario: 'Mercenário',
+  pistoleiro: 'Pistoleiro',
+  tesoureiro: 'Tesoureiro',
+  vigarista: 'Vigarista',
+  vigilante: 'Vigilante',
+  xerife: 'Xerife'
+};
+
+const DEFAULT_DECK_CONFIG = Object.fromEntries(
+  CARD_LIBRARY.map(({ type, folder }) => [type, folder === 'base' ? 5 : 0])
+);
+
+const RULE_CARD_GROUPS = {
+  promo: ['bufao', 'benfeitor', 'burgues', 'burocrata'],
+  revolution: ['marionetista', 'diplomata', 'mercenario', 'bispo', 'tesoureiro', 'vigilante'],
+  shadows: ['pistoleiro', 'magnata', 'estrategista', 'ladrao', 'vigarista', 'xerife']
 };
 
 const state = {
   activePlayer: 1,
+  deckConfig: { ...DEFAULT_DECK_CONFIG },
   deck: [],
   tableCards: [],
   players: Array.from({ length: PLAYER_COUNT }, (_, index) => ({
@@ -113,6 +177,8 @@ const app = {
   deckVisualCount: -1,
   deckHitHeight: 0,
   stackShuffleTimers: new Map(),
+  ruleImages: [],
+  ruleImageIndex: 0,
   cards: new Map(),
   objects: new Map(),
   tableStacks: [],
@@ -173,6 +239,7 @@ function init() {
   createDropZones();
   createDeck();
   createPlayerTabs();
+  setupSettingsModal();
 
   drawBtn.addEventListener('click', () => drawCardToPlayer(state.activePlayer));
   goldCoinBtn.addEventListener('click', () => spawnCoin('gold'));
@@ -437,6 +504,229 @@ function createPlayerTabs() {
   }
 }
 
+// Configura a abertura dos modais de configurações, feedback e baralho.
+function setupSettingsModal() {
+  syncDeckConfigInputs();
+
+  settingsBtn?.addEventListener('click', () => {
+    openModal(settingsModal);
+  });
+
+  closeSettingsBtn?.addEventListener('click', () => closeModal(settingsModal));
+  openFeedbackBtn?.addEventListener('click', () => {
+    closeModal(settingsModal);
+    openModal(feedbackModal);
+  });
+  closeFeedbackBtn?.addEventListener('click', () => closeModal(feedbackModal));
+  openRuleCardsBtn?.addEventListener('click', () => {
+    closeModal(settingsModal);
+    openRuleCardsModal();
+  });
+  closeRuleCardsBtn?.addEventListener('click', () => {
+    closeModal(ruleCardsModal);
+    openModal(settingsModal);
+  });
+  rulePrevBtn?.addEventListener('click', (event) => {
+    event.stopPropagation();
+    stepRuleCard(-1);
+  });
+  ruleNextBtn?.addEventListener('click', (event) => {
+    event.stopPropagation();
+    stepRuleCard(1);
+  });
+  ruleFlipCard?.addEventListener('click', () => stepRuleCard(1));
+  ruleFlipCard?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      stepRuleCard(1);
+    }
+  });
+
+  openDeckConfigBtn?.addEventListener('click', () => {
+    syncDeckConfigInputs();
+    closeModal(settingsModal);
+    openModal(configModal);
+  });
+
+  closeConfigModalBtn?.addEventListener('click', () => {
+    closeModal(configModal);
+    openModal(settingsModal);
+  });
+
+  applyDeckConfigBtn?.addEventListener('click', () => {
+    state.deckConfig = readDeckConfigInputs();
+    closeModal(configModal);
+    resetMvp();
+  });
+
+  document.querySelectorAll('.preset-btn').forEach((button) => {
+    button.addEventListener('click', () => applyDeckPreset(button.dataset.preset));
+  });
+
+  volumeSlider?.addEventListener('input', () => {
+    if (bgmAudio) bgmAudio.volume = Number(volumeSlider.value);
+  });
+
+  document.querySelectorAll('.modal-overlay').forEach((overlay) => {
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) closeModal(overlay);
+    });
+  });
+}
+
+// Abre o modal de variações com as cartas calculadas pela configuração do baralho.
+function openRuleCardsModal() {
+  app.ruleImages = calculateRuleImages();
+  app.ruleImageIndex = 0;
+  ruleFlipCard?.classList.remove('is-flipped');
+  syncRuleCardImages();
+  openModal(ruleCardsModal);
+}
+
+// Avança ou volta no carrossel de cartas de regra.
+function stepRuleCard(direction) {
+  if (!app.ruleImages.length) return;
+  app.ruleImageIndex = (app.ruleImageIndex + direction + app.ruleImages.length) % app.ruleImages.length;
+  ruleFlipCard?.classList.toggle('is-flipped');
+  window.setTimeout(syncRuleCardImages, 260);
+}
+
+// Mantém frente, verso e contador coerentes com a posição atual do carrossel.
+function syncRuleCardImages() {
+  if (!app.ruleImages.length) return;
+
+  const currentImage = app.ruleImages[app.ruleImageIndex];
+  const nextImage = app.ruleImages[(app.ruleImageIndex + 1) % app.ruleImages.length];
+  const currentAlt = getRuleCardAlt(currentImage);
+  const nextAlt = getRuleCardAlt(nextImage);
+
+  if (ruleFlipCard?.classList.contains('is-flipped')) {
+    if (ruleBackImg) {
+      ruleBackImg.src = currentImage;
+      ruleBackImg.alt = currentAlt;
+    }
+    if (ruleFrontImg) {
+      ruleFrontImg.src = nextImage;
+      ruleFrontImg.alt = nextAlt;
+    }
+  } else {
+    if (ruleFrontImg) {
+      ruleFrontImg.src = currentImage;
+      ruleFrontImg.alt = currentAlt;
+    }
+    if (ruleBackImg) {
+      ruleBackImg.src = nextImage;
+      ruleBackImg.alt = nextAlt;
+    }
+  }
+
+  if (ruleCardsCounter) {
+    ruleCardsCounter.textContent = `${app.ruleImageIndex + 1} / ${app.ruleImages.length}`;
+  }
+}
+
+// Escolhe as cartas de regra seguindo a mesma condicional do Coup Master 2D.
+function calculateRuleImages() {
+  const hasPromo = hasConfiguredCards(RULE_CARD_GROUPS.promo);
+  const hasRevolution = hasConfiguredCards(RULE_CARD_GROUPS.revolution);
+  const hasShadows = hasConfiguredCards(RULE_CARD_GROUPS.shadows);
+  const images = [
+    hasRevolution
+      ? 'assets/img/guides/front-actions-alternative.png'
+      : 'assets/img/guides/front-actions.png'
+  ];
+
+  if (hasPromo) images.push('assets/img/guides/dlc-actions.png');
+  if (hasRevolution) images.push('assets/img/guides/dlc2-actions.png');
+  if (hasShadows) images.push('assets/img/guides/dlc3-actions.png');
+
+  images.push('assets/img/guides/back-actions.png');
+  return images;
+}
+
+// Verifica se pelo menos uma carta de um grupo está ativa na configuração.
+function hasConfiguredCards(cards) {
+  return cards.some(card => (state.deckConfig[card] || 0) > 0);
+}
+
+// Cria um texto acessível para a carta de regra exibida.
+function getRuleCardAlt(path) {
+  if (path.includes('front-actions-alternative')) return 'Regras alternativas dos personagens base';
+  if (path.includes('front-actions')) return 'Regras dos personagens base';
+  if (path.includes('dlc-actions')) return 'Regras de Sombras do Palácio';
+  if (path.includes('dlc2-actions')) return 'Regras da Revolução';
+  if (path.includes('dlc3-actions')) return 'Regras de Sombras do Asilo';
+  return 'Resumo de turno';
+}
+
+// Mostra um modal usando o mesmo layout flexível do Coup Master 2D.
+function openModal(modal) {
+  if (!modal) return;
+  modal.style.display = 'flex';
+}
+
+// Esconde um modal mantendo a marcação pronta para ser reaberta.
+function closeModal(modal) {
+  if (!modal) return;
+  modal.style.display = 'none';
+}
+
+// Informa se algum modal está aberto e deve capturar os atalhos do tabuleiro.
+function isAnyModalOpen() {
+  return Array.from(document.querySelectorAll('.modal-overlay')).some((modal) => {
+    return modal.style.display !== 'none';
+  });
+}
+
+// Copia a configuração ativa do deck para os campos do modal.
+function syncDeckConfigInputs() {
+  document.querySelectorAll('.card-config-item input').forEach((input) => {
+    const cardType = input.dataset.card;
+    input.value = state.deckConfig[cardType] ?? 0;
+  });
+}
+
+// Lê os campos do modal e devolve uma configuração normalizada do deck.
+function readDeckConfigInputs() {
+  const config = { ...DEFAULT_DECK_CONFIG };
+  document.querySelectorAll('.card-config-item input').forEach((input) => {
+    config[input.dataset.card] = clampDeckCopyCount(input.value);
+  });
+  return config;
+}
+
+// Limita a quantidade de cópias por carta ao intervalo aceito pelo modal.
+function clampDeckCopyCount(value) {
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isNaN(parsed)) return 0;
+  return Math.min(Math.max(parsed, 0), 10);
+}
+
+// Aplica presets rápidos no modal sem reiniciar a partida imediatamente.
+function applyDeckPreset(preset) {
+  const baseCards = ['assassino', 'capitao', 'condessa', 'duque', 'embaixador', 'inquisidor'];
+  const promoCards = ['benfeitor', 'bufao', 'burgues', 'burocrata'];
+  const dlc1Cards = ['bispo', 'diplomata', 'marionetista', 'mercenario', 'tesoureiro', 'vigilante'];
+  const dlc2Cards = ['estrategista', 'ladrao', 'magnata', 'pistoleiro', 'vigarista', 'xerife'];
+
+  document.querySelectorAll('.card-config-item input').forEach((input) => {
+    const card = input.dataset.card;
+    if (preset === 'clear') {
+      input.value = 0;
+    } else if (preset === 'test') {
+      input.value = 1;
+    } else if (preset === 'base_promo') {
+      input.value = baseCards.includes(card) || promoCards.includes(card) ? 5 : 0;
+    } else if (preset === 'base_dlc1') {
+      input.value = baseCards.includes(card) || dlc1Cards.includes(card) ? 5 : 0;
+    } else if (preset === 'base_dlc2') {
+      input.value = baseCards.includes(card) || dlc2Cards.includes(card) ? 5 : 0;
+    } else {
+      input.value = baseCards.includes(card) ? 5 : 0;
+    }
+  });
+}
+
 // Reinicia o estado do MVP 3D sem distribuir cartas automaticamente.
 function resetMvp() {
   app.isDealing = false;
@@ -467,13 +757,14 @@ function resetMvp() {
   updateHud();
 }
 
-// Monta e embaralha o baralho base usado pelo modo 3D.
+// Monta e embaralha o baralho usado pelo modo 3D a partir da configuração atual.
 function buildDeck() {
   const cards = [];
   let id = 1;
 
   CARD_LIBRARY.forEach((def) => {
-    for (let copy = 0; copy < 5; copy++) {
+    const totalCopies = clampDeckCopyCount(state.deckConfig[def.type]);
+    for (let copy = 0; copy < totalCopies; copy++) {
       cards.push({
         id: `card-${id++}`,
         type: def.type,
@@ -1550,6 +1841,13 @@ function tryReturnCardToDeck(card) {
 
 // Centraliza camera, remove objetos ou vira carta via teclado.
 function onKeyDown(event) {
+  if (isAnyModalOpen()) {
+    if (event.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay').forEach(closeModal);
+    }
+    return;
+  }
+
   if (event.code === 'Space') {
     event.preventDefault();
     focusTableCamera();
