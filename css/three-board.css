@@ -174,18 +174,17 @@ button:focus-visible {
 .player-tabs {
   position: fixed;
   z-index: 10;
-  left: 50%;
+  right: max(14px, env(safe-area-inset-right));
   top: max(14px, env(safe-area-inset-top));
   display: grid;
-  grid-template-columns: repeat(8, minmax(34px, 1fr));
+  grid-template-columns: 1fr;
   gap: 6px;
-  width: min(560px, calc(100vw - 28px));
+  width: 72px;
   padding: 8px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
   backdrop-filter: blur(14px);
-  transform: translateX(-50%);
 }
 
 .player-tabs button {
@@ -211,8 +210,10 @@ button:focus-visible {
   }
 
   .player-tabs {
-    grid-template-columns: repeat(4, 1fr);
-    width: min(360px, calc(100vw - 28px));
+    right: max(10px, env(safe-area-inset-right));
+    width: 56px;
+    padding: 6px;
+    gap: 5px;
   }
 
   .help-panel {
