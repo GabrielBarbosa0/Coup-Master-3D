@@ -23,9 +23,9 @@ const spectatorBtn = document.getElementById('spectatorBtn3d');
 const fullscreenBtn = document.getElementById('fullscreenBtn3d');
 const settingsBtn = document.getElementById('settingsBtn3d');
 const musicBtn = document.getElementById('musicBtn3d');
+const feedbackBtn = document.getElementById('feedbackBtn3d');
 const settingsModal = document.getElementById('settingsModal');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-const openFeedbackBtn = document.getElementById('openFeedbackBtn');
 const feedbackModal = document.getElementById('feedbackModal');
 const closeFeedbackBtn = document.getElementById('closeFeedbackBtn');
 const ruleCardsModal = document.getElementById('ruleCardsModal');
@@ -49,7 +49,9 @@ const configModal = document.getElementById('configModal');
 const closeConfigModalBtn = document.getElementById('closeConfigModalBtn');
 const applyDeckConfigBtn = document.getElementById('applyDeckConfigBtn');
 const volumeSlider = document.getElementById('volumeSlider');
+const vfxVolumeSlider = document.getElementById('vfxVolumeSlider');
 const bgmAudio = document.getElementById('bgmAudio');
+const resetVfxAudio = document.getElementById('resetVfxAudio');
 
 const CARD_W = 0.72;
 const CARD_H = 1.04;
@@ -67,9 +69,13 @@ const HAND_LADDER_SPACING = 0.36;
 const HAND_LADDER_DEPTH = 0.075;
 const HAND_LADDER_LIFT = 0.012;
 const HAND_LADDER_ROTATION = 0.035;
-const SILVER_COIN_RADIUS = 0.16;
-const GOLD_COIN_RADIUS = SILVER_COIN_RADIUS * 1.1;
+const GOLD_COIN_RADIUS = 0.16 * 1.1;
+const SILVER_COIN_RADIUS = GOLD_COIN_RADIUS * (940 / 1280);
 const COIN_HEIGHT = 0.055 / 3;
+const COIN_TEXTURES = {
+  gold: 'assets/img/coins/moeda-ouro.png',
+  silver: 'assets/img/coins/moeda-prata.png'
+};
 const DIE_SIZE = 0.42;
 const DECK_DRAG_HOLD_MS = 260;
 const CARD_RETURN_COOLDOWN_MS = 300;
@@ -82,6 +88,8 @@ const DECK_ROTATION_Y = 0;
 const DEFAULT_CAMERA_HEIGHT = 7.6;
 const DEFAULT_CAMERA_DISTANCE = 7.8;
 const DEFAULT_CAMERA_TARGET = new THREE.Vector3(0, 0, 0);
+const DEFAULT_MUSIC_VOLUME = 0.1;
+const DEFAULT_VFX_VOLUME = 0.5;
 
 const CARD_LIBRARY = [
   { type: 'duque', folder: 'base' },
@@ -208,6 +216,9 @@ const app = {
   isDealing: false,
   musicStarted: false,
   musicMuted: false,
+  vfxVolume: DEFAULT_VFX_VOLUME,
+  lastResetVfxAt: 0,
+  vfx: new Map(),
   lastTime: performance.now(),
   textures: {}
 };
@@ -272,7 +283,8 @@ function init() {
   clearObjectsBtn.addEventListener('click', clearTableObjects);
   shuffleBtn.addEventListener('click', shuffleDeck);
   dealBtn.addEventListener('click', dealInitialHands);
-  resetBtn.addEventListener('click', resetMvp);
+  resetBtn.addEventListener('pointerdown', playResetSoundFromButton);
+  resetBtn.addEventListener('click', triggerResetFromButton);
   window.addEventListener('resize', resize);
   canvas.addEventListener('pointerdown', onPointerDown);
   canvas.addEventListener('pointermove', onPointerMove);
@@ -536,10 +548,7 @@ function setupSettingsModal() {
   });
 
   closeSettingsBtn?.addEventListener('click', () => closeModal(settingsModal));
-  openFeedbackBtn?.addEventListener('click', () => {
-    closeModal(settingsModal);
-    openModal(feedbackModal);
-  });
+  feedbackBtn?.addEventListener('click', () => openModal(feedbackModal));
   closeFeedbackBtn?.addEventListener('click', () => closeModal(feedbackModal));
   infoBtn?.addEventListener('click', openRuleCardsModal);
   altRulesBtn?.addEventListener('click', openAltRulesModal);
@@ -635,8 +644,12 @@ function syncFullscreenButton() {
 function setupMusicControls() {
   if (!bgmAudio) return;
 
-  bgmAudio.volume = Number(volumeSlider?.value ?? 0.1);
+  if (volumeSlider) volumeSlider.value = String(DEFAULT_MUSIC_VOLUME);
+  if (vfxVolumeSlider) vfxVolumeSlider.value = String(DEFAULT_VFX_VOLUME);
+  bgmAudio.volume = DEFAULT_MUSIC_VOLUME;
   bgmAudio.muted = app.musicMuted;
+  app.vfxVolume = DEFAULT_VFX_VOLUME;
+  preloadVfxAudio();
   syncMusicButton();
 
   musicBtn?.addEventListener('click', () => {
@@ -647,12 +660,16 @@ function setupMusicControls() {
   });
 
   volumeSlider?.addEventListener('input', () => {
-    bgmAudio.volume = Number(volumeSlider.value);
+    bgmAudio.volume = clampAudioVolume(volumeSlider.value, DEFAULT_MUSIC_VOLUME);
     if (bgmAudio.volume > 0 && app.musicMuted) {
       app.musicMuted = false;
       bgmAudio.muted = false;
       syncMusicButton();
     }
+  });
+
+  vfxVolumeSlider?.addEventListener('input', () => {
+    app.vfxVolume = clampAudioVolume(vfxVolumeSlider.value, DEFAULT_VFX_VOLUME);
   });
 
   window.addEventListener('pointerdown', startBackgroundMusic, { once: true });
@@ -662,11 +679,70 @@ function setupMusicControls() {
 // Tenta iniciar a música respeitando o bloqueio de autoplay dos navegadores.
 function startBackgroundMusic() {
   if (!bgmAudio || app.musicMuted || app.musicStarted) return;
+  bgmAudio.volume = clampAudioVolume(volumeSlider?.value, DEFAULT_MUSIC_VOLUME);
   bgmAudio.play()
     .then(() => {
       app.musicStarted = true;
     })
     .catch(() => {});
+}
+
+// Toca um efeito sonoro respeitando o volume global de VFX.
+function playVfx(name) {
+  const audio = getVfxAudio(name);
+  if (!audio) return;
+
+  audio.pause();
+  audio.currentTime = 0;
+  audio.volume = app.vfxVolume;
+  audio.play().catch(() => {});
+}
+
+// Toca o feedback do reset dentro do clique e reinicia a mesa logo depois.
+function triggerResetFromButton(event) {
+  event?.stopPropagation();
+  playResetSoundOnce();
+  window.setTimeout(resetMvp, 90);
+}
+
+// Dispara o som no primeiro evento do clique para garantir ativacao de audio.
+function playResetSoundFromButton(event) {
+  event.stopPropagation();
+  playResetSoundOnce();
+}
+
+// Evita repetir o efeito quando pointerdown e click chegam juntos.
+function playResetSoundOnce() {
+  const now = performance.now();
+  if (now - app.lastResetVfxAt < 250) return;
+  app.lastResetVfxAt = now;
+  playVfx('reset-game');
+}
+
+// Prepara efeitos usados pela interface para evitar atraso no primeiro clique.
+function preloadVfxAudio() {
+  if (resetVfxAudio) {
+    resetVfxAudio.volume = app.vfxVolume;
+    app.vfx.set('reset-game', resetVfxAudio);
+  }
+}
+
+// Cria e reaproveita instâncias de áudio dos efeitos sonoros.
+function getVfxAudio(name) {
+  if (app.vfx.has(name)) return app.vfx.get(name);
+
+  const audio = new Audio(`assets/sounds/vfx/${name}.mp3`);
+  audio.preload = 'auto';
+  audio.volume = app.vfxVolume;
+  app.vfx.set(name, audio);
+  return audio;
+}
+
+// Normaliza controles de áudio para o intervalo aceito pelo navegador.
+function clampAudioVolume(value, fallback) {
+  const parsed = Number(value);
+  if (Number.isNaN(parsed)) return fallback;
+  return Math.min(Math.max(parsed, 0), 1);
 }
 
 // Atualiza o estado visual e acessível do botão de música.
@@ -978,15 +1054,10 @@ function dealInitialHands() {
 
 // Embaralha a ordem interna do deck e dispara a animacao visual.
 function shuffleDeck() {
-  if (app.deckShuffle || state.deck.length <= 1) return;
+  if (state.deck.length <= 1) return;
 
   state.deck = shuffle(state.deck);
-  shuffleBtn.disabled = true;
-  app.deckShuffle = {
-    progress: 0,
-    startRotation: app.deckMesh.rotation.y,
-    startPosition: app.deckMesh.position.clone()
-  };
+  updateHud();
 }
 
 // Embaralha o deck ou a pilha de cartas atualmente sob o mouse.
@@ -1187,11 +1258,7 @@ function spawnCoin(type = 'gold') {
   const isGold = type === 'gold';
   const radius = isGold ? GOLD_COIN_RADIUS : SILVER_COIN_RADIUS;
   const geo = new THREE.CylinderGeometry(radius, radius, COIN_HEIGHT, 40);
-  const mat = new THREE.MeshStandardMaterial({
-    color: isGold ? 0xf0b94a : 0xd4e0ee,
-    roughness: isGold ? 0.38 : 0.32,
-    metalness: isGold ? 0.72 : 0.82
-  });
+  const mat = makeCoinMaterials(isGold ? 'gold' : 'silver');
   const mesh = new THREE.Mesh(geo, mat);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
@@ -1215,6 +1282,25 @@ function spawnCoin(type = 'gold') {
   app.scene.add(mesh);
   app.objects.set(id, { id, kind: mesh.userData.kind, mesh, body, collider: bodyCollider });
   updateHud();
+}
+
+// Cria lateral metalica e textura igual na frente e no verso da moeda.
+function makeCoinMaterials(type) {
+  const isGold = type === 'gold';
+  const texture = loadTexture(COIN_TEXTURES[type]);
+  const side = new THREE.MeshStandardMaterial({
+    color: isGold ? 0xc99024 : 0xaebbc8,
+    roughness: isGold ? 0.36 : 0.34,
+    metalness: isGold ? 0.78 : 0.84
+  });
+  const face = new THREE.MeshStandardMaterial({
+    map: texture,
+    color: 0xffffff,
+    roughness: isGold ? 0.42 : 0.38,
+    metalness: isGold ? 0.38 : 0.45
+  });
+
+  return [side, face, face];
 }
 
 // Cria um dado fisico e inicia uma rolagem curta.
@@ -2178,6 +2264,7 @@ function returnCardToDeck(card) {
   app.cards.delete(card.id);
   if (app.selectedCard?.id === card.id) app.selectedCard = null;
   if (oldOwner) layoutPlayerHand(oldOwner, 0.12);
+  autoShuffleDeckAfterReturn();
   updateHud();
 }
 
@@ -2212,7 +2299,14 @@ function returnTableStackToDeck(stack) {
   state.tableCards = state.tableCards.filter(data => !ids.includes(data.id));
   app.tableStacks = app.tableStacks.filter(item => item.id !== stack.id);
   if (app.selectedCard && ids.includes(app.selectedCard.id)) app.selectedCard = null;
+  autoShuffleDeckAfterReturn();
   updateHud();
+}
+
+// Embaralha automaticamente sempre que cartas fechadas voltam para o deck.
+function autoShuffleDeckAfterReturn() {
+  if (state.deck.length <= 1) return;
+  shuffleDeck();
 }
 
 // Remove a carta de maos, mesa e pilhas antes de mover.
