@@ -1,339 +1,213 @@
-# Coup Master - Multiplayer Online Beta v0.5
+# Coup Master 3D
 
-![Status](https://img.shields.io/badge/Status-Beta_v0.5-blue) ![Firebase](https://img.shields.io/badge/Firebase-Auth_%26_Database-orange)
+![Status](https://img.shields.io/badge/Status-MVP_local_em_desenvolvimento-blue)
+![Three.js](https://img.shields.io/badge/Three.js-WebGL-black)
+![Rapier](https://img.shields.io/badge/Physics-Rapier_3D-purple)
 
-<p align="center">
-  <img src="./marketing/banners/banner-coup-master.png" alt="Coup Master Banner" width="100%">
-</p>
+Coup Master 3D e uma mesa virtual sandbox para jogar Coup Master no navegador, inspirada na liberdade do Tabletop Simulator. O foco atual do repositorio e o modo 3D local: uma mesa fisica, manipulavel e legivel, onde os jogadores conduzem manualmente regras, blefes, trocas, desafios e combinados de mesa.
 
-## 📖 Sobre o Projeto
+O objetivo nao e automatizar tudo. A ideia e dar uma mesa digital confortavel para comprar cartas, arrastar componentes, virar pilhas, devolver cartas ao deck, organizar moedas e jogar do jeito que o grupo decidir.
 
-**Coup Master** é um jogo multiplayer **sandbox** inspirado em jogos de blefe e estratégia política. 
-Diferente de versões automatizadas, o foco aqui é reproduzir a experiência manual de uma mesa real, 
-onde os próprios jogadores gerenciam ações, moedas e interações.
+## Status Atual
 
-O sistema é sincronizado em tempo real via Firebase Realtime Database, utilizando uma arquitetura modular orientada a eventos,
-com foco em escalabilidade e consistência de estado.
+O projeto esta em MVP local, em desenvolvimento ativo.
 
+Estado atual:
 
-🔗 **Jogue agora:** [https://gabrielbarbosa0.github.io/Coup-Master](https://gabrielbarbosa0.github.io/Coup-Master)
+- Modo principal: `3d.html`.
+- Renderizacao: Three.js/WebGL.
+- Fisica: Rapier 3D.
+- Multiplayer completo: fora do escopo atual.
+- Modo 2D/Firebase: legado do projeto, nao e mais o foco desta branch.
 
----
+## Funcionalidades
 
-## 🖼️ Preview
+### Mesa 3D
 
-  <img src="./marketing/screenshots/game-preview.gif" width="800">
+- Mesa octogonal com area central e ate 8 zonas de jogador.
+- Slots P1 a P8 alinhados as faces internas da mesa.
+- Seletor de jogador na lateral esquerda.
+- Camera orbitavel com zoom, pan e foco animado no jogador ativo.
+- Resgate automatico de objetos que caem fora da mesa.
 
----
+### Cartas E Deck
 
-## 🧪 Demo Técnica
+- Cartas 3D finas, texturizadas, com cantos arredondados reais.
+- Frente, verso e lateral visiveis.
+- Deck fisico no centro da mesa.
+- Deck movel por drag.
+- Clique no deck compra carta para o jogador ativo.
+- Duplo clique em carta devolve ao deck com animacao.
+- Cartas fechadas e pilhas fechadas podem voltar ao deck.
+- Cartas abertas nao entram no deck.
+- Deck tem limite visual de 8 cartas empilhadas, mesmo com mais cartas internamente.
+- Quando o deck fica vazio, ainda existe um slot de retorno para receber cartas fechadas.
 
-- Ambiente: Produção (GitHub Pages)
-- Banco de Dados: Firebase Realtime Database
-- Autenticação: Google OAuth 2.0
-- Sincronização: Event-driven via listeners em tempo real
+### Pilhas
 
----
+- Cartas fechadas agrupam com cartas fechadas.
+- Cartas abertas agrupam com cartas abertas.
+- Pilhas compativeis podem se unir quando soltas perto ou sobre outra pilha.
+- Pilhas podem ser arrastadas como conjunto.
+- Pilhas podem ser viradas em grupo.
+- Pilhas podem ser giradas.
+- Pilhas abertas mostram tooltip com contagem por personagem.
 
-## ✨ Novidades da Versão Beta (v0.5)
+### Objetos E Extras
 
-### 🌑 Expansão: Sombras do Asilo (DLC 3)
-* **Novas Influências:** Adição de 6 personagens inéditos com mecânicas avançadas: Pistoleiro, Magnata, Estrategista, Ladrão, Vigarista e Xerife.
-* **Regras Dinâmicas:** O manual de ajuda (Flip Card) agora detecta automaticamente quais DLCs estão ativas no deck e exibe a carta de regras correspondente (`dlc3-actions.jpg`).
+- Moeda de ouro com textura.
+- Moeda de prata com textura e proporcao menor.
+- Carta especial de Asilo, horizontal.
+- Carta especial de Religiao, com frente catolica e verso protestante.
+- Extras podem ser arrastados, virados, girados e deletados.
+- O codigo ainda preserva dado e rolagem, mas os botoes estao ocultos no HUD atual.
 
-### 🔍 Otimização de Descoberta (SEO & Indexação)
-* **Google Search Console:** Integração e verificação de propriedade para permitir que o jogo seja encontrado em buscas por "Coup Online".
-* **Meta Tags Avançadas:** Implementação de títulos dinâmicos, descrições ricas e suporte a **Open Graph** para visualização profissional em compartilhamentos no WhatsApp e Discord.
+### HUD
 
----
+- Botao de reset no topo esquerdo.
+- Barra superior direita com:
+  - musica;
+  - feedback;
+  - regras alternativas;
+  - modo espectador placeholder;
+  - tela cheia;
+  - regras de personagens;
+  - configuracoes.
+- Contadores de deck, mesa e objetos abaixo da barra superior direita.
+- Barra inferior com botoes por icone para acoes rapidas:
+  - comprar;
+  - ouro;
+  - prata;
+  - asilo;
+  - religiao;
+  - limpar;
+  - distribuir;
+  - flip;
+  - girar esquerda;
+  - girar direita;
+  - deletar;
+  - focar camera.
 
-## ✨ Novidades da Versão Beta (v0.4)
+### Audio
 
-### 🧹 Manutenção e Autodestruição de Salas
-* **Limpeza Automática:** Implementação de um sistema de varredura que deleta automaticamente salas sem atividade por mais de 24 horas.
-* **Registro de Atividade:** Cada ação realizada na mesa — como mover cartas, alterar moedas ou mudar religião — agora atualiza o carimbo de tempo (`lastActivity`) da sala.
-* **Otimização de Banco de Dados:** A rotina de limpeza é executada de forma silenciosa sempre que um novo jogador acessa o lobby, garantindo que o Realtime Database permaneça leve e organizado.
+- Musica de fundo em volume inicial baixo.
+- Botao para mutar/desmutar musica.
+- Configuracoes com volume de musica e efeitos.
+- Efeitos sonoros para cartas, moedas e reset.
 
-### 🛠️ Estabilidade e Persistência
-* **Sincronização de Estado:** Melhoria nos gatilhos de atualização para garantir que o status da sala reflita sempre a última interação válida de forma consistente.
-* **Segurança de Remoção:** Configuração de novas regras no Firebase para permitir a exclusão segura de nós de salas órfãs por usuários autenticados.
+## Controles
 
----
+### Mouse E Touch
 
-## ✨ Novidades da Versão Beta (v0.3)
+| Acao | Controle |
+| --- | --- |
+| Rotacionar camera | Botao esquerdo em area vazia / um dedo no touchscreen |
+| Pan da camera | Botao do meio / clique no scroll / dois dedos no touchscreen |
+| Zoom | Scroll |
+| Comprar carta | Clique no deck |
+| Puxar carta do deck | Clique e arraste rapido no deck |
+| Mover deck | Clique, segure e arraste o deck |
+| Arrastar carta, pilha, moeda ou extra | Clique, segure e arraste |
+| Devolver carta ao deck | Duplo clique na carta |
+| Selecionar para atalho | Hover do mouse |
 
-### 👻 Modo Espectador Fantasma
-* **Visão de Jogo:** Jogadores eliminados (0 cartas) agora podem solicitar permissão para assistir a mão de outros jogadores ativos.
-* **Sistema de Convites:** Envio de notificações em tempo real para o alvo, que pode aceitar ou negar ser espectado.
-* **Feedback Visual:** Jogadores sendo assistidos recebem um brilho azul sutil em seus avatares.
-* **Mecânica Híbrida:** O modo espectador é visual e não bloqueia ações técnicas, garantindo que o fluxo da mesa sandbox nunca trave.
+### Teclado
 
-### ⛪ Identidade Visual de Religiões
-* **Ícones Dinâmicos:** Adição de escudos personalizados (`shield-cross` e `shield-sword`) ao lado do status de religião.
-* **Cores Suavizadas:** Paleta de cores atualizada para as facções Católica e Protestante, facilitando a identificação rápida na mesa.
-* **Filtros Adaptativos:** Ícones em formato SVG com tratamento visual branco para máxima legibilidade em temas escuros.
+| Tecla | Acao |
+| --- | --- |
+| `F` | Vira carta, pilha ou extra sob hover/selecao |
+| `Q` | Gira objeto selecionado para a esquerda |
+| `E` | Gira objeto selecionado para a direita |
+| `R` | Embaralha deck ou pilha sob hover |
+| `Delete` / `Backspace` | Remove objeto selecionado |
+| `Space` | Foca a camera no jogador ativo |
 
-### ⚙️ Melhorias na Interface (UI)
-* **Novo Menu de Controles:** Ícones reorganizados para facilitar o acesso às Regras Alternativas, Música, Configurações e Modo Espectador.
-* **Modais Elegantes:** Substituição de prompts nativos por janelas modais personalizadas para seleção de jogadores e configuração de baralho.
+## Como Rodar Localmente
 
----
+Este modo roda como site estatico.
 
-## 🚀 Funcionalidades Principais
+```powershell
+python -m http.server 4173
+```
 
-* **Sandbox Total:** Gestão manual de moedas, vidas, trocas de cartas e o prêmio do Asilo.
-* **Login com Google:** Identificação automática com Nome e Foto via Firebase Auth.
-* **Persistência de Slot:** Reconexão inteligente que reserva seu lugar na mesa através do seu UID único.
-* **Deck Configurável:** O Host possui controle total sobre a quantidade de cada personagem (incluindo cartas de DLC's).
-* **Suporte para 10 Jogadores:** Layout otimizado para partidas grandes, inclusive em dispositivos móveis.
-* **Modo Espectador Fantasma:** Permite que jogadores com zero cartas na mão solicitem visão da mão de outros jogadores ativos.
-* **Sistema de Notificações em Tempo Real:** Mecânica de "aceitar ou negar" para solicitações de espectador e alertas de interação.
-* **Identidade Religiosa Visual:** Exibição de ícones de escudo (`shield-cross.svg` e `shield-sword.svg`) e cores dinâmicas para as facções Católica e Protestante.
-* **Feedback Visual de Espectador:** Destaque com brilho azul suave e borda no avatar do jogador que está sendo assistido.
-* **Interface Responsiva e Adaptável:** Ocultação automática do botão de espectador para jogadores que possuem cartas na mão.
-* **Sistema de Salas Privadas:** Criação e entrada em salas via códigos únicos de 4 dígitos com função de cópia rápida no cabeçalho.
-* **Controle de Áudio Integrado:** Música de fundo e efeitos sonoros sincronizados para ações como compra de cartas, moedas e impacto.
-* **Gestão de Bots:** Capacidade de adicionar bots para testes de mesa.
-* **Modais de Referência Rápida:** Visualização de guias de ações de personagens e regras alternativas através de cartas que giram (flip cards).
+Depois abra:
 
----
+```txt
+http://127.0.0.1:4173/3d.html
+```
 
-## 🛠️ Tecnologias
+Se voce ja usa outro servidor estatico, basta servir a raiz do repositorio e acessar `3d.html`.
 
-- **Frontend:** HTML5, CSS3 (Flexbox/Grid), Vanilla JavaScript (ES Modules)
-- **Arquitetura:** Modular com separação de responsabilidades
-- **Backend (BaaS):** Firebase Realtime Database
-- **Autenticação:** Firebase Authentication (Google Provider)
-- **Hospedagem:** GitHub Pages
+## Estrutura Principal
 
----
-
-## 🎮 Como Jogar
-
-1. **Acesso:** Faça login com sua conta Google no Lobby.
-2. **Salas:** Crie uma nova sala como Host ou entre em uma existente usando o código de 4 dígitos.
-3. **Mesa:**
-   * **Host:** Configure o baralho no menu de engrenagem (⚙️) antes de iniciar.
-   * **Ações:** Clique no Deck para comprar, arraste cartas para o Cemitério ou clique nos botões de moedas para atualizar seu saldo.
-   * **Eliminação:** Se ficar sem cartas, clique no ícone do **Fantasma** para começar a espectar seus amigos.
-
----
-
-## 🏗️ Arquitetura
-
-O projeto segue uma arquitetura modular com separação clara de responsabilidades:
-
-- **firebase.js** → Inicialização e infraestrutura (Auth + Database)
-- **rules.js** → Constantes e manipulação estrutural do baralho
-- **gameState.js** → Gerenciamento de estado e transações Firebase
-- **ui.js** → Renderização da interface e interações
-- **lobby.js** → Autenticação e gerenciamento de salas
-
-Essa divisão garante escalabilidade, manutenibilidade e separação entre lógica de domínio e camada de apresentação.
-
-O projeto segue princípios de:
-- Separação de responsabilidades (SRP)
-- Modularização por domínio
-- Controle de estado centralizado
-- Arquitetura baseada em eventos (listeners do Firebase)
-
----
-
-## 📁 Estrutura de Pastas do Projeto
-
-O projeto adota uma arquitetura modular baseada em responsabilidades bem definidas, separando os recursos estáticos (assets), as folhas de estilo (CSS) e o núcleo lógico do jogo (JS).
-
-```text
-
+```txt
 Coup-Master/
-├── 📂 assets/                  # Recursos de mídia estáticos
-│   ├── 📂 img/                 # Banco de imagens global
-│   │   ├── 📂 cards/           # Texturas das cartas divididas por expansões
-│   │   │   ├── 📂 base/        # Cartas do Jogo Base (Duque, Capitão, etc.)
-│   │   │   ├── 📂 promo/       # Cartas promocionais e extras
-│   │   │   ├── 📂 dlc1/        # Influências da Revolução
-│   │   │   └── 📂 dlc2/        # Influências do Asilo
-│   │   ├── 📂 icons/           # Ícones SVG e UI do tabuleiro
-│   │   └── 📂 logo/            # Identidade visual e favicons do projeto
-│   ├── 📂 sounds/              # Trilha sonora (bgm) e efeitos sonoros (vfx)
-│   └── 📂 video/               # Elementos de vídeo de fundo (background-smoke)
-├── 📂 css/                     # Estilização e folhas de estilo
-│   ├── lobby.css               # Design da interface do menu e salas
-│   └── main.css                # Layout do tabuleiro 2D e responsividade mobile
-├── 📂 js/                      # Núcleo lógico do ecossistema JavaScript
-│   ├── 📂 core/                # Scripts de infraestrutura e regras globais
-│   │   ├── firebase.js         # Inicialização e conexões com o banco de dados
-│   │   ├── gameState.js        # Sincronização do estado da partida em tempo real
-│   │   └── rules.js            # Definição matemática de cartas e baralhos
-│   ├── 📂 gamemode/            # Lógicas específicas por modo de jogo
-│   │   └── 📂 casual/          # Scripts dedicados à mesa clássica casual
-│   │       └── board-renderer.js # Manipulador do DOM e renderizador do tabuleiro 2D
-│   ├── auth-manager.js         # Gerenciamento de sessão e Google OAuth 2.0
-│   └── lobby-manager.js        # Fluxo de criação, faxina e entrada de salas
-├── 📄 index.html               # Tabuleiro principal do jogo em modo normal 2D
-├── 📄 lobby.html               # Menu inicial de entrada e autenticação de usuários
-└── 📄 README.md                # Documentação técnica do projeto
-
+|-- 3d.html
+|-- css/
+|   `-- three-board.css
+|-- js/
+|   `-- three/
+|       `-- app.js
+|-- assets/
+|   |-- img/
+|   |   |-- cards/
+|   |   |-- coins/
+|   |   |-- guides/
+|   |   |-- icons/
+|   |   `-- logo/
+|   `-- sounds/
+|       |-- soundtrack/
+|       `-- vfx/
+|-- docs/
+|   |-- GDD.md
+|   `-- TDD.md
+|-- AGENTS.md
+`-- README.md
 ```
 
-### 🔍 Descrição dos Principais Diretórios
+## Documentacao
 
-* **`assets/img/cards/`**: Organizado estrategicamente em subpastas (`base`, `promo`, `dlc1`, `dlc2`) para permitir que o motor do jogo (`board-renderer.js`) monte dinamicamente as URLs das texturas com base no tipo e na expansão configurada nos presets de baralho.
-* **`js/core/`**: Funciona como o motor lógico invisível do jogo. O `gameState.js` escuta e injeta alterações diretamente no Firebase, garantindo que o jogo funcione como um sandbox em tempo real.
-* **`js/gamemode/casual/`**: Concentra a engine visual da mesa bidimensional através do script `board-renderer.js`, responsável por manipular o DOM de forma reativa conforme as atualizações da partida.
-* **Raiz (`.html`)**: Mantém os pontos de entrada do servidor web organizados de forma plana, simplificando os redirecionamentos diretos de rotas e parâmetros de URL (`?room=CODE`) entre o Lobby e o tabuleiro principal.
+- `docs/GDD.md`: visao de produto, regras de design, controles, HUD, roadmap e escopo.
+- `docs/TDD.md`: arquitetura tecnica, estado local, sistemas, assets, fisica e criterios de aceite.
+- `AGENTS.md`: instrucoes para agentes/colaboradores trabalharem no repositorio.
 
----
+## Stack
 
-## 🛠️ Instalação e Configuração
+| Area | Tecnologia |
+| --- | --- |
+| HTML/CSS | HTML5, CSS3 |
+| JavaScript | Vanilla JS com ES Modules |
+| Renderizacao 3D | Three.js |
+| Controles de camera | OrbitControls |
+| Fisica | Rapier 3D |
+| Assets | PNG, SVG, audio e canvas procedural |
 
-### 2️⃣ Crie o Projeto no Firebase
+## Desenvolvimento
 
-1. Acesse o [Firebase Console](https://console.firebase.google.com/)
-2. Clique em **Criar Projeto**
-3. Adicione um **App Web (</>)**
-4. Copie as credenciais do objeto `firebaseConfig`
+Antes de finalizar mudancas em JavaScript:
 
----
-
-### 3️⃣ Configure a Autenticação (Obrigatório)
-
-Para que o login e a reserva de slots funcionem:
-
-1. No Firebase Console, vá em **Build > Authentication**
-2. Acesse a aba **Sign-in method**
-3. Ative o provedor **Google**
-4. Vá em **Settings > Authorized domains**
-5. Adicione:
-   - `seu-usuario.github.io`
-   - `127.0.0.1` (para testes locais)
-
----
-
-### 4️⃣ Configure o Realtime Database
-
-1. Vá em **Build** > **Realtime Database** e crie uma instância.
-2. Na aba **Regras**, utilize a configuração abaixo para permitir a manutenção automática:
-
-```json
-{
-  "rules": {
-    "users": {
-      ".read": "auth != null",
-      "$uid": {
-        ".write": "auth != null && auth.uid === $uid"
-      }
-    },
-    "salas": {
-      "$roomCode": {
-        ".read": "auth != null",
-        // Permite criar a sala e atualizar a atividade (lastActivity)
-        ".write": "auth != null",
-
-        "gameState": {
-          // Permite que jogadores enviem sons e mexam no Asilo/Cemitério
-          "lastSFX": { ".write": "auth != null" },
-          "asylumScore": { ".write": "auth != null" },
-          "freeCards": { ".write": "auth != null" },
-
-          // PROTEÇÃO DO DECK: Apenas o Host pode resetar ou mudar a config
-          "deck": { ".write": "auth.uid === data.parent().parent().child('hostUID').val()" },
-          "deckConfig": { ".write": "auth.uid === data.parent().parent().child('hostUID').val()" },
-
-          "players": {
-            "$playerId": {
-              // PERMISSÃO DE ENTRADA: 
-              // Permite escrever se o slot estiver vazio (Join), se for o dono ou se for o Host (Kick)
-              ".write": "auth != null && (!data.exists() || data.child('uid').val() === auth.uid || auth.uid === data.parent().parent().parent().child('hostUID').val() || (!data.hasChild('uid') && newData.child('uid').val() === auth.uid))"
-            }
-          }
-        }
-      }
-    }
-  }
-}
+```powershell
+node --check js\three\app.js
 ```
 
-Isso garante que apenas usuários autenticados possam acessar as salas.
+Para mudancas visuais ou interativas, testar no navegador:
 
----
-
-### 5️⃣ Vincule o Código ao Firebase
-
-Atualize as credenciais no seu projeto  
-(ex: `js/firebase.js`):
-
-```javascript
-const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "seu-projeto.firebaseapp.com",
-  databaseURL: "https://seu-projeto-default-rtdb.firebaseio.com",
-  projectId: "seu-projeto",
-  storageBucket: "seu-projeto.appspot.com",
-  messagingSenderId: "...",
-  appId: "..."
-};
+```txt
+http://127.0.0.1:4173/3d.html
 ```
 
-## 🛠️ Manutenção do Banco de Dados (Realtime Database)
+Ao mexer em HUD, fisica, deck, pilhas ou controles, consulte tambem `docs/GDD.md`, `docs/TDD.md` e `AGENTS.md`.
 
-Este projeto utiliza o **Plano Spark (Gratuito)** do Firebase. Por conta das limitações deste plano, funções agendadas de limpeza automática via servidor (Cloud Functions) não podem ser ativadas.
+## Roadmap
 
-Com o tempo, o acúmulo de salas pode deixar o console do Firebase lento ou ativar o **"Modo Somente Leitura"**. Quando isso ocorrer, siga o procedimento abaixo:
+- Modularizar `js/three/app.js` quando o comportamento estabilizar.
+- Refinar comandos para touchscreen.
+- Implementar modo espectador.
+- Melhorar testes manuais e automatizados de fisica.
+- Evoluir multiplayer casual em uma etapa futura.
+- Criar logs de mesa e sincronizacao de eventos.
+- Melhorar UX de inspecao de cartas.
 
-### 🧹 Procedimento de Limpeza Manual
+## Licenca
 
-Caso o banco de dados apresente lentidão devido ao excesso de registros:
-
-1. Acesse o [Console do Firebase](https://console.firebase.google.com/).
-2. No menu lateral, vá em **Realtime Database**.
-3. Clique nos **três pontos (⋮)** localizados no canto superior direito da visualização de dados.
-4. Selecione a opção **"Importar JSON"**.
-5. Clique em navegar e escolha o arquivo **`limpeza.json`** localizado na raiz deste repositório.
-6. Confirme a importação.
-
-> [!CAUTION]
-> **Atenção:** Este procedimento substituirá o nó selecionado (ex: `salas`) por um objeto vazio `{}`. Isso removerá **todas** as salas ativas e acumuladas instantaneamente, restaurando a performance total do painel.
-
-### 🤖 Limpeza em Tempo de Execução
-
-Embora o servidor não limpe as salas sozinho, o projeto possui uma lógica interna no arquivo `lobby-manager.js` que tenta remover salas inativas por mais de 24 horas sempre que um usuário acessa o Lobby.
-
-* **Critério de Limpeza:** A função verifica os campos `lastActivity` e `createdAt` para determinar a idade da sala.
-* **Limitação:** Se o site ficar muito tempo sem nenhum acesso no Lobby, o acúmulo manual via console (explicado acima) será necessário.
-
----
-
-## 🧠 Desafios Técnicos
-
-- Sincronização de estado em tempo real entre múltiplos jogadores
-- Controle de concorrência em ações simultâneas
-- Reconexão persistente via UID
-- Gerenciamento de sala com slots reservados
-- Renderização dinâmica com feedback visual em tempo real
-
-
-## 📚 Aprendizados
-
-Durante o desenvolvimento deste projeto, foram aplicados conceitos como:
-
-- Sincronização de estado distribuído
-- Tratamento de concorrência
-- Arquitetura modular em JavaScript
-- Design de sistemas multiplayer em tempo real
-- Gerenciamento de autenticação e persistência com Firebase
-
-## 🚀 Próximas Atualizações (Roadmap)
-
-- [ ] **Custom Deck Engine:** Sistema de importação de baralhos via JSON personalizado, permitindo temas e regras totalmente customizáveis.
-- [ ] **Card Previewer:** Visualização de cartas em alta definição ao clicar e segurar, facilitando a leitura de artes e habilidades.
-- [ ] **Visual Stack:** Nova renderização de cartas em formato de leque ou pilha, otimizando o espaço da mesa para grandes grupos.
-- [ ] **Coup Workshop:** Web app integrado para criação, edição e exportação de cartas personalizadas para a comunidade.
-- [ ] **Expansões de Conteúdo:** Adição de novos sistemas de DLCs para integrar mecânicas complexas de forma modular.
-- [ ] **Theming Engine (Beta):** Suporte para troca dinâmica de nomes de cartas, nomes de áreas, estilos visuais e efeitos sonoros.
-
-
----
-
-## 📄 Licença
-Este projeto é de código aberto sob a licença [MIT](LICENSE).
+Este projeto e de codigo aberto sob a licenca [MIT](LICENSE).

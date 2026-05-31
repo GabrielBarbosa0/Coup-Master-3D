@@ -25,15 +25,17 @@ Evoluir o modo 3D local ate ele ser uma mesa tabletop confortavel:
 
 - mesa octogonal;
 - ate 8 slots de jogador;
-- deck central fisico;
+- deck central fisico com limite visual de 8 cartas;
 - cartas finas, arredondadas e texturizadas;
-- moedas de ouro e prata;
-- dado;
+- pilhas de cartas que podem virar, girar, embaralhar e se agrupar;
+- moedas de ouro e prata com textura;
+- cartas especiais de asilo e religiao;
 - hover com outline e tooltip;
 - arraste de objetos;
-- pilhas de cartas;
-- atalhos de teclado;
+- atalhos de teclado e botoes equivalentes para touchscreen;
 - camera com foco por jogador;
+- HUD por icones;
+- musica e efeitos sonoros;
 - fisica suficientemente estavel para uso casual.
 
 ## 3. Arquivos Principais
@@ -57,6 +59,7 @@ Dentro do escopo:
 - melhorar visual e legibilidade da mesa;
 - corrigir fisica local;
 - melhorar HUD;
+- melhorar acessibilidade para touchscreen;
 - documentar decisoes;
 - manter o codigo facil de continuar.
 
@@ -110,7 +113,7 @@ Evite comentarios que apenas repetem a linha. Prefira explicar intencao, regra o
 
 ### Estilo De Mudanca
 
-- Faça mudancas pequenas e focadas.
+- Faca mudancas pequenas e focadas.
 - Evite refatorar junto com bugfix.
 - Preserve alteracoes nao relacionadas feitas pelo usuario.
 - Use `apply_patch` para edicoes manuais.
@@ -133,7 +136,9 @@ Atalhos atuais:
 
 | Tecla | Acao |
 | --- | --- |
-| `F` | Vira carta ou pilha |
+| `F` | Vira carta, pilha ou extra |
+| `Q` | Gira objeto selecionado para a esquerda |
+| `E` | Gira objeto selecionado para a direita |
 | `R` | Embaralha deck ou pilha sob hover |
 | `Delete` / `Backspace` | Remove objeto selecionado |
 | `Space` | Foca camera no jogador ativo |
@@ -144,11 +149,14 @@ Controles atuais:
 | --- | --- |
 | Zoom | Scroll |
 | Pan | Botao do meio |
-| Rotacao | OrbitControls |
+| Rotacao | OrbitControls / um dedo em touchscreen |
 | Comprar carta | Clique no deck |
 | Puxar carta do deck | Clique e arraste rapido |
 | Mover deck | Clique, segure e arraste |
 | Devolver carta | Duplo clique |
+| Selecionar para atalho | Hover do mouse |
+
+Botoes inferiores devem espelhar acoes importantes para touchscreen, incluindo flip, giro, deletar e foco de camera.
 
 ## 8. Regras De Jogo Ja Implementadas
 
@@ -158,14 +166,36 @@ Ao mexer em cartas/deck/pilhas, preservar:
 - pilha vira todas as cartas com `F`;
 - pilha fechada pode voltar ao deck;
 - pilha aberta nao volta ao deck;
+- pilhas compativeis podem se agrupar entre si;
 - carta colocada na mesa nao revela automaticamente;
 - carta fechada pode entrar no deck;
 - carta aberta nao entra no deck;
 - hover seleciona objeto para atalhos;
-- deck tem altura fixa e visual de 8 cartas empilhadas;
-- deck pode ser movido, comprado e embaralhado.
+- deck tem limite visual de 8 cartas empilhadas;
+- deck pode ser movido e comprado;
+- cartas ou pilhas fechadas devolvidas ao deck embaralham internamente;
+- botao textual de embaralhar, dado e rolar podem permanecer ocultos quando nao forem necessarios;
+- `shuffle.mp3` nao deve ser reintroduzido no baralho sem pedido explicito.
 
-## 9. Verificacao
+## 9. HUD E Audio
+
+HUD atual:
+
+- reset no topo esquerdo;
+- P1 a P8 na lateral esquerda;
+- status de deck/mesa/objetos abaixo da barra superior direita;
+- barra superior direita com musica, feedback, regras alternativas, espectador placeholder, tela cheia, info e configuracoes;
+- barra inferior com botoes quadrados por icone.
+
+Audio atual:
+
+- BGM em `assets/sounds/soundtrack/bgm.mp3`;
+- `card-whoosh.mp3` para acoes de cartas e navegacao de regras;
+- `falling-coin.mp3` para moedas;
+- `reset-game.mp3` para reset;
+- sliders de volume de musica e SFX no modal de configuracoes.
+
+## 10. Verificacao
 
 Antes de finalizar mudanca em JS:
 
@@ -185,7 +215,7 @@ Se o servidor local nao estiver rodando:
 python -m http.server 4173
 ```
 
-## 10. Commits
+## 11. Commits
 
 Use commits pequenos e descritivos.
 
@@ -207,7 +237,7 @@ Quando o usuario pedir para subir:
 5. `git commit`;
 6. `git push`.
 
-## 11. Como Responder Ao Usuario
+## 12. Como Responder Ao Usuario
 
 Responder em portugues, de forma direta.
 
@@ -220,8 +250,8 @@ Ao finalizar:
 
 Evite respostas longas demais quando o pedido for simples.
 
-## 12. Observacao Importante
+## 13. Observacao Importante
 
-O projeto esta em desenvolvimento incremental. O objetivo agora e fazer o nucleo local 3D ficar bom: manipulacao, leitura visual, fisica, atalhos e fluxo de mesa.
+O projeto esta em desenvolvimento incremental. O objetivo agora e fazer o nucleo local 3D ficar bom: manipulacao, leitura visual, fisica, atalhos, audio, HUD e fluxo de mesa.
 
 Nao transformar o MVP em produto completo antes de a mesa 3D estar confortavel.
