@@ -69,7 +69,7 @@ Arquivos:
 - `lobby.html`: cria sala curta ou entra em sala existente e redireciona direto para a mesa casual.
 - `js/firebase/firebase-config.js`: inicializa Firebase App, Auth e Realtime Database.
 - `js/firebase/auth-service.js`: login, logout, observacao de sessao e guard de autenticacao.
-- `js/firebase/room-service.js`: criacao de sala, entrada de jogador e assinatura da lista de jogadores.
+- `js/firebase/room-service.js`: criacao de sala, entrada de jogador, assentos, assinatura de jogadores e snapshots de mesa.
 - `js/three/boot.js`: valida login e sala antes de importar `app.js`.
 
 Estrutura inicial no Realtime Database:
@@ -85,11 +85,27 @@ rooms/{roomCode}
     |-- displayName
     |-- photoURL
     |-- connected
+    |-- seat
     |-- joinedAt
     `-- lastSeen
+|-- seats/{seat}
+`-- tableState
+    |-- version
+    |-- deckConfig
+    |-- deck
+    |-- deckTransform
+    |-- players
+    |-- tableCards
+    |-- cards
+    |-- objects
+    |-- stacks
+    |-- updatedAt
+    `-- updatedBy
 ```
 
-Somente a lista de jogadores conectados e sincronizada nesta etapa. O lobby casual nao segura jogadores em uma sala de espera; criar ou entrar em sala abre `3d.html?room=CODIGO`. Cartas, moedas, pilhas, deck, objetos de mesa e fisica continuam locais.
+A lista de jogadores conectados define os badges e o assento local. A sala reequilibra assentos conectados para espalhar a partida pelo octogono: 2 jogadores em lados opostos, 3 em triangulo, 4 em quadrado e 5 a 8 preenchendo a mesa.
+
+O lobby casual nao segura jogadores em uma sala de espera; criar ou entrar em sala abre `3d.html?room=CODIGO`. A mesa casual sincroniza snapshots finais via `tableState`, sem transmitir animacoes ou posicoes intermediarias durante drag.
 
 ## 4. Estado Local
 
@@ -416,24 +432,21 @@ js/three/
 
 Essa divisao deve ser feita com testes manuais a cada etapa, porque muitos comportamentos dependem da interacao entre Three.js, Rapier e DOM.
 
-## 15. Sincronizacao Futura
+## 15. Sincronizacao Casual
 
-Multiplayer completo ainda nao faz parte do MVP local. A base Firebase atual sincroniza apenas autenticacao, lobby, sala e presenca/lista de jogadores.
+Multiplayer completo autoritativo ainda nao faz parte do MVP local. A base Firebase atual sincroniza autenticacao, lobby, sala, presenca/lista de jogadores, assentos e snapshots finais da mesa casual.
 
-Quando for implementado, sincronizar eventos discretos:
+O snapshot atual inclui:
 
-- carta comprada;
-- carta devolvida ao deck;
-- carta/pilha virada;
-- carta/pilha girada;
-- pilhas agrupadas;
-- deck/pilha embaralhado;
-- objeto criado/removido;
-- posicao final ao soltar;
-- reset;
-- distribuicao inicial.
+- configuracao e conteudo do deck;
+- posicao/rotacao do deck;
+- cartas em maos, mesa e pilhas;
+- posicao/rotacao final de cartas soltas;
+- moedas, dado e extras;
+- pilhas e ordem das cartas;
+- reset e distribuicao inicial como novo estado final.
 
-Evitar sincronizar cada frame do drag sem throttle.
+Nao sincronizar cada frame do drag nesta etapa. A intencao e que o outro jogador receba a posicao final quando a acao termina, mesmo que isso ainda pareca um teleporte visual.
 
 ## 16. Criterios De Aceite Tecnicos
 

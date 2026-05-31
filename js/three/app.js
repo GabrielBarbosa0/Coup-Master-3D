@@ -182,6 +182,8 @@ const app = {
   vfxVolume: DEFAULT_VFX_VOLUME,
   lastResetVfxAt: 0,
   vfx: new Map(),
+  syncTimer: null,
+  isApplyingRemoteState: false,
   lastTime: performance.now(),
   textures: {}
 };
@@ -239,6 +241,9 @@ function init() {
   setupMusicControls();
   window.CoupMaster3D = {
     ...(window.CoupMaster3D || {}),
+    applyTableState,
+    getTableState,
+    setLocalPlayerSeat,
     setPlayerProfile
   };
 
@@ -1455,8 +1460,9 @@ function createRoundedRectPoints(width, height, radius, cornerSegments) {
 }
 
 // Cria uma moeda fisica de ouro ou prata na mesa.
-function spawnCoin(type = 'gold') {
-  const id = `coin-${app.objectId++}`;
+function spawnCoin(type = 'gold', options = {}) {
+  const id = options.id || `coin-${app.objectId++}`;
+  bumpObjectIdFrom(id);
   const isGold = type === 'gold';
   const radius = isGold ? GOLD_COIN_RADIUS : SILVER_COIN_RADIUS;
   const geo = new THREE.CylinderGeometry(radius, radius, COIN_HEIGHT, 40);
@@ -1467,11 +1473,18 @@ function spawnCoin(type = 'gold') {
   mesh.name = id;
   mesh.userData.objectId = id;
   mesh.userData.kind = isGold ? 'gold-coin' : 'silver-coin';
+  const initialPosition = vectorFromSnapshot(options.position, new THREE.Vector3(random(-0.5, 0.5), 1.2, random(-0.5, 0.5)));
+  const initialQuaternion = quaternionFromSnapshot(
+    options.quaternion,
+    new THREE.Quaternion().setFromEuler(new THREE.Euler(random(-0.3, 0.3), random(0, Math.PI * 2), random(-0.3, 0.3)))
+  );
+  mesh.position.copy(initialPosition);
+  mesh.quaternion.copy(initialQuaternion);
 
   const body = app.world.createRigidBody(
     RAPIER.RigidBodyDesc.dynamic()
-      .setTranslation(random(-0.5, 0.5), 1.2, random(-0.5, 0.5))
-      .setRotation(rapierQuatFromEuler(random(-0.3, 0.3), random(0, Math.PI * 2), random(-0.3, 0.3)))
+      .setTranslation(initialPosition.x, initialPosition.y, initialPosition.z)
+      .setRotation(initialQuaternion)
       .setLinearDamping(1.65)
       .setAngularDamping(1.95)
   );
@@ -1483,27 +1496,28 @@ function spawnCoin(type = 'gold') {
 
   app.scene.add(mesh);
   app.objects.set(id, { id, kind: mesh.userData.kind, mesh, body, collider: bodyCollider });
-  playVfx('falling-coin');
+  if (!options.silent) playVfx('falling-coin');
   updateHud();
 }
 
 // Cria uma carta especial da DLC de religião diretamente na mesa.
-function spawnSpecialCard(type) {
+function spawnSpecialCard(type, options = {}) {
   const data = {
-    id: `special-${type}-${app.objectId++}`,
+    id: options.id || `special-${type}-${app.objectId++}`,
     type,
     folder: 'religion',
-    faceUp: true,
+    faceUp: options.faceUp ?? true,
     location: 'table',
     owner: null,
     specialCard: true
   };
+  bumpObjectIdFrom(data.id);
   state.tableCards.push(data);
 
   const card = createCardObject(data);
-  const position = new THREE.Vector3(random(-0.45, 0.45), 0.42, random(-0.45, 0.45));
-  placeCard(card, position, random(-0.22, 0.22), true);
-  playVfx('card-whoosh');
+  const position = vectorFromSnapshot(options.position, new THREE.Vector3(random(-0.45, 0.45), 0.42, random(-0.45, 0.45)));
+  placeCard(card, position, options.rotationY ?? random(-0.22, 0.22), true);
+  if (!options.silent) playVfx('card-whoosh');
   updateHud();
 }
 
@@ -1527,8 +1541,9 @@ function makeCoinMaterials(type) {
 }
 
 // Cria um dado fisico e inicia uma rolagem curta.
-function spawnDie() {
-  const id = `die-${app.objectId++}`;
+function spawnDie(options = {}) {
+  const id = options.id || `die-${app.objectId++}`;
+  bumpObjectIdFrom(id);
   const geo = new THREE.BoxGeometry(DIE_SIZE, DIE_SIZE, DIE_SIZE);
   const mesh = new THREE.Mesh(geo, makeDieMaterials());
   mesh.castShadow = true;
@@ -1536,11 +1551,18 @@ function spawnDie() {
   mesh.name = id;
   mesh.userData.objectId = id;
   mesh.userData.kind = 'die';
+  const initialPosition = vectorFromSnapshot(options.position, new THREE.Vector3(random(-0.55, 0.55), 1.55, random(-0.55, 0.55)));
+  const initialQuaternion = quaternionFromSnapshot(
+    options.quaternion,
+    new THREE.Quaternion().setFromEuler(new THREE.Euler(random(0, Math.PI), random(0, Math.PI), random(0, Math.PI)))
+  );
+  mesh.position.copy(initialPosition);
+  mesh.quaternion.copy(initialQuaternion);
 
   const body = app.world.createRigidBody(
     RAPIER.RigidBodyDesc.dynamic()
-      .setTranslation(random(-0.55, 0.55), 1.55, random(-0.55, 0.55))
-      .setRotation(rapierQuatFromEuler(random(0, Math.PI), random(0, Math.PI), random(0, Math.PI)))
+      .setTranslation(initialPosition.x, initialPosition.y, initialPosition.z)
+      .setRotation(initialQuaternion)
       .setLinearDamping(0.75)
       .setAngularDamping(0.85)
   );
@@ -1552,7 +1574,7 @@ function spawnDie() {
 
   app.scene.add(mesh);
   app.objects.set(id, { id, kind: 'die', mesh, body, collider: bodyCollider });
-  rollSingleDie(app.objects.get(id), 0.75);
+  if (!options.silent) rollSingleDie(app.objects.get(id), 0.75);
   updateHud();
 }
 
@@ -1702,6 +1724,11 @@ function setActivePlayer(playerId) {
   });
 
   updateHud();
+}
+
+// Atualiza o assento da conta local sem expor troca manual de jogadores.
+function setLocalPlayerSeat(playerId) {
+  setActivePlayer(playerId || 1);
 }
 
 // Retorna o assento online do jogador local, ou P1 quando estiver em modo isolado.
@@ -2172,6 +2199,7 @@ function finishDeckDrag() {
   app.dragOrigin = null;
   syncDeckRim();
   updateDeckCollider();
+  scheduleTableSync();
 }
 
 // Retira a carta do topo de uma pilha para arrastar.
@@ -2265,6 +2293,7 @@ function finishTableStackDrag(stack, event) {
 
   stack.cards.forEach((id) => setPieceSensor(app.cards.get(id), false));
   layoutTableStack(stack, false);
+  scheduleTableSync();
 }
 
 // Busca a pilha associada ao gesto pendente atual.
@@ -2289,6 +2318,7 @@ function finishObjectDrag(object, wasDragged) {
     object.body.setLinvel({ x: random(-0.2, 0.2), y: -0.2, z: random(-0.2, 0.2) }, true);
     object.body.setAngvel({ x: random(-0.3, 0.3), y: random(-0.45, 0.45), z: random(-0.3, 0.3) }, true);
   }
+  scheduleTableSync();
 }
 
 // Fallback de duplo clique nativo para devolver carta ao deck.
@@ -2430,6 +2460,7 @@ function rotateSelectedPiece(direction) {
 
   if (piece.body && piece.mesh) {
     rotatePhysicsObject(piece, delta);
+    scheduleTableSync();
     return true;
   }
 
@@ -2442,6 +2473,7 @@ function rotateDeck(delta) {
   app.deckMesh.rotation.y += delta;
   syncDeckRim();
   updateDeckCollider();
+  scheduleTableSync();
 }
 
 // Rotaciona uma carta individual ou a pilha inteira a que ela pertence.
@@ -2452,10 +2484,12 @@ function rotateCardPiece(card, delta) {
   if (stack && stack.cards.length > 1) {
     stack.rotationY += delta;
     layoutTableStack(stack, false);
+    scheduleTableSync();
     return;
   }
 
   rotatePhysicsObject(card, delta);
+  scheduleTableSync();
 }
 
 // Aplica uma rotação horizontal mantendo posição e física estáveis.
@@ -2837,6 +2871,7 @@ function shuffleTableStack(stack) {
     stack.cards = nextOrder;
     layoutTableStack(stack, true);
     app.stackShuffleTimers.delete(stack.id);
+    updateHud();
   }, 190);
 
   app.stackShuffleTimers.set(stack.id, timer);
@@ -3023,7 +3058,13 @@ function layoutPlayerHand(playerId, lift = 0.16) {
     if (!card) return;
 
     const target = getHandCardPosition(playerId, index, player.cards.length);
-    tossTo(card, target, getHandRotation(playerId, index, player.cards.length), lift);
+    const rotationY = getHandRotation(playerId, index, player.cards.length);
+    if (lift <= 0) {
+      placeCard(card, target, rotationY, false);
+      return;
+    }
+
+    tossTo(card, target, rotationY, lift);
   });
 }
 
@@ -3202,6 +3243,7 @@ function updateCardTweens(dt) {
       const onComplete = card.target.onComplete;
       card.target = null;
       onComplete?.();
+      scheduleTableSync();
     }
   });
 }
@@ -3272,6 +3314,7 @@ function updateFlipTweens(dt) {
         card.body.setLinvel({ x: 0, y: -0.08, z: 0 }, true);
         card.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
       }
+      scheduleTableSync();
     }
   });
 }
@@ -3365,6 +3408,262 @@ function resize() {
   app.renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+// Agenda sincronizacao do estado final da mesa sem transmitir animacoes.
+function scheduleTableSync() {
+  if (app.isApplyingRemoteState) return;
+  if (!window.CoupMaster3DOnline?.publishTableState) return;
+
+  window.clearTimeout(app.syncTimer);
+  app.syncTimer = window.setTimeout(() => {
+    window.CoupMaster3DOnline.publishTableState(getTableState());
+  }, 180);
+}
+
+// Serializa o estado atual da mesa para o Firebase.
+function getTableState() {
+  return {
+    version: 1,
+    deckConfig: { ...state.deckConfig },
+    deck: state.deck.map(cloneCardData),
+    deckTransform: serializeTransform(app.deckMesh),
+    objectId: app.objectId,
+    stackId: app.stackId,
+    players: state.players.map(player => ({
+      id: player.id,
+      cards: player.cards.map(cloneCardData)
+    })),
+    tableCards: state.tableCards.map(cloneCardData),
+    cards: [...app.cards.values()].map(card => ({
+      data: cloneCardData(card.data),
+      position: serializeBodyPosition(card),
+      quaternion: serializeBodyRotation(card)
+    })),
+    objects: [...app.objects.values()].map(object => ({
+      id: object.id,
+      kind: object.kind,
+      position: serializeBodyPosition(object),
+      quaternion: serializeBodyRotation(object)
+    })),
+    stacks: app.tableStacks.map(stack => ({
+      id: stack.id,
+      faceUp: stack.faceUp,
+      cards: stack.cards.slice(),
+      position: serializeVector(stack.position),
+      rotationY: stack.rotationY
+    }))
+  };
+}
+
+// Aplica o estado final publicado por outro jogador, sem reemitir eco.
+function applyTableState(snapshot) {
+  if (!snapshot || snapshot.version !== 1) return;
+
+  app.isApplyingRemoteState = true;
+  window.clearTimeout(app.syncTimer);
+  clearPointerHover();
+  clearDropHover();
+  app.dragged = null;
+  app.dragMode = null;
+  app.pendingDeckDrag = null;
+  app.pendingStackDrag = null;
+  app.controls.enabled = true;
+
+  app.stackShuffleTimers.forEach(timer => window.clearTimeout(timer));
+  app.stackShuffleTimers.clear();
+  clearCardsForSnapshot();
+  clearTableObjects(false);
+
+  state.deckConfig = { ...DEFAULT_DECK_CONFIG, ...(snapshot.deckConfig || {}) };
+  state.deck = (snapshot.deck || []).map(cloneCardData).filter(Boolean);
+  state.tableCards = [];
+  state.players.forEach(player => {
+    player.cards = [];
+  });
+  app.tableStacks = [];
+  app.objectId = Math.max(Number(snapshot.objectId) || 1, 1);
+  app.stackId = Math.max(Number(snapshot.stackId) || 1, 1);
+
+  syncDeckConfigInputs();
+  applyDeckTransform(snapshot.deckTransform);
+
+  (snapshot.cards || []).forEach((entry) => {
+    const data = cloneCardData(entry.data);
+    if (!data || data.location === 'deck') return;
+    addCardDataToCollections(data);
+
+    const card = createCardObject(data);
+    placeCardFromSnapshot(card, entry);
+    bumpObjectIdFrom(data.id);
+  });
+
+  app.tableStacks = (snapshot.stacks || []).map(stack => {
+    bumpStackIdFrom(stack.id);
+    return {
+      id: stack.id,
+      faceUp: Boolean(stack.faceUp),
+      cards: Array.isArray(stack.cards) ? stack.cards.slice() : [],
+      position: vectorFromSnapshot(stack.position, new THREE.Vector3()),
+      rotationY: Number(stack.rotationY) || 0
+    };
+  });
+
+  app.tableStacks.forEach(stack => {
+    stack.cards.forEach((id) => {
+      const card = app.cards.get(id);
+      if (card) card.data.stackId = stack.id;
+    });
+    layoutTableStack(stack, false);
+  });
+
+  (snapshot.objects || []).forEach((object) => {
+    if (object.kind === 'gold-coin' || object.kind === 'silver-coin') {
+      spawnCoin(object.kind === 'gold-coin' ? 'gold' : 'silver', {
+        id: object.id,
+        position: object.position,
+        quaternion: object.quaternion,
+        silent: true
+      });
+    } else if (object.kind === 'die') {
+      spawnDie({
+        id: object.id,
+        position: object.position,
+        quaternion: object.quaternion,
+        silent: true
+      });
+    }
+  });
+
+  state.players.forEach(player => layoutPlayerHand(player.id, 0));
+  setActivePlayer(getLocalPlayerSeat());
+  updateHud();
+  app.isApplyingRemoteState = false;
+}
+
+// Remove cartas atuais antes de aplicar um snapshot remoto.
+function clearCardsForSnapshot() {
+  app.cards.forEach((card) => {
+    app.scene.remove(card.mesh);
+    app.world.removeRigidBody(card.body);
+  });
+  app.cards.clear();
+  app.selectedCard = null;
+}
+
+// Insere uma carta restaurada na colecao correspondente.
+function addCardDataToCollections(data) {
+  if (data.owner) {
+    const player = state.players[data.owner - 1];
+    if (player) player.cards.push(data);
+    return;
+  }
+
+  if (data.location === 'table') {
+    state.tableCards.push(data);
+  }
+}
+
+// Posiciona carta restaurada diretamente sem animacao.
+function placeCardFromSnapshot(card, entry) {
+  const position = vectorFromSnapshot(entry.position, new THREE.Vector3(0, 0.42, 0));
+  const quaternion = quaternionFromSnapshot(entry.quaternion, new THREE.Quaternion());
+  card.mesh.position.copy(position);
+  card.mesh.quaternion.copy(quaternion);
+  card.body.setTranslation(position, true);
+  card.body.setRotation(quaternion, true);
+  card.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true);
+  card.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+  card.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+}
+
+// Aplica posicao/rotacao do deck compartilhado.
+function applyDeckTransform(transform) {
+  resetDeckPosition();
+  if (!app.deckMesh || !transform) return;
+
+  const position = vectorFromSnapshot(transform.position, app.deckMesh.position);
+  const quaternion = quaternionFromSnapshot(transform.quaternion, app.deckMesh.quaternion);
+  app.deckMesh.position.copy(position);
+  app.deckMesh.quaternion.copy(quaternion);
+  syncDeckRim();
+  updateDeckCollider();
+}
+
+// Serializa transform de mesh para objeto simples.
+function serializeTransform(mesh) {
+  if (!mesh) return null;
+  return {
+    position: serializeVector(mesh.position),
+    quaternion: serializeQuaternion(mesh.quaternion)
+  };
+}
+
+// Serializa posicao do corpo fisico, caindo para mesh quando necessario.
+function serializeBodyPosition(piece) {
+  const position = piece.body?.translation?.();
+  return serializeVector(position || piece.mesh?.position);
+}
+
+// Serializa rotacao do corpo fisico, caindo para mesh quando necessario.
+function serializeBodyRotation(piece) {
+  const rotation = piece.body?.rotation?.();
+  return serializeQuaternion(rotation || piece.mesh?.quaternion);
+}
+
+// Serializa um vetor em objeto aceito pelo Firebase.
+function serializeVector(vector) {
+  return {
+    x: Number(vector?.x) || 0,
+    y: Number(vector?.y) || 0,
+    z: Number(vector?.z) || 0
+  };
+}
+
+// Serializa um quaternion em objeto aceito pelo Firebase.
+function serializeQuaternion(quaternion) {
+  return {
+    x: Number(quaternion?.x) || 0,
+    y: Number(quaternion?.y) || 0,
+    z: Number(quaternion?.z) || 0,
+    w: Number(quaternion?.w) || 1
+  };
+}
+
+// Recria um Vector3 a partir de dados simples.
+function vectorFromSnapshot(value, fallback) {
+  return new THREE.Vector3(
+    Number(value?.x ?? fallback?.x ?? 0),
+    Number(value?.y ?? fallback?.y ?? 0),
+    Number(value?.z ?? fallback?.z ?? 0)
+  );
+}
+
+// Recria um Quaternion a partir de dados simples.
+function quaternionFromSnapshot(value, fallback) {
+  return new THREE.Quaternion(
+    Number(value?.x ?? fallback?.x ?? 0),
+    Number(value?.y ?? fallback?.y ?? 0),
+    Number(value?.z ?? fallback?.z ?? 0),
+    Number(value?.w ?? fallback?.w ?? 1)
+  );
+}
+
+// Clona dados de carta para evitar referencias mutaveis.
+function cloneCardData(data) {
+  return data ? JSON.parse(JSON.stringify(data)) : null;
+}
+
+// Mantem o contador de objetos acima dos IDs restaurados.
+function bumpObjectIdFrom(id) {
+  const number = Number(String(id).match(/(\d+)$/)?.[1]);
+  if (!Number.isNaN(number)) app.objectId = Math.max(app.objectId, number + 1);
+}
+
+// Mantem o contador de pilhas acima dos IDs restaurados.
+function bumpStackIdFrom(id) {
+  const number = Number(String(id).match(/(\d+)$/)?.[1]);
+  if (!Number.isNaN(number)) app.stackId = Math.max(app.stackId, number + 1);
+}
+
 // Atualiza contadores e visibilidade do deck no HUD.
 function updateHud() {
   deckCountEl.textContent = `Deck: ${state.deck.length}`;
@@ -3379,6 +3678,8 @@ function updateHud() {
     syncDeckRim();
     updateDeckCollider();
   }
+
+  scheduleTableSync();
 }
 
 // Retorna a altura visual/fisica atual do deck real.

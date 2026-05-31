@@ -36,10 +36,11 @@ O projeto agora possui uma primeira camada online para autenticacao, lobby e pre
 - Login Google em `login.html`.
 - Lobby em `lobby.html` para criar uma sala curta ou entrar por codigo.
 - Jogadores salvos em `rooms/{roomCode}/players/{uid}` no Firebase Realtime Database.
-- Lista de jogadores conectados sincronizada na mesa.
+- Lista de jogadores conectados sincronizada na mesa, com assentos espalhados conforme a quantidade de jogadores.
+- A mesa casual sincroniza snapshots finais de cartas, pilhas, deck, moedas e extras via Realtime Database.
 - No modo casual, criar ou entrar em uma sala leva direto para a mesa 3D, sem sala de espera intermediaria.
 
-Essa etapa nao sincroniza cartas, moedas, pilhas, deck, extras ou fisica. A mesa 3D continua sendo um sandbox local enquanto o fluxo online amadurece.
+Essa etapa nao sincroniza animacoes nem arrasto em tempo real. Quando uma acao termina, os outros jogadores recebem o estado final e os componentes podem aparecer diretamente na posicao publicada.
 
 ## 3. Mesa E Jogadores
 
@@ -51,6 +52,7 @@ Elementos atuais:
 - Oito zonas de jogador, de P1 a P8.
 - Destaque verde para o jogador ativo.
 - Assento local definido pela sala online, sem seletor manual P1-P8 para acessar a visao de outros jogadores.
+- Distribuicao online de assentos: 2 jogadores frente a frente, 3 em triangulo, 4 em quadrado e 5 a 8 distribuindo o octogono da melhor forma possivel.
 - Interacao fisica com cartas, pilhas e objetos em qualquer slot continua permitida.
 - Nome e avatar flutuante para cada jogador ao redor da mesa.
 - Botoes de sair da sala e reset no topo esquerdo.

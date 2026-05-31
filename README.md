@@ -27,16 +27,18 @@ Estado atual:
 - Login em `login.html` com Google Authentication via Firebase.
 - Lobby em `lobby.html` para criar sala com codigo curto ou entrar em uma sala existente.
 - Realtime Database registra jogadores em `rooms/{roomCode}/players/{uid}`.
-- Por enquanto, somente a lista de jogadores conectados e sincronizada.
+- Lista de jogadores conectados sincronizada com assentos espalhados pela mesa conforme a quantidade de jogadores.
+- A mesa casual sincroniza snapshots finais de cartas, pilhas, deck, moedas e extras via Realtime Database.
 - A mesa `3d.html` exige login e sala valida antes de iniciar o modo Three.js.
 - No modo casual, criar ou entrar em sala redireciona direto para a mesa.
-- Cartas, moedas, objetos, deck e fisica ainda continuam locais no MVP atual.
+- Movimentos durante drag nao sao transmitidos em tempo real nesta etapa; outros jogadores recebem o estado quando a acao termina.
 
 ### Mesa 3D
 
 - Mesa octogonal com area central e ate 8 zonas de jogador.
 - Slots P1 a P8 alinhados as faces internas da mesa.
 - Assento local definido pela sala online, sem seletor manual P1-P8 para ver maos de outros jogadores.
+- Em salas online, 2 jogadores ficam frente a frente, 3 formam triangulo, 4 formam quadrado e os demais sao distribuidos pelo octogono.
 - Interacao fisica com cartas e objetos em qualquer slot continua permitida.
 - Nome e avatar flutuante por jogador, preparado para futura integracao com Google Auth.
 - Camera orbitavel com zoom, pan e foco animado no jogador ativo.

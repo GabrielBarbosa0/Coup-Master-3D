@@ -1,10 +1,13 @@
 import { requireAuth } from '../firebase/auth-service.js';
 import {
+  getRoomTableState,
   leaveRoom,
   markPlayerConnected,
   normalizeRoomCode,
   roomExists,
-  subscribeRoomPlayers
+  subscribeRoomPlayers,
+  subscribeRoomTableState,
+  writeRoomTableState
 } from '../firebase/room-service.js';
 
 const params = new URLSearchParams(location.search);
@@ -38,12 +41,41 @@ leaveRoomBtn?.addEventListener('click', async () => {
 
 await import('./app.js');
 
-// Liga os jogadores online aos badges locais, sem sincronizar cartas ou objetos.
+let syncReady = false;
+window.CoupMaster3DOnline.publishTableState = (tableState) => {
+  if (!syncReady) return;
+  writeRoomTableState(requestedRoom, user, tableState).catch((error) => {
+    console.error('Falha ao sincronizar mesa.', error);
+  });
+};
+
+const initialTableState = await getRoomTableState(requestedRoom);
+if (initialTableState) {
+  window.CoupMaster3D?.applyTableState?.(initialTableState);
+} else {
+  await writeRoomTableState(requestedRoom, user, window.CoupMaster3D?.getTableState?.());
+}
+syncReady = true;
+
+// Aplica estados finais publicados por outros jogadores.
+subscribeRoomTableState(requestedRoom, (tableState) => {
+  if (!tableState || tableState.updatedBy === user.uid) return;
+  window.CoupMaster3D?.applyTableState?.(tableState);
+});
+
+// Liga jogadores online aos badges locais e mantem o assento da conta atual.
 subscribeRoomPlayers(requestedRoom, (players) => {
-  players
+  const connectedPlayers = players
     .filter((player) => player.connected)
-    .sort((a, b) => (a.seat || 99) - (b.seat || 99))
-    .slice(0, 8)
+    .sort((a, b) => (a.seat || 99) - (b.seat || 99));
+  const localPlayer = connectedPlayers.find((player) => player.uid === user.uid);
+
+  if (localPlayer?.seat && localPlayer.seat !== window.CoupMaster3DOnline.playerSeat) {
+    window.CoupMaster3DOnline.playerSeat = localPlayer.seat;
+    window.CoupMaster3D?.setLocalPlayerSeat?.(localPlayer.seat);
+  }
+
+  connectedPlayers.slice(0, 8)
     .forEach((player, index) => {
       const seat = player.seat || index + 1;
       window.CoupMaster3D?.setPlayerProfile(seat, {

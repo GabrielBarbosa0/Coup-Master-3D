@@ -14,6 +14,16 @@ import { database } from './firebase-config.js';
 
 const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const ROOM_CODE_LENGTH = 5;
+const SEAT_LAYOUTS = {
+  1: [1],
+  2: [1, 5],
+  3: [1, 4, 7],
+  4: [1, 3, 5, 7],
+  5: [1, 3, 4, 6, 8],
+  6: [1, 2, 4, 5, 6, 8],
+  7: [1, 2, 3, 4, 6, 7, 8],
+  8: [1, 2, 3, 4, 5, 6, 7, 8]
+};
 
 // Normaliza codigo digitado para o formato curto usado nas URLs e no banco.
 export function normalizeRoomCode(value = '') {
@@ -74,6 +84,38 @@ async function assignPlayerSeat(roomCode, user) {
   throw new Error('Sala cheia.');
 }
 
+// Reorganiza assentos conectados para ficarem espalhados ao redor da mesa.
+async function rebalanceRoomSeats(roomCode) {
+  const code = normalizeRoomCode(roomCode);
+  const playersRef = ref(database, `rooms/${code}/players`);
+  const snapshot = await get(playersRef);
+  const players = [];
+
+  snapshot.forEach((childSnapshot) => {
+    const player = childSnapshot.val();
+    if (player?.connected) players.push(player);
+  });
+
+  players.sort((a, b) => {
+    const joinedA = Number(a.joinedAt) || 0;
+    const joinedB = Number(b.joinedAt) || 0;
+    if (joinedA !== joinedB) return joinedA - joinedB;
+    return String(a.uid).localeCompare(String(b.uid));
+  });
+
+  const layout = SEAT_LAYOUTS[Math.min(players.length, 8)] || SEAT_LAYOUTS[8];
+  const nextSeats = {};
+
+  const updates = players.slice(0, 8).map((player, index) => {
+    const seat = layout[index];
+    nextSeats[seat] = player.uid;
+    return update(child(playersRef, `${player.uid}`), { seat });
+  });
+
+  await Promise.all(updates);
+  await set(ref(database, `rooms/${code}/seats`), nextSeats);
+}
+
 // Entra em uma sala existente e salva o jogador em rooms/{roomCode}/players/{uid}.
 export async function joinRoom(roomCode, user) {
   const code = normalizeRoomCode(roomCode);
@@ -95,7 +137,7 @@ export async function joinRoom(roomCode, user) {
     displayName: user.displayName || 'Jogador',
     photoURL: user.photoURL || '',
     connected: true,
-    joinedAt: serverTimestamp(),
+    joinedAt: Date.now(),
     lastSeen: serverTimestamp()
   };
 
@@ -104,6 +146,7 @@ export async function joinRoom(roomCode, user) {
     connected: false,
     lastSeen: serverTimestamp()
   });
+  await rebalanceRoomSeats(code);
 
   return code;
 }
@@ -124,7 +167,10 @@ export async function markPlayerConnected(roomCode, user) {
     connected: false,
     lastSeen: serverTimestamp()
   });
-  return seat;
+  await rebalanceRoomSeats(code);
+
+  const latestPlayer = await get(playerRef);
+  return latestPlayer.val()?.seat || seat;
 }
 
 // Marca o jogador como fora da sala casual sem encerrar a sessao Google.
@@ -142,6 +188,7 @@ export async function leaveRoom(roomCode, user) {
   if (seat) {
     await set(ref(database, `rooms/${code}/seats/${seat}`), null);
   }
+  await rebalanceRoomSeats(code);
 }
 
 // Escuta a lista de jogadores da sala, sem sincronizar componentes da mesa.
@@ -166,4 +213,33 @@ export async function roomExists(roomCode) {
   if (code.length !== ROOM_CODE_LENGTH) return false;
   const snapshot = await get(ref(database, `rooms/${code}`));
   return snapshot.exists();
+}
+
+// Le o snapshot compartilhado da mesa casual.
+export async function getRoomTableState(roomCode) {
+  const code = normalizeRoomCode(roomCode);
+  const snapshot = await get(ref(database, `rooms/${code}/tableState`));
+  return snapshot.val();
+}
+
+// Publica o estado final de uma acao na mesa casual.
+export async function writeRoomTableState(roomCode, user, tableState) {
+  const code = normalizeRoomCode(roomCode);
+  await set(ref(database, `rooms/${code}/tableState`), {
+    ...tableState,
+    updatedAt: serverTimestamp(),
+    updatedBy: user.uid
+  });
+}
+
+// Escuta snapshots de mesa publicados por outros jogadores.
+export function subscribeRoomTableState(roomCode, callback) {
+  const code = normalizeRoomCode(roomCode);
+  const tableStateRef = ref(database, `rooms/${code}/tableState`);
+
+  onValue(tableStateRef, (snapshot) => {
+    callback(snapshot.val());
+  });
+
+  return () => off(tableStateRef);
 }
