@@ -26,6 +26,7 @@ Evoluir o modo 3D local ate ele ser uma mesa tabletop confortavel:
 - mesa octogonal;
 - ate 8 slots de jogador;
 - deck central fisico com limite visual de 8 cartas;
+- nomes e avatares flutuantes de jogadores preparados para Google Auth;
 - cartas finas, arredondadas e texturizadas;
 - pilhas de cartas que podem virar, girar, embaralhar e se agrupar;
 - moedas de ouro e prata com textura;

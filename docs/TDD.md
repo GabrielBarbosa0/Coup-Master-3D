@@ -73,6 +73,7 @@ O runtime visual/fisico vive no objeto `app`:
 - world Rapier;
 - deck mesh/body/rim;
 - mapas de cards e objects;
+- badges de jogadores;
 - pilhas de mesa;
 - zonas de drop;
 - estados de hover, drag, camera focus, audio e animacoes.
@@ -143,6 +144,8 @@ RAPIER.init()
 - collider fisico do tampo.
 
 `createBoundaries()` cria bordas fisicas invisiveis baixas para evitar apoio invisivel nos cantos.
+
+`createPlayerBadges()` cria os nomes e avatares flutuantes de cada jogador. Esses badges ficam fora da fisica, usam texturas de canvas quando nao existe foto real, e acompanham a camera via billboard.
 
 ### 6.3 Deck
 
@@ -278,7 +281,7 @@ Touch:
 
 | Tecla/Botao | Funcao |
 | --- | --- |
-| `F` / `flip-card.svg` | Vira carta, pilha ou extra sob hover/selecao |
+| `F` / `flip.svg` | Vira carta, pilha ou extra sob hover/selecao |
 | `Q` / `arrow.svg` esquerda | Gira objeto selecionado para a esquerda |
 | `E` / `arrow.svg` direita | Gira objeto selecionado para a direita |
 | `R` | Embaralha deck ou pilha sob hover |
@@ -330,6 +333,8 @@ Decisao atual:
 `css/three-board.css` define layout fixo/responsivo da HUD, botoes quadrados por icone, modais e bloqueio de selecao de texto.
 
 Os botoes inferiores devem manter proporcao quadrada semelhante aos botoes superiores. Icones SVG devem ser brancos e com fundo transparente.
+
+Perfis de jogador podem ser atualizados por `window.CoupMaster3D.setPlayerProfile(playerId, { displayName, photoURL })`, mantendo a futura integracao com Google Auth isolada do sistema visual.
 
 ## 12. Assets
 

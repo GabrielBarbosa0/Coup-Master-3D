@@ -39,11 +39,14 @@ Elementos atuais:
 - Oito zonas de jogador, de P1 a P8.
 - Destaque verde para o jogador ativo.
 - Seletor P1 a P8 na lateral esquerda.
+- Nome e avatar flutuante para cada jogador ao redor da mesa.
 - Botao de reset acima do seletor de jogadores.
 - Barra superior direita com icones de utilidades.
 - Barra inferior com acoes rapidas por icone.
 - Deck central.
 - Objetos de mesa: cartas, pilhas, moedas de ouro, moedas de prata, carta de asilo e carta de religiao.
+
+Os nomes e avatares usam dados locais por enquanto, mas ja devem estar prontos para receber `displayName` e `photoURL` quando o login com Google voltar ao fluxo online.
 
 ## 4. Cartas
 
@@ -295,6 +298,7 @@ Nao implementar no MVP local, exceto se pedido explicitamente:
 
 - Mesa 3D octogonal.
 - Slots P1 a P8.
+- Nome e avatar flutuante por jogador.
 - Deck central fisico com limite visual de 8 cartas.
 - Cartas 3D com frente, verso e cantos arredondados.
 - Moedas de ouro e prata com textura.

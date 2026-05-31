@@ -27,6 +27,7 @@ Estado atual:
 - Mesa octogonal com area central e ate 8 zonas de jogador.
 - Slots P1 a P8 alinhados as faces internas da mesa.
 - Seletor de jogador na lateral esquerda.
+- Nome e avatar flutuante por jogador, preparado para futura integracao com Google Auth.
 - Camera orbitavel com zoom, pan e foco animado no jogador ativo.
 - Resgate automatico de objetos que caem fora da mesa.
 

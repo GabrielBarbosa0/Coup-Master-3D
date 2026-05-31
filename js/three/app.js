@@ -1,198 +1,123 @@
 ﻿import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import RAPIER from '@dimforge/rapier3d-compat';
+import * as config from './config.js';
+import * as dom from './dom.js';
 
-const canvas = document.getElementById('threeCanvas');
-const deckCountEl = document.getElementById('deckCount');
-const tableCountEl = document.getElementById('tableCount');
-const objectCountEl = document.getElementById('objectCount');
-const hoverTooltipEl = document.getElementById('hoverTooltip');
-const playerTabsEl = document.getElementById('playerTabs');
-const drawBtn = document.getElementById('drawBtn');
-const goldCoinBtn = document.getElementById('goldCoinBtn');
-const silverCoinBtn = document.getElementById('silverCoinBtn');
-const asylumCardBtn = document.getElementById('asylumCardBtn');
-const religionCardBtn = document.getElementById('religionCardBtn');
-const diceBtn = document.getElementById('diceBtn');
-const rollBtn = document.getElementById('rollBtn');
-const clearObjectsBtn = document.getElementById('clearObjectsBtn');
-const shuffleBtn = document.getElementById('shuffleBtn');
-const dealBtn = document.getElementById('dealBtn');
-const flipSelectionBtn = document.getElementById('flipSelectionBtn');
-const rotateLeftBtn = document.getElementById('rotateLeftBtn');
-const rotateRightBtn = document.getElementById('rotateRightBtn');
-const deleteSelectionBtn = document.getElementById('deleteSelectionBtn');
-const focusCameraBtn = document.getElementById('focusCameraBtn');
-const resetBtn = document.getElementById('resetBtn3d');
-const infoBtn = document.getElementById('infoBtn3d');
-const altRulesBtn = document.getElementById('altRulesBtn3d');
-const spectatorBtn = document.getElementById('spectatorBtn3d');
-const fullscreenBtn = document.getElementById('fullscreenBtn3d');
-const settingsBtn = document.getElementById('settingsBtn3d');
-const musicBtn = document.getElementById('musicBtn3d');
-const feedbackBtn = document.getElementById('feedbackBtn3d');
-const settingsModal = document.getElementById('settingsModal');
-const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-const feedbackModal = document.getElementById('feedbackModal');
-const closeFeedbackBtn = document.getElementById('closeFeedbackBtn');
-const ruleCardsModal = document.getElementById('ruleCardsModal');
-const closeRuleCardsBtn = document.getElementById('closeRuleCardsBtn');
-const ruleFlipCard = document.getElementById('ruleFlipCard');
-const ruleFrontImg = document.getElementById('ruleFrontImg');
-const ruleBackImg = document.getElementById('ruleBackImg');
-const rulePrevBtn = document.getElementById('rulePrevBtn');
-const ruleNextBtn = document.getElementById('ruleNextBtn');
-const ruleCardsCounter = document.getElementById('ruleCardsCounter');
-const altRulesModal = document.getElementById('altRulesModal');
-const closeAltRulesBtn = document.getElementById('closeAltRulesBtn');
-const altRuleFlipCard = document.getElementById('altRuleFlipCard');
-const altRuleFrontImg = document.getElementById('altRuleFrontImg');
-const altRuleBackImg = document.getElementById('altRuleBackImg');
-const altRulePrevBtn = document.getElementById('altRulePrevBtn');
-const altRuleNextBtn = document.getElementById('altRuleNextBtn');
-const altRuleCounter = document.getElementById('altRuleCounter');
-const openDeckConfigBtn = document.getElementById('openDeckConfigBtn');
-const configModal = document.getElementById('configModal');
-const closeConfigModalBtn = document.getElementById('closeConfigModalBtn');
-const applyDeckConfigBtn = document.getElementById('applyDeckConfigBtn');
-const volumeSlider = document.getElementById('volumeSlider');
-const vfxVolumeSlider = document.getElementById('vfxVolumeSlider');
-const bgmAudio = document.getElementById('bgmAudio');
-const resetVfxAudio = document.getElementById('resetVfxAudio');
+const {
+  altRuleBackImg,
+  altRuleCounter,
+  altRuleFlipCard,
+  altRuleFrontImg,
+  altRuleNextBtn,
+  altRulePrevBtn,
+  altRulesBtn,
+  altRulesModal,
+  applyDeckConfigBtn,
+  asylumCardBtn,
+  bgmAudio,
+  canvas,
+  clearObjectsBtn,
+  closeAltRulesBtn,
+  closeConfigModalBtn,
+  closeFeedbackBtn,
+  closeRuleCardsBtn,
+  closeSettingsBtn,
+  configModal,
+  dealBtn,
+  deckCountEl,
+  deleteSelectionBtn,
+  diceBtn,
+  drawBtn,
+  feedbackBtn,
+  feedbackModal,
+  flipSelectionBtn,
+  focusCameraBtn,
+  fullscreenBtn,
+  goldCoinBtn,
+  hoverTooltipEl,
+  infoBtn,
+  musicBtn,
+  objectCountEl,
+  openDeckConfigBtn,
+  playerTabsEl,
+  religionCardBtn,
+  resetBtn,
+  resetVfxAudio,
+  rollBtn,
+  rotateLeftBtn,
+  rotateRightBtn,
+  ruleBackImg,
+  ruleCardsCounter,
+  ruleCardsModal,
+  ruleFlipCard,
+  ruleFrontImg,
+  ruleNextBtn,
+  rulePrevBtn,
+  settingsBtn,
+  settingsModal,
+  shuffleBtn,
+  silverCoinBtn,
+  spectatorBtn,
+  tableCountEl,
+  vfxVolumeSlider,
+  volumeSlider
+} = dom;
 
-const CARD_W = 0.72;
-const CARD_H = 1.04;
-const CARD_D = (0.035 / 5) * 0.9 * 0.95 * 0.9;
-const CARD_RADIUS = 0.055;
-const TABLE_RADIUS = 4.65;
-const FELT_RADIUS = 4.18;
-const PLAY_RADIUS = 3.62;
-const TABLE_PHYSICS_RADIUS = TABLE_RADIUS * Math.cos(Math.PI / 8);
-const PLAYER_COUNT = 8;
-const HAND_RADIUS = 3.08;
-const CARD_REST_Y = 0.068;
-const DECK_BASE_HEIGHT = 0.38 * 0.4;
-const HAND_LADDER_SPACING = 0.36;
-const HAND_LADDER_DEPTH = 0.075;
-const HAND_LADDER_LIFT = 0.012;
-const HAND_LADDER_ROTATION = 0.035;
-const GOLD_COIN_RADIUS = 0.16 * 1.1;
-const SILVER_COIN_RADIUS = GOLD_COIN_RADIUS * (940 / 1280);
-const COIN_HEIGHT = 0.055 / 3;
-const COIN_TEXTURES = {
-  gold: 'assets/img/coins/moeda-ouro.png',
-  silver: 'assets/img/coins/moeda-prata.png'
-};
-const SPECIAL_CARD_TEXTURES = {
-  asilo: {
-    front: 'assets/img/cards/religion/asilo-frente.png',
-    back: 'assets/img/cards/religion/asilo-verso.png'
-  },
-  religiao: {
-    front: 'assets/img/cards/religion/catolico.png',
-    back: 'assets/img/cards/religion/protestante.png'
-  }
-};
-const ASYLUM_CARD_AREA_SCALE = 2;
-const ASYLUM_CARD_ASPECT = 1024 / 736;
-const RELIGION_CARD_HEIGHT_SCALE = 0.7;
-const RELIGION_CARD_ASPECT = 880 / 1200;
-const DIE_SIZE = 0.42;
-const DECK_DRAG_HOLD_MS = 260;
-const CARD_RETURN_COOLDOWN_MS = 300;
-const LIMBO_Y = -2.2;
-const LIMBO_RADIUS = TABLE_RADIUS + 2.2;
-const TABLE_STACK_RADIUS = 0.58;
-const TABLE_STACK_MERGE_RADIUS = 0.72;
-const TABLE_STACK_GAP = 0.012;
-const DECK_STACK_GAP = TABLE_STACK_GAP;
-const DECK_ROTATION_Y = 0;
-const OBJECT_ROTATION_STEP = Math.PI / 12;
-const DEFAULT_CAMERA_HEIGHT = 7.6;
-const DEFAULT_CAMERA_DISTANCE = 7.8;
-const DEFAULT_CAMERA_TARGET = new THREE.Vector3(0, 0, 0);
-const DEFAULT_MUSIC_VOLUME = 0.1;
-const DEFAULT_VFX_VOLUME = 0.5;
-
-const CARD_LIBRARY = [
-  { type: 'duque', folder: 'base' },
-  { type: 'capitao', folder: 'base' },
-  { type: 'assassino', folder: 'base' },
-  { type: 'condessa', folder: 'base' },
-  { type: 'embaixador', folder: 'base' },
-  { type: 'inquisidor', folder: 'base' },
-  { type: 'bufao', folder: 'promo' },
-  { type: 'burocrata', folder: 'promo' },
-  { type: 'benfeitor', folder: 'promo' },
-  { type: 'burgues', folder: 'promo' },
-  { type: 'marionetista', folder: 'dlc1' },
-  { type: 'diplomata', folder: 'dlc1' },
-  { type: 'mercenario', folder: 'dlc1' },
-  { type: 'bispo', folder: 'dlc1' },
-  { type: 'tesoureiro', folder: 'dlc1' },
-  { type: 'vigilante', folder: 'dlc1' },
-  { type: 'pistoleiro', folder: 'dlc2' },
-  { type: 'magnata', folder: 'dlc2' },
-  { type: 'estrategista', folder: 'dlc2' },
-  { type: 'ladrao', folder: 'dlc2' },
-  { type: 'vigarista', folder: 'dlc2' },
-  { type: 'xerife', folder: 'dlc2' }
-];
-
-const CARD_LABELS = {
-  assassino: 'Assassino',
-  benfeitor: 'Benfeitor',
-  bispo: 'Bispo',
-  bufao: 'Bufão',
-  burocrata: 'Burocrata',
-  burgues: 'Burguês',
-  capitao: 'Capitão',
-  condessa: 'Condessa',
-  diplomata: 'Diplomata',
-  duque: 'Duque',
-  embaixador: 'Embaixador',
-  estrategista: 'Estrategista',
-  inquisidor: 'Inquisidor',
-  ladrao: 'Ladrão',
-  magnata: 'Magnata',
-  marionetista: 'Marionetista',
-  mercenario: 'Mercenário',
-  pistoleiro: 'Pistoleiro',
-  tesoureiro: 'Tesoureiro',
-  vigarista: 'Vigarista',
-  vigilante: 'Vigilante',
-  xerife: 'Xerife',
-  asilo: 'Asilo',
-  religiao: 'Religião'
-};
-
-const SPECIAL_CARD_LABELS = {
-  asilo: {
-    front: 'Asilo',
-    back: 'Asilo'
-  },
-  religiao: {
-    front: 'Católico',
-    back: 'Protestante'
-  }
-};
-
-const DEFAULT_DECK_CONFIG = Object.fromEntries(
-  CARD_LIBRARY.map(({ type, folder }) => [type, folder === 'base' ? 5 : 0])
-);
-
-const RULE_CARD_GROUPS = {
-  promo: ['bufao', 'benfeitor', 'burgues', 'burocrata'],
-  revolution: ['marionetista', 'diplomata', 'mercenario', 'bispo', 'tesoureiro', 'vigilante'],
-  shadows: ['pistoleiro', 'magnata', 'estrategista', 'ladrao', 'vigarista', 'xerife']
-};
-
-const ALT_RULE_IMAGES = [
-  'assets/img/guides/alternative-rules1.png',
-  'assets/img/guides/alternative-rules2.png',
-  'assets/img/guides/alternative-rules3.png',
-  'assets/img/guides/alternative-rules4.png'
-];
+const {
+  ALT_RULE_IMAGES,
+  ASYLUM_CARD_AREA_SCALE,
+  ASYLUM_CARD_ASPECT,
+  CARD_D,
+  CARD_H,
+  CARD_LABELS,
+  CARD_LIBRARY,
+  CARD_RADIUS,
+  CARD_REST_Y,
+  CARD_RETURN_COOLDOWN_MS,
+  CARD_W,
+  COIN_HEIGHT,
+  COIN_TEXTURES,
+  DECK_BASE_HEIGHT,
+  DECK_DRAG_HOLD_MS,
+  DECK_ROTATION_Y,
+  DECK_STACK_GAP,
+  DEFAULT_CAMERA_DISTANCE,
+  DEFAULT_CAMERA_HEIGHT,
+  DEFAULT_CAMERA_TARGET,
+  DEFAULT_DECK_CONFIG,
+  DEFAULT_MUSIC_VOLUME,
+  DEFAULT_VFX_VOLUME,
+  DIE_SIZE,
+  FELT_RADIUS,
+  GOLD_COIN_RADIUS,
+  HAND_LADDER_DEPTH,
+  HAND_LADDER_LIFT,
+  HAND_LADDER_ROTATION,
+  HAND_LADDER_SPACING,
+  HAND_RADIUS,
+  LIMBO_RADIUS,
+  LIMBO_Y,
+  OBJECT_ROTATION_STEP,
+  PLAYER_AVATAR_SIZE,
+  PLAYER_BADGE_HEIGHT,
+  PLAYER_BADGE_RADIAL_OFFSET,
+  PLAYER_COUNT,
+  PLAYER_NAME_HEIGHT,
+  PLAYER_NAME_WIDTH,
+  PLAY_RADIUS,
+  RELIGION_CARD_ASPECT,
+  RELIGION_CARD_HEIGHT_SCALE,
+  RULE_CARD_GROUPS,
+  SILVER_COIN_RADIUS,
+  SPECIAL_CARD_LABELS,
+  SPECIAL_CARD_TEXTURES,
+  TABLE_PHYSICS_RADIUS,
+  TABLE_RADIUS,
+  TABLE_STACK_GAP,
+  TABLE_STACK_MERGE_RADIUS,
+  TABLE_STACK_RADIUS
+} = config;
 
 const state = {
   activePlayer: 1,
@@ -201,6 +126,8 @@ const state = {
   tableCards: [],
   players: Array.from({ length: PLAYER_COUNT }, (_, index) => ({
     id: index + 1,
+    name: `Jogador ${index + 1}`,
+    avatarUrl: null,
     cards: []
   }))
 };
@@ -245,6 +172,7 @@ const app = {
   altRuleIndex: 0,
   cards: new Map(),
   objects: new Map(),
+  playerBadges: new Map(),
   tableStacks: [],
   dropZones: [],
   objectId: 1,
@@ -306,10 +234,15 @@ function init() {
   createTable();
   createBoundaries();
   createDropZones();
+  createPlayerBadges();
   createDeck();
   createPlayerTabs();
   setupSettingsModal();
   setupMusicControls();
+  window.CoupMaster3D = {
+    ...(window.CoupMaster3D || {}),
+    setPlayerProfile
+  };
 
   drawBtn.addEventListener('click', () => drawCardToPlayer(state.activePlayer));
   goldCoinBtn.addEventListener('click', () => spawnCoin('gold'));
@@ -478,6 +411,183 @@ function makeOctagonZone(id, x, z, radius, color, opacity) {
   return zone;
 }
 
+// Cria os nomes e avatares flutuantes de cada jogador ao redor da mesa.
+function createPlayerBadges() {
+  app.playerBadges.forEach((badge) => {
+    app.scene.remove(badge.group);
+    disposeObject3D(badge.group);
+  });
+  app.playerBadges.clear();
+
+  state.players.forEach((player) => {
+    const group = new THREE.Group();
+    group.name = `player-badge-${player.id}`;
+    group.userData.playerBadge = true;
+    group.position.copy(getPlayerBadgePosition(player.id));
+
+    const avatar = createPlayerAvatarMesh(player);
+    avatar.position.set(0, 0.26, 0);
+    group.add(avatar);
+
+    const label = createPlayerNameMesh(player.name, player.id === state.activePlayer);
+    label.position.set(0, -0.04, 0.01);
+    group.add(label);
+
+    app.scene.add(group);
+    app.playerBadges.set(player.id, { group, avatar, label });
+  });
+
+  updatePlayerBadges();
+}
+
+// Atualiza um perfil local de jogador; futuramente recebe displayName/photoURL do Google.
+function setPlayerProfile(playerId, profile = {}) {
+  const player = state.players[playerId - 1];
+  if (!player) return;
+
+  player.name = profile.name || profile.displayName || player.name || `Jogador ${playerId}`;
+  player.avatarUrl = profile.avatarUrl || profile.photoURL || player.avatarUrl || null;
+  refreshPlayerBadge(playerId);
+}
+
+// Recria os materiais do badge quando nome, avatar ou destaque mudam.
+function refreshPlayerBadge(playerId) {
+  const player = state.players[playerId - 1];
+  const badge = app.playerBadges.get(playerId);
+  if (!player || !badge) return;
+
+  const nextAvatar = createPlayerAvatarMesh(player);
+  nextAvatar.position.copy(badge.avatar.position);
+  badge.group.remove(badge.avatar);
+  disposeObject3D(badge.avatar);
+  badge.group.add(nextAvatar);
+  badge.avatar = nextAvatar;
+
+  const nextLabel = createPlayerNameMesh(player.name, playerId === state.activePlayer);
+  nextLabel.position.copy(badge.label.position);
+  badge.group.remove(badge.label);
+  disposeObject3D(badge.label);
+  badge.group.add(nextLabel);
+  badge.label = nextLabel;
+}
+
+// Cria a placa de texto do nome do jogador como textura transparente.
+function createPlayerNameMesh(name, active = false) {
+  const texture = createPlayerNameTexture(name, active);
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,
+    depthWrite: false,
+    depthTest: false,
+    side: THREE.DoubleSide
+  });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(PLAYER_NAME_WIDTH, PLAYER_NAME_HEIGHT), material);
+  mesh.renderOrder = 30;
+  return mesh;
+}
+
+// Desenha o nome do jogador com contorno para ficar legivel sobre a mesa.
+function createPlayerNameTexture(name, active = false) {
+  const canvasEl = document.createElement('canvas');
+  canvasEl.width = 512;
+  canvasEl.height = 128;
+  const ctx = canvasEl.getContext('2d');
+  const displayName = String(name || 'Jogador').slice(0, 22);
+
+  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  ctx.font = '700 52px Cinzel, Georgia, serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 12;
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.88)';
+  ctx.strokeText(displayName, canvasEl.width / 2, canvasEl.height / 2);
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = active ? 'rgba(24, 242, 138, 0.9)' : 'rgba(255, 255, 255, 0.55)';
+  ctx.strokeText(displayName, canvasEl.width / 2, canvasEl.height / 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(displayName, canvasEl.width / 2, canvasEl.height / 2);
+
+  const texture = new THREE.CanvasTexture(canvasEl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+// Cria o avatar do jogador; sem foto externa, usa um placeholder com iniciais.
+function createPlayerAvatarMesh(player) {
+  const texture = player.avatarUrl
+    ? loadTexture(player.avatarUrl)
+    : createPlayerAvatarTexture(player);
+  if (player.avatarUrl) texture.userData.cached = true;
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,
+    depthWrite: false,
+    depthTest: false,
+    side: THREE.DoubleSide
+  });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(PLAYER_AVATAR_SIZE, PLAYER_AVATAR_SIZE), material);
+  mesh.renderOrder = 31;
+  return mesh;
+}
+
+// Desenha um avatar circular local com as iniciais do jogador.
+function createPlayerAvatarTexture(player) {
+  const canvasEl = document.createElement('canvas');
+  canvasEl.width = 256;
+  canvasEl.height = 256;
+  const ctx = canvasEl.getContext('2d');
+  const initials = getPlayerInitials(player.name || `P${player.id}`);
+  const hue = (player.id * 43) % 360;
+
+  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(128, 128, 108, 0, Math.PI * 2);
+  ctx.clip();
+
+  const gradient = ctx.createLinearGradient(34, 28, 222, 230);
+  gradient.addColorStop(0, `hsl(${hue}, 72%, 56%)`);
+  gradient.addColorStop(1, `hsl(${(hue + 58) % 360}, 64%, 30%)`);
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvasEl.width, canvasEl.height);
+
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
+  ctx.beginPath();
+  ctx.arc(80, 68, 68, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '700 76px Cinzel, Georgia, serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(initials, 128, 136);
+  ctx.restore();
+
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = player.id === state.activePlayer ? '#18f28a' : '#ffffff';
+  ctx.beginPath();
+  ctx.arc(128, 128, 108, 0, Math.PI * 2);
+  ctx.stroke();
+
+  const texture = new THREE.CanvasTexture(canvasEl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+// Extrai iniciais curtas do nome do jogador.
+function getPlayerInitials(name) {
+  return String(name)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0]?.toUpperCase())
+    .join('') || 'P';
+}
+
 // Cria o deck visual central e prepara sua borda e collider.
 function createDeck() {
   const geo = createRoundedCardGeometry(CARD_W, CARD_H, DECK_BASE_HEIGHT, CARD_RADIUS);
@@ -532,6 +642,20 @@ function clearDeckVisualLayers() {
       child.material?.dispose?.();
     }
   }
+}
+
+// Libera geometrias, materiais e texturas de um objeto visual removido da cena.
+function disposeObject3D(object) {
+  object.traverse((child) => {
+    child.geometry?.dispose?.();
+    const materials = Array.isArray(child.material) ? child.material : [child.material].filter(Boolean);
+    materials.forEach((material) => {
+      if (material.map && !material.map.userData?.cached) {
+        material.map.dispose();
+      }
+      material.dispose?.();
+    });
+  });
 }
 
 // Adiciona o aro branco superior que destaca a borda do deck.
@@ -1564,6 +1688,7 @@ function loadTexture(path) {
   const texture = new THREE.TextureLoader().load(path);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = Math.min(app.renderer.capabilities.getMaxAnisotropy(), 8);
+  texture.userData.cached = true;
   app.textures[path] = texture;
   return texture;
 }
@@ -1582,6 +1707,9 @@ function setActivePlayer(playerId) {
     zone.material.color.set(active ? 0x18f28a : 0x3da3ff);
     zone.material.opacity = active ? 0.24 : zone.userData.baseOpacity;
   });
+
+  state.players.forEach(player => refreshPlayerBadge(player.id));
+  updatePlayerBadges();
 
   app.cards.forEach((card) => {
     if (!card.data.owner) return;
@@ -2952,6 +3080,17 @@ function getPlayerSeatPosition(playerId) {
   };
 }
 
+// Retorna a posicao flutuante do nome/avatar de um jogador.
+function getPlayerBadgePosition(playerId) {
+  const angle = getPlayerAngle(playerId);
+  const radius = HAND_RADIUS + PLAYER_BADGE_RADIAL_OFFSET;
+  return new THREE.Vector3(
+    Math.cos(angle) * radius,
+    PLAYER_BADGE_HEIGHT,
+    Math.sin(angle) * radius
+  );
+}
+
 // Calcula o angulo radial de um jogador no octogono.
 function getPlayerAngle(playerId) {
   return -Math.PI / 2 + ((playerId - 1) / PLAYER_COUNT) * Math.PI * 2;
@@ -3051,6 +3190,7 @@ function animate() {
   app.world.step();
   syncPhysicsMeshes();
   app.controls.update();
+  updatePlayerBadges();
   app.renderer.render(app.scene, app.camera);
 }
 
@@ -3095,6 +3235,17 @@ function syncPhysicsMeshes() {
   });
 
   syncHoverOutline();
+}
+
+// Mantem placas de jogador posicionadas e sempre voltadas para a camera.
+function updatePlayerBadges() {
+  if (!app.camera) return;
+
+  app.playerBadges.forEach((badge, playerId) => {
+    badge.group.visible = playerId !== state.activePlayer;
+    badge.group.position.copy(getPlayerBadgePosition(playerId));
+    badge.group.lookAt(app.camera.position);
+  });
 }
 
 // Atualiza animacoes de flip das cartas.
