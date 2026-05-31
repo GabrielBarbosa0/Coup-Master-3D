@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>Coup Master 3D</title>
+  <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/three-board.css?v=quick-icons">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/",
+        "@dimforge/rapier3d-compat": "https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.14.0/rapier.es.js"
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <main id="threeApp">
+    <canvas id="threeCanvas"></canvas>
+
+    <section class="hud reset-actions" aria-label="Reset">
+      <button id="resetBtn3d" class="settings-btn reset-icon-btn" type="button" title="Resetar mesa"
+        aria-label="Resetar mesa">
+        <img src="assets/img/icons/cached.svg" alt="">
+      </button>
+    </section>
+
+    <section class="hud top-left" aria-label="Mesa">
+      <div class="status-row">
+        <span id="deckCount">Deck: 0</span>
+        <span id="tableCount">Mesa: 0</span>
+        <span id="objectCount">Objetos: 0</span>
+      </div>
+    </section>
+
+    <section class="hud top-actions" aria-label="Menus rápidos">
+      <div class="hud-actions" aria-label="Menus rápidos">
+        <button id="musicBtn3d" class="settings-btn music-toggle-btn" type="button" title="Mutar música"
+          aria-label="Mutar música" aria-pressed="false">
+          <img src="assets/img/icons/music_note.svg" alt="">
+        </button>
+        <button id="feedbackBtn3d" class="settings-btn" type="button" title="Enviar feedback"
+          aria-label="Enviar feedback">
+          <img src="assets/img/icons/feedback.svg" alt="">
+        </button>
+        <button id="altRulesBtn3d" class="settings-btn" type="button" title="Regras alternativas"
+          aria-label="Regras alternativas">
+          <img src="assets/img/icons/parchment.svg" alt="">
+        </button>
+        <button id="spectatorBtn3d" class="settings-btn spectator-btn" type="button" title="Modo espectador"
+          aria-label="Modo espectador">
+          <img src="assets/img/icons/ghost.svg" alt="">
+        </button>
+        <button id="fullscreenBtn3d" class="settings-btn" type="button" title="Tela cheia" aria-label="Tela cheia">
+          <img src="assets/img/icons/fullscreen.svg" alt="">
+        </button>
+        <button id="infoBtn3d" class="settings-btn" type="button" title="Variações" aria-label="Variações">
+          <img src="assets/img/icons/info.svg" alt="">
+        </button>
+        <button id="settingsBtn3d" class="settings-btn" type="button" title="Configurações"
+          aria-label="Configurações">
+          <img src="assets/img/icons/settings.svg" alt="">
+        </button>
+      </div>
+    </section>
+
+    <nav id="playerTabs" class="player-tabs" aria-label="Jogadores"></nav>
+
+    <section class="hud quick-actions" aria-label="Controles">
+      <button id="drawBtn" type="button" title="Comprar" aria-label="Comprar" style="display: none;">
+        <img src="assets/img/icons/pen-paper.svg" alt="">
+      </button>
+      <button id="goldCoinBtn" type="button" title="Ouro" aria-label="Ouro">
+        <img src="assets/img/icons/v-romano.svg" alt="">
+      </button>
+      <button id="silverCoinBtn" type="button" title="Prata" aria-label="Prata">
+        <img src="assets/img/icons/i-romano.svg" alt="">
+      </button>
+      <button id="asylumCardBtn" type="button" title="Asilo" aria-label="Asilo">
+        <img src="assets/img/icons/church.svg" alt="">
+      </button>
+      <button id="religionCardBtn" type="button" title="Religião" aria-label="Religião">
+        <img src="assets/img/icons/shield-cross.svg" alt="">
+      </button>
+      <button id="diceBtn" type="button" style="display: none;">Dado</button>
+      <button id="rollBtn" type="button" style="display: none;">Rolar</button>
+      <button id="clearObjectsBtn" type="button" title="Limpar" aria-label="Limpar">
+        <img src="assets/img/icons/mop.svg" alt="">
+      </button>
+      <button id="shuffleBtn" type="button" style="display: none;">Embaralhar</button>
+      <button id="dealBtn" type="button" title="Distribuir" aria-label="Distribuir">
+        <img src="assets/img/icons/distribute-cards.svg" alt="">
+      </button>
+      <button id="flipSelectionBtn" type="button" title="Virar" aria-label="Virar carta">
+        <img src="assets/img/icons/flip.svg" alt="">
+      </button>
+      <button id="rotateLeftBtn" type="button" title="Girar esquerda" aria-label="Girar para esquerda">
+        <img src="assets/img/icons/arrow.svg" alt="">
+      </button>
+      <button id="rotateRightBtn" type="button" title="Girar direita" aria-label="Girar para direita">
+        <img class="mirror-x" src="assets/img/icons/arrow.svg" alt="">
+      </button>
+      <button id="deleteSelectionBtn" type="button" title="Deletar" aria-label="Deletar seleção">
+        <img src="assets/img/icons/delete.svg" alt="">
+      </button>
+      <button id="focusCameraBtn" type="button" title="Focar câmera" aria-label="Focar câmera">
+        <img src="assets/img/icons/focus.svg" alt="">
+      </button>
+    </section>
+
+
+    <div id="hoverTooltip" class="hover-tooltip" role="status" aria-live="polite"></div>
+
+    <div id="settingsModal" class="modal-overlay" style="display: none;">
+      <div class="modal-content">
+        <button id="closeSettingsBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+        <h2>Configurações</h2>
+
+        <div class="settings-container">
+          <div class="setting-row">
+            <label for="volumeSlider">Música:</label>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.1" style="width: 100%;">
+          </div>
+
+          <div class="setting-row">
+            <label for="vfxVolumeSlider">Efeitos:</label>
+            <input type="range" id="vfxVolumeSlider" min="0" max="1" step="0.01" value="0.5" style="width: 100%;">
+          </div>
+
+          <div class="setting-row" style="justify-content: center; margin-top: 20px;">
+            <button id="openDeckConfigBtn" type="button"
+              style="background: #1e90ff; color: white; padding: 10px; border: 0; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold;">
+              Configurar Baralho
+            </button>
+          </div>
+
+          <!-- <h2>Gráficos e Efeitos</h2>
+
+          <div class="setting-row">
+            <span>Iluminação global:</span>
+            <span class="setting-value">Mesa 3D</span>
+          </div>
+          <div class="setting-row">
+            <span>Física:</span>
+            <span class="setting-value">Tabletop</span>
+          </div> -->
+        </div>
+      </div>
+    </div>
+
+    <div id="configModal" class="modal-overlay" style="display: none;">
+      <div class="modal-content">
+        <button id="closeConfigModalBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+        <h2 class="config-title">Configurar Baralho</h2>
+        <p class="muted config-p-title">(Use 0 para remover uma carta)</p>
+
+        <ul class="card-config-list">
+          <div class="deck-presets-container">
+            <button type="button" class="preset-btn" data-preset="standard">Base</button>
+            <button type="button" class="preset-btn" data-preset="base_promo">Base + Promo</button>
+            <button type="button" class="preset-btn" data-preset="base_dlc1">Base + DLC 1</button>
+            <button type="button" class="preset-btn" data-preset="base_dlc2">Base + DLC 2</button>
+            <button type="button" class="preset-btn" data-preset="test">Modo Teste</button>
+            <button type="button" class="preset-btn" data-preset="clear">Zerar Tudo</button>
+          </div>
+
+          <li class="card-config-item">
+            <label for="config-duque">Duque</label>
+            <input type="number" id="config-duque" data-card="duque" min="0" max="10" value="5">
+          </li>
+          <li class="card-config-item">
+            <label for="config-capitao">Capitão</label>
+            <input type="number" id="config-capitao" data-card="capitao" min="0" max="10" value="5">
+          </li>
+          <li class="card-config-item">
+            <label for="config-assassino">Assassino</label>
+            <input type="number" id="config-assassino" data-card="assassino" min="0" max="10" value="5">
+          </li>
+          <li class="card-config-item">
+            <label for="config-condessa">Condessa</label>
+            <input type="number" id="config-condessa" data-card="condessa" min="0" max="10" value="5">
+          </li>
+          <li class="card-config-item">
+            <label for="config-embaixador">Embaixador</label>
+            <input type="number" id="config-embaixador" data-card="embaixador" min="0" max="10" value="5">
+          </li>
+          <li class="card-config-item">
+            <label for="config-inquisidor">Inquisidor</label>
+            <input type="number" id="config-inquisidor" data-card="inquisidor" min="0" max="10" value="5">
+          </li>
+
+          <li class="title-dlc-card-config-item">
+            <p>"Sombras do Palácio"</p>
+          </li>
+          <li class="card-config-item">
+            <label for="config-bufao">Bufão</label>
+            <input type="number" id="config-bufao" data-card="bufao" min="0" max="10" value="0">
+          </li>
+          <li class="card-config-item">
+            <label for="config-burocrata">Burocrata</label>
+            <input type="number" id="config-burocrata" data-card="burocrata" min="0" max="10" value="0">
+          </li>
+          <li class="card-config-item">
+            <label for="config-benfeitor">Benfeitor</label>
+            <input type="number" id="config-benfeitor" data-card="benfeitor" min="0" max="10" value="0">
+          </li>
+          <li class="card-config-item">
+            <label for="config-burgues">Burguês</label>
+            <input type="number" id="config-burgues" data-card="burgues" min="0" max="10" value="0">
+          </li>
+
+          <li class="title-dlc-card-config-item">
+            <p>"A Revolução"</p>
+          </li>
+          <li class="card-config-item">
+            <label for="config-marionetista">Marionetista</label>
+            <input type="number" id="config-marionetista" data-card="marionetista" min="0" max="10" value="0">
+          </li>
+          <li class="card-config-item">
+            <label for="config-diplomata">Diplomata</label>
+            <input type="number" id="config-diplomata" data-card="diplomata" min="0" max="10" value="0">
+          </li>
+          <li class="card-config-item">
+            <label for="config-mercenario">Mercenário</label>
+            <input type="number" id="config-mercenario" data-card="mercenario" min="0" max="10" value="0">
+          </li>
+          <li class="card-config-item">
+            <label for="config-bispo">Bispo</label>
+            <input type="number" id="config-bispo" data-card="bispo" min="0" max="10" value="0">
+          </li>
+          <li class="card-config-item">
+            <label for="config-tesoureiro">Tesoureiro</label>
+            <input type="number" id="config-tesoureiro" data-card="tesoureiro" min="0" max="10" value="0">
+          </li>
+          <li class="card-config-item">
+            <label for="config-vigilante">Vigilante</label>
+            <input type="number" id="config-vigilante" data-card="vigilante" min="0" max="10" value="0">
+          </li>
+
+          <li class="title-dlc-card-config-item">
+            <p>"Sombras do Asilo"</p>
+          </li>
+          <li class="card-config-item">
+            <label for="config-pistoleiro">Pistoleiro</label>
+            <input type="number" id="config-pistoleiro" data-card="pistoleiro" min="0" max="10" value="0">
+          </li>
+          <li class="card-config-item">
+            <label for="config-magnata">Magnata</label>
+            <input type="number" id="config-magnata" data-card="magnata" min="0" max="10" value="0">
+          </li>
+          <li class="card-config-item">
+            <label for="config-estrategista">Estrategista</label>
+            <input type="number" id="config-estrategista" data-card="estrategista" min="0" max="10" value="0">
+          </li>
+          <li class="card-config-item">
+            <label for="config-ladrao">Ladrão</label>
+            <input type="number" id="config-ladrao" data-card="ladrao" min="0" max="10" value="0">
+          </li>
+          <li class="card-config-item">
+            <label for="config-vigarista">Vigarista</label>
+            <input type="number" id="config-vigarista" data-card="vigarista" min="0" max="10" value="0">
+          </li>
+          <li class="card-config-item">
+            <label for="config-xerife">Xerife</label>
+            <input type="number" id="config-xerife" data-card="xerife" min="0" max="10" value="0">
+          </li>
+        </ul>
+        <button id="applyDeckConfigBtn" type="button">Aplicar e Resetar Jogo</button>
+      </div>
+    </div>
+
+    <div id="feedbackModal" class="modal-overlay" style="display: none;">
+      <div class="modal-actions-and-rules" style="width: 90%; max-width: 600px; height: 80vh;">
+        <button id="closeFeedbackBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+        <iframe src="https://tally.so/r/obV4Gb?transparentBackground=1" width="100%" height="100%" frameborder="0"
+          marginheight="0" marginwidth="0" title="Coup Master Feedback"></iframe>
+      </div>
+    </div>
+
+    <div id="ruleCardsModal" class="modal-overlay" style="display: none;">
+      <div class="modal-actions-and-rules rule-cards-modal">
+        <button id="closeRuleCardsBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+
+        <button id="rulePrevBtn" class="rule-nav-btn rule-nav-prev" type="button" aria-label="Carta anterior">‹</button>
+        <button id="ruleNextBtn" class="rule-nav-btn rule-nav-next" type="button" aria-label="Próxima carta">›</button>
+
+        <div id="ruleFlipCard" class="rule-flip-card" role="button" tabindex="0" aria-label="Alternar carta de regras">
+          <div class="rule-flip-card-inner">
+            <div class="rule-flip-card-face rule-flip-card-front">
+              <img id="ruleFrontImg" src="assets/img/guides/front-actions.png" alt="Regras dos personagens">
+            </div>
+            <div class="rule-flip-card-face rule-flip-card-back">
+              <img id="ruleBackImg" src="assets/img/guides/back-actions.png" alt="Resumo de turno">
+            </div>
+          </div>
+        </div>
+
+        <div id="ruleCardsCounter" class="rule-cards-counter" aria-live="polite">1 / 2</div>
+      </div>
+    </div>
+
+    <div id="altRulesModal" class="modal-overlay" style="display: none;">
+      <div class="modal-actions-and-rules rule-cards-modal">
+        <button id="closeAltRulesBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+
+        <button id="altRulePrevBtn" class="rule-nav-btn rule-nav-prev" type="button"
+          aria-label="Regra anterior">‹</button>
+        <button id="altRuleNextBtn" class="rule-nav-btn rule-nav-next" type="button"
+          aria-label="Próxima regra">›</button>
+
+        <div id="altRuleFlipCard" class="rule-flip-card" role="button" tabindex="0"
+          aria-label="Alternar regra alternativa">
+          <div class="rule-flip-card-inner">
+            <div class="rule-flip-card-face rule-flip-card-front">
+              <img id="altRuleFrontImg" src="assets/img/guides/alternative-rules1.png" alt="Regra alternativa">
+            </div>
+            <div class="rule-flip-card-face rule-flip-card-back">
+              <img id="altRuleBackImg" src="assets/img/guides/alternative-rules2.png" alt="Regra alternativa">
+            </div>
+          </div>
+        </div>
+
+        <div id="altRuleCounter" class="rule-cards-counter" aria-live="polite">1 / 4</div>
+      </div>
+    </div>
+
+    <audio id="bgmAudio" src="assets/sounds/soundtrack/bgm.mp3" preload="auto" loop></audio>
+    <audio id="resetVfxAudio" src="assets/sounds/vfx/reset-game.mp3" preload="auto"></audio>
+  </main>
+
+  <script type="module" src="js/three/app.js?v=player-badges"></script>
+</body>
+
+</html>
