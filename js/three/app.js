@@ -11,6 +11,8 @@ const playerTabsEl = document.getElementById('playerTabs');
 const drawBtn = document.getElementById('drawBtn');
 const goldCoinBtn = document.getElementById('goldCoinBtn');
 const silverCoinBtn = document.getElementById('silverCoinBtn');
+const asylumCardBtn = document.getElementById('asylumCardBtn');
+const religionCardBtn = document.getElementById('religionCardBtn');
 const diceBtn = document.getElementById('diceBtn');
 const rollBtn = document.getElementById('rollBtn');
 const clearObjectsBtn = document.getElementById('clearObjectsBtn');
@@ -76,6 +78,20 @@ const COIN_TEXTURES = {
   gold: 'assets/img/coins/moeda-ouro.png',
   silver: 'assets/img/coins/moeda-prata.png'
 };
+const SPECIAL_CARD_TEXTURES = {
+  asilo: {
+    front: 'assets/img/cards/religion/asilo-frente.png',
+    back: 'assets/img/cards/religion/asilo-verso.png'
+  },
+  religiao: {
+    front: 'assets/img/cards/religion/catolico.png',
+    back: 'assets/img/cards/religion/protestante.png'
+  }
+};
+const ASYLUM_CARD_AREA_SCALE = 2;
+const ASYLUM_CARD_ASPECT = 1024 / 736;
+const RELIGION_CARD_HEIGHT_SCALE = 0.7;
+const RELIGION_CARD_ASPECT = 880 / 1200;
 const DIE_SIZE = 0.42;
 const DECK_DRAG_HOLD_MS = 260;
 const CARD_RETURN_COOLDOWN_MS = 300;
@@ -85,6 +101,7 @@ const TABLE_STACK_RADIUS = 0.58;
 const TABLE_STACK_GAP = 0.012;
 const DECK_STACK_GAP = TABLE_STACK_GAP;
 const DECK_ROTATION_Y = 0;
+const OBJECT_ROTATION_STEP = Math.PI / 12;
 const DEFAULT_CAMERA_HEIGHT = 7.6;
 const DEFAULT_CAMERA_DISTANCE = 7.8;
 const DEFAULT_CAMERA_TARGET = new THREE.Vector3(0, 0, 0);
@@ -138,7 +155,20 @@ const CARD_LABELS = {
   tesoureiro: 'Tesoureiro',
   vigarista: 'Vigarista',
   vigilante: 'Vigilante',
-  xerife: 'Xerife'
+  xerife: 'Xerife',
+  asilo: 'Asilo',
+  religiao: 'Religião'
+};
+
+const SPECIAL_CARD_LABELS = {
+  asilo: {
+    front: 'Asilo',
+    back: 'Asilo'
+  },
+  religiao: {
+    front: 'Católico',
+    back: 'Protestante'
+  }
 };
 
 const DEFAULT_DECK_CONFIG = Object.fromEntries(
@@ -278,6 +308,8 @@ function init() {
   drawBtn.addEventListener('click', () => drawCardToPlayer(state.activePlayer));
   goldCoinBtn.addEventListener('click', () => spawnCoin('gold'));
   silverCoinBtn.addEventListener('click', () => spawnCoin('silver'));
+  asylumCardBtn.addEventListener('click', () => spawnSpecialCard('asilo'));
+  religionCardBtn.addEventListener('click', () => spawnSpecialCard('religiao'));
   diceBtn.addEventListener('click', () => spawnDie());
   rollBtn.addEventListener('click', rollDice);
   clearObjectsBtn.addEventListener('click', clearTableObjects);
@@ -725,6 +757,9 @@ function preloadVfxAudio() {
     resetVfxAudio.volume = app.vfxVolume;
     app.vfx.set('reset-game', resetVfxAudio);
   }
+  getVfxAudio('card-whoosh');
+  getVfxAudio('shuffle');
+  getVfxAudio('falling-coin');
 }
 
 // Cria e reaproveita instâncias de áudio dos efeitos sonoros.
@@ -765,6 +800,7 @@ function openAltRulesModal() {
 // Avança ou volta no carrossel das regras alternativas.
 function stepAltRuleCard(direction) {
   app.altRuleIndex = (app.altRuleIndex + direction + ALT_RULE_IMAGES.length) % ALT_RULE_IMAGES.length;
+  playVfx('card-whoosh');
   altRuleFlipCard?.classList.toggle('is-flipped');
   window.setTimeout(syncAltRuleImages, 260);
 }
@@ -814,6 +850,7 @@ function openRuleCardsModal() {
 function stepRuleCard(direction) {
   if (!app.ruleImages.length) return;
   app.ruleImageIndex = (app.ruleImageIndex + direction + app.ruleImages.length) % app.ruleImages.length;
+  playVfx('card-whoosh');
   ruleFlipCard?.classList.toggle('is-flipped');
   window.setTimeout(syncRuleCardImages, 260);
 }
@@ -1013,6 +1050,7 @@ function drawCardToPlayer(playerId, animateDraw = true) {
     updateHud();
     return;
   }
+  playVfx('card-whoosh');
 
   data.owner = playerId;
   data.location = `player-${playerId}`;
@@ -1106,13 +1144,24 @@ function getDeckDrawPosition(yOffset = 0.2) {
   );
 }
 
+// Retorna o topo atual do deck para cartas voltando em animacao.
+function getDeckReturnPosition() {
+  if (!app.deckMesh) return new THREE.Vector3(0, CARD_REST_Y + CARD_D, 0);
+
+  return new THREE.Vector3(
+    app.deckMesh.position.x,
+    app.deckMesh.position.y + getDeckHeight() / 2 + CARD_D,
+    app.deckMesh.position.z
+  );
+}
+
 // Cria mesh, corpo fisico e dados de runtime para uma carta.
 function createCardObject(data) {
-  const texturePath = data.faceUp
-    ? `assets/img/cards/${data.folder}/${data.type}.png`
-    : 'assets/img/cards/base/back.png';
-  const geo = createRoundedCardGeometry(CARD_W, CARD_H, CARD_D, CARD_RADIUS);
-  const mesh = new THREE.Mesh(geo, makeCardMaterials(texturePath, data.faceUp));
+  const texturePaths = getCardTexturePaths(data);
+  const dimensions = getCardDimensions(data);
+  const radius = CARD_RADIUS * Math.min(dimensions.width / CARD_W, dimensions.height / CARD_H);
+  const geo = createRoundedCardGeometry(dimensions.width, dimensions.height, CARD_D, radius);
+  const mesh = new THREE.Mesh(geo, makeCardMaterials(texturePaths.front, data.faceUp, null, texturePaths.back));
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   mesh.name = data.id;
@@ -1124,7 +1173,7 @@ function createCardObject(data) {
     .setLinearDamping(4.2)
     .setAngularDamping(7.2);
   const body = app.world.createRigidBody(bodyDesc);
-  const collider = RAPIER.ColliderDesc.cuboid(CARD_W / 2, CARD_D / 2, CARD_H / 2);
+  const collider = RAPIER.ColliderDesc.cuboid(dimensions.width / 2, CARD_D / 2, dimensions.height / 2);
   collider.setDensity(0.36);
   collider.setFriction(1.6);
   collider.setRestitution(0.08);
@@ -1145,6 +1194,41 @@ function createCardObject(data) {
 
   app.cards.set(data.id, card);
   return card;
+}
+
+// Resolve texturas de frente e verso para cartas comuns e cartas especiais.
+function getCardTexturePaths(data) {
+  const special = SPECIAL_CARD_TEXTURES[data.type];
+  if (special) return special;
+
+  return {
+    front: `assets/img/cards/${data.folder}/${data.type}.png`,
+    back: 'assets/img/cards/base/back.png'
+  };
+}
+
+// Retorna dimensoes especiais para cartas auxiliares que nao seguem o padrao.
+function getCardDimensions(data) {
+  if (data.type === 'asilo') {
+    const area = CARD_W * CARD_H * ASYLUM_CARD_AREA_SCALE;
+    return {
+      width: Math.sqrt(area * ASYLUM_CARD_ASPECT),
+      height: Math.sqrt(area / ASYLUM_CARD_ASPECT)
+    };
+  }
+
+  if (data.type === 'religiao') {
+    const height = CARD_H * RELIGION_CARD_HEIGHT_SCALE;
+    return {
+      width: height * RELIGION_CARD_ASPECT,
+      height
+    };
+  }
+
+  return {
+    width: CARD_W,
+    height: CARD_H
+  };
 }
 
 // Gera a geometria extrudada da carta com cantos arredondados reais.
@@ -1281,6 +1365,27 @@ function spawnCoin(type = 'gold') {
 
   app.scene.add(mesh);
   app.objects.set(id, { id, kind: mesh.userData.kind, mesh, body, collider: bodyCollider });
+  playVfx('falling-coin');
+  updateHud();
+}
+
+// Cria uma carta especial da DLC de religião diretamente na mesa.
+function spawnSpecialCard(type) {
+  const data = {
+    id: `special-${type}-${app.objectId++}`,
+    type,
+    folder: 'religion',
+    faceUp: true,
+    location: 'table',
+    owner: null,
+    specialCard: true
+  };
+  state.tableCards.push(data);
+
+  const card = createCardObject(data);
+  const position = new THREE.Vector3(random(-0.45, 0.45), 0.42, random(-0.45, 0.45));
+  placeCard(card, position, random(-0.22, 0.22), true);
+  playVfx('card-whoosh');
   updateHud();
 }
 
@@ -1381,9 +1486,9 @@ function makeDieFaceTexture(value) {
 }
 
 // Cria materiais da lateral, frente e verso de uma carta.
-function makeCardMaterials(texturePath, faceUp, edgeColor = null) {
-  const faceTexture = loadTexture(texturePath);
-  const backTexture = loadTexture('assets/img/cards/base/back.png');
+function makeCardMaterials(frontPath, faceUp, edgeColor = null, backPath = 'assets/img/cards/base/back.png') {
+  const frontTexture = loadTexture(frontPath);
+  const backTexture = loadTexture(backPath);
   const edge = new THREE.MeshStandardMaterial({
     color: edgeColor ?? (faceUp ? 0x161d28 : 0x0e1420),
     roughness: 0.7,
@@ -1391,12 +1496,12 @@ function makeCardMaterials(texturePath, faceUp, edgeColor = null) {
     side: THREE.DoubleSide
   });
   const face = new THREE.MeshStandardMaterial({
-    map: faceTexture,
+    map: faceUp ? frontTexture : backTexture,
     roughness: 0.58,
     metalness: 0.02
   });
   const back = new THREE.MeshStandardMaterial({
-    map: backTexture,
+    map: faceUp ? backTexture : frontTexture,
     roughness: 0.66,
     metalness: 0.02
   });
@@ -1482,10 +1587,8 @@ function setActivePlayer(playerId) {
 
 // Atualiza o material da carta quando ela vira ou muda de dono.
 function refreshCardMaterial(card) {
-  const texturePath = card.data.faceUp
-    ? `assets/img/cards/${card.data.folder}/${card.data.type}.png`
-    : 'assets/img/cards/base/back.png';
-  card.mesh.material = makeCardMaterials(texturePath, card.data.faceUp);
+  const texturePaths = getCardTexturePaths(card.data);
+  card.mesh.material = makeCardMaterials(texturePaths.front, card.data.faceUp, null, texturePaths.back);
 }
 
 // Resolve clique inicial em deck, carta, pilha ou objeto.
@@ -1514,10 +1617,10 @@ function onPointerDown(event) {
     const stack = getCardStack(hitCard);
     let card = stack ? getTopStackCard(hitCard) : hitCard;
 
-    if (isCardDoubleClick(card, event)) {
+    if (!isCardOverDeckGesture(card, event) && isCardDoubleClick(card, event)) {
       event.preventDefault();
       app.lastCardClick = null;
-      tryReturnCardToDeck(card);
+      tryReturnCardToDeck(card, true);
       return;
     }
 
@@ -1622,6 +1725,11 @@ function getHoverLabel(piece) {
 
 // Monta o texto de hover para carta solta ou pilha aberta.
 function getCardHoverLabel(card) {
+  if (card.data.specialCard) {
+    const labels = SPECIAL_CARD_LABELS[card.data.type];
+    return card.data.faceUp ? labels?.front : labels?.back;
+  }
+
   if (!card.data.faceUp) return 'Carta fechada';
 
   const stack = getCardStack(card);
@@ -2056,23 +2164,35 @@ function finishObjectDrag(object, wasDragged) {
 // Fallback de duplo clique nativo para devolver carta ao deck.
 function onDoubleClick(event) {
   setPointer(event);
+  if (isPointerOverDeck(event)) return;
+
   const hits = getIntersections(getCardMeshes());
   const hit = hits[0];
   if (!hit) return;
 
   const card = app.cards.get(hit.object.userData.cardId);
-  if (card) tryReturnCardToDeck(card);
+  if (card && !card.target) tryReturnCardToDeck(card, true);
+}
+
+// Evita que cliques no deck atinjam cartas recém-compradas ainda em trânsito.
+function isCardOverDeckGesture(card, event) {
+  return Boolean(card?.target) && isPointerOverDeck(event);
 }
 
 // Devolve carta ao deck respeitando cooldown contra cliques duplicados.
-function tryReturnCardToDeck(card) {
+function tryReturnCardToDeck(card, animated = false) {
   if (!card || card.data.location === 'deck') return false;
+  if (card.data.specialCard) return false;
 
   const now = performance.now();
   if (now - app.lastCardReturnAt < CARD_RETURN_COOLDOWN_MS) return false;
 
   app.lastCardReturnAt = now;
-  returnCardToDeck(card);
+  if (animated) {
+    animateCardReturnToDeck(card);
+  } else {
+    returnCardToDeck(card);
+  }
   return true;
 }
 
@@ -2092,6 +2212,12 @@ function onKeyDown(event) {
   }
 
   if (event.key === 'Delete' || event.key === 'Backspace') {
+    if (app.selectedCard?.data.specialCard) {
+      event.preventDefault();
+      removeSpecialCard(app.selectedCard);
+      return;
+    }
+
     if (!app.selectedObject) return;
     event.preventDefault();
     removeTableObject(app.selectedObject);
@@ -2100,6 +2226,13 @@ function onKeyDown(event) {
 
   if (event.key.toLowerCase() === 'r') {
     if (!shuffleHoveredCards()) return;
+    event.preventDefault();
+    return;
+  }
+
+  if (event.key.toLowerCase() === 'q' || event.key.toLowerCase() === 'e') {
+    const direction = event.key.toLowerCase() === 'q' ? 1 : -1;
+    if (!rotateSelectedPiece(direction)) return;
     event.preventDefault();
     return;
   }
@@ -2136,6 +2269,61 @@ function getPlayerCameraPosition(playerId) {
     DEFAULT_CAMERA_HEIGHT,
     Math.sin(angle) * DEFAULT_CAMERA_DISTANCE
   );
+}
+
+// Gira o objeto sob o mouse ou selecionado com os atalhos Q/E.
+function rotateSelectedPiece(direction) {
+  const piece = app.hoveredPiece || app.selectedCard || app.selectedObject;
+  if (!piece) return false;
+  const delta = direction * OBJECT_ROTATION_STEP;
+
+  if (piece.kind === 'deck') {
+    rotateDeck(delta);
+    return true;
+  }
+
+  if (piece.data) {
+    rotateCardPiece(piece, delta);
+    return true;
+  }
+
+  if (piece.body && piece.mesh) {
+    rotatePhysicsObject(piece, delta);
+    return true;
+  }
+
+  return false;
+}
+
+// Rotaciona o deck e mantém aro/collider sincronizados.
+function rotateDeck(delta) {
+  if (!app.deckMesh) return;
+  app.deckMesh.rotation.y += delta;
+  syncDeckRim();
+  updateDeckCollider();
+}
+
+// Rotaciona uma carta individual ou a pilha inteira a que ela pertence.
+function rotateCardPiece(card, delta) {
+  if (card.target || card.flip || card.data.location === 'deck') return;
+
+  const stack = getCardStack(card);
+  if (stack && stack.cards.length > 1) {
+    stack.rotationY += delta;
+    layoutTableStack(stack, false);
+    return;
+  }
+
+  rotatePhysicsObject(card, delta);
+}
+
+// Aplica uma rotação horizontal mantendo posição e física estáveis.
+function rotatePhysicsObject(piece, delta) {
+  const yaw = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, delta, 0));
+  const quat = yaw.multiply(piece.mesh.quaternion.clone());
+  piece.mesh.quaternion.copy(quat);
+  piece.body.setRotation(quat, true);
+  piece.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
 }
 
 // Anima a carta virando horizontalmente e troca a face no meio.
@@ -2268,6 +2456,49 @@ function returnCardToDeck(card) {
   updateHud();
 }
 
+// Anima uma carta voltando ao deck antes de inseri-la no baralho.
+function animateCardReturnToDeck(card) {
+  if (!app.deckMesh) {
+    returnCardToDeck(card);
+    return;
+  }
+
+  clearPointerHover();
+  setPieceSensor(card, true);
+  const oldOwner = card.data.owner;
+  removeCardFromCollections(card);
+  card.data.owner = null;
+  card.data.location = 'returning-deck';
+  card.data.faceUp = false;
+  refreshCardMaterial(card);
+  if (app.selectedCard?.id === card.id) app.selectedCard = null;
+  if (oldOwner) layoutPlayerHand(oldOwner, 0.12);
+
+  const target = getDeckReturnPosition();
+  playVfx('card-whoosh');
+  tossTo(card, target, app.deckMesh.rotation.y, 0.42, () => {
+    finalizeAnimatedCardReturn(card);
+  });
+  updateHud();
+}
+
+// Conclui a devolução animada, removendo a carta visual e atualizando o deck.
+function finalizeAnimatedCardReturn(card) {
+  if (!app.cards.has(card.id)) return;
+
+  setPieceSensor(card, false);
+  card.data.owner = null;
+  card.data.location = 'deck';
+  card.data.faceUp = false;
+  state.deck.push(card.data);
+
+  app.scene.remove(card.mesh);
+  app.world.removeRigidBody(card.body);
+  app.cards.delete(card.id);
+  autoShuffleDeckAfterReturn();
+  updateHud();
+}
+
 // Devolve uma pilha fechada inteira ao deck sem revelar suas cartas.
 function returnTableStackToDeck(stack) {
   clearPointerHover();
@@ -2305,8 +2536,9 @@ function returnTableStackToDeck(stack) {
 
 // Embaralha automaticamente sempre que cartas fechadas voltam para o deck.
 function autoShuffleDeckAfterReturn() {
-  if (state.deck.length <= 1) return;
-  shuffleDeck();
+  if (state.deck.length === 0) return;
+  playVfx('shuffle');
+  if (state.deck.length > 1) shuffleDeck();
 }
 
 // Remove a carta de maos, mesa e pilhas antes de mover.
@@ -2326,6 +2558,8 @@ function getCardStack(card) {
 
 // Procura uma pilha de mesa com mesmo lado visivel e proximidade.
 function findCompatibleTableStack(card, position) {
+  if (card.data.specialCard) return null;
+
   const existingStack = app.tableStacks.find((stack) => {
     if (stack.faceUp !== card.data.faceUp) return false;
     return Math.hypot(stack.position.x - position.x, stack.position.z - position.z) < TABLE_STACK_RADIUS;
@@ -2334,6 +2568,7 @@ function findCompatibleTableStack(card, position) {
 
   const targetData = state.tableCards.find((data) => {
     if (data.id === card.id || data.stackId || data.faceUp !== card.data.faceUp) return false;
+    if (data.specialCard) return false;
 
     const target = app.cards.get(data.id);
     if (!target) return false;
@@ -2554,8 +2789,21 @@ function removeTableObject(object) {
   updateHud();
 }
 
+// Remove cartas auxiliares da mesa, como Asilo e Religião.
+function removeSpecialCard(card) {
+  if (!card?.data.specialCard) return;
+
+  clearPointerHover();
+  removeCardFromCollections(card);
+  app.scene.remove(card.mesh);
+  app.world.removeRigidBody(card.body);
+  app.cards.delete(card.id);
+  if (app.selectedCard?.id === card.id) app.selectedCard = null;
+  updateHud();
+}
+
 // Anima uma carta em arco ate uma posicao alvo.
-function tossTo(card, target, rotationY, lift = 0.25) {
+function tossTo(card, target, rotationY, lift = 0.25, onComplete = null) {
   const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rotationY, 0));
   const start = card.mesh.position.clone();
   const high = start.clone().lerp(target, 0.45);
@@ -2564,7 +2812,7 @@ function tossTo(card, target, rotationY, lift = 0.25) {
   card.body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true);
   card.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
   card.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-  card.target = { start, high, end: target.clone(), progress: 0 };
+  card.target = { start, high, end: target.clone(), progress: 0, onComplete };
   card.targetQuat = quat;
 }
 
@@ -2752,7 +3000,9 @@ function updateCardTweens(dt) {
     if (card.target.progress >= 1) {
       card.body.setNextKinematicTranslation(card.target.end);
       card.body.setNextKinematicRotation(card.targetQuat);
+      const onComplete = card.target.onComplete;
       card.target = null;
+      onComplete?.();
     }
   });
 }
