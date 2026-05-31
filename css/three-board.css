@@ -89,12 +89,12 @@ body,
 .quick-actions {
   left: 50%;
   bottom: max(14px, env(safe-area-inset-bottom));
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  display: flex;
   gap: 8px;
   padding: 8px;
   border-radius: 8px;
-  width: min(860px, calc(100vw - 28px));
+  width: auto;
+  max-width: calc(100vw - 28px);
   transform: translateX(-50%);
 }
 
@@ -160,10 +160,25 @@ button:focus-visible {
 }
 
 .quick-actions button {
-  padding: 0 12px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  place-items: center;
+  padding: 7px;
 }
 
-#goldCoinBtn {
+.quick-actions button img {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.quick-actions button img.mirror-x {
+  transform: scaleX(-1);
+}
+
+/* #goldCoinBtn {
   border-color: rgba(246, 195, 91, 0.48);
   color: #ffe6af;
 }
@@ -172,7 +187,7 @@ button:focus-visible {
 #goldCoinBtn:focus-visible {
   border-color: rgba(246, 195, 91, 0.86);
   background: rgba(246, 195, 91, 0.16);
-}
+} */
 
 #silverCoinBtn {
   border-color: rgba(212, 224, 238, 0.42);
@@ -602,7 +617,8 @@ button:focus-visible {
 
   .quick-actions {
     bottom: max(14px, env(safe-area-inset-bottom));
-    grid-template-columns: repeat(3, 1fr);
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .player-tabs {

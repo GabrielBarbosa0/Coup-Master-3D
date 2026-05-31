@@ -18,6 +18,11 @@ const rollBtn = document.getElementById('rollBtn');
 const clearObjectsBtn = document.getElementById('clearObjectsBtn');
 const shuffleBtn = document.getElementById('shuffleBtn');
 const dealBtn = document.getElementById('dealBtn');
+const flipSelectionBtn = document.getElementById('flipSelectionBtn');
+const rotateLeftBtn = document.getElementById('rotateLeftBtn');
+const rotateRightBtn = document.getElementById('rotateRightBtn');
+const deleteSelectionBtn = document.getElementById('deleteSelectionBtn');
+const focusCameraBtn = document.getElementById('focusCameraBtn');
 const resetBtn = document.getElementById('resetBtn3d');
 const infoBtn = document.getElementById('infoBtn3d');
 const altRulesBtn = document.getElementById('altRulesBtn3d');
@@ -98,6 +103,7 @@ const CARD_RETURN_COOLDOWN_MS = 300;
 const LIMBO_Y = -2.2;
 const LIMBO_RADIUS = TABLE_RADIUS + 2.2;
 const TABLE_STACK_RADIUS = 0.58;
+const TABLE_STACK_MERGE_RADIUS = 0.72;
 const TABLE_STACK_GAP = 0.012;
 const DECK_STACK_GAP = TABLE_STACK_GAP;
 const DECK_ROTATION_Y = 0;
@@ -315,6 +321,11 @@ function init() {
   clearObjectsBtn.addEventListener('click', clearTableObjects);
   shuffleBtn.addEventListener('click', shuffleDeck);
   dealBtn.addEventListener('click', dealInitialHands);
+  flipSelectionBtn.addEventListener('click', flipSelectedCards);
+  rotateLeftBtn.addEventListener('click', () => rotateSelectedPiece(1));
+  rotateRightBtn.addEventListener('click', () => rotateSelectedPiece(-1));
+  deleteSelectionBtn.addEventListener('click', deleteSelectedPiece);
+  focusCameraBtn.addEventListener('click', focusTableCamera);
   resetBtn.addEventListener('pointerdown', playResetSoundFromButton);
   resetBtn.addEventListener('click', triggerResetFromButton);
   window.addEventListener('resize', resize);
@@ -758,7 +769,6 @@ function preloadVfxAudio() {
     app.vfx.set('reset-game', resetVfxAudio);
   }
   getVfxAudio('card-whoosh');
-  getVfxAudio('shuffle');
   getVfxAudio('falling-coin');
 }
 
@@ -2117,7 +2127,7 @@ function startTableStackDrag(event) {
   }
 }
 
-// Finaliza o arrasto de pilha, juntando pilhas fechadas ao deck quando cabivel.
+// Finaliza o arrasto de pilha, juntando pilhas fechadas ao deck ou pilhas compativeis.
 function finishTableStackDrag(stack, event) {
   const origin = app.dragOrigin;
   app.dragOrigin = null;
@@ -2131,6 +2141,12 @@ function finishTableStackDrag(stack, event) {
     if (origin?.position) {
       moveTableStack(stack, origin.position.x, origin.position.z);
     }
+  }
+
+  const targetStack = findCompatibleTableStackForStack(stack);
+  if (targetStack) {
+    mergeTableStacks(stack, targetStack);
+    return;
   }
 
   stack.cards.forEach((id) => setPieceSensor(app.cards.get(id), false));
@@ -2212,15 +2228,8 @@ function onKeyDown(event) {
   }
 
   if (event.key === 'Delete' || event.key === 'Backspace') {
-    if (app.selectedCard?.data.specialCard) {
-      event.preventDefault();
-      removeSpecialCard(app.selectedCard);
-      return;
-    }
-
-    if (!app.selectedObject) return;
+    if (!deleteSelectedPiece()) return;
     event.preventDefault();
-    removeTableObject(app.selectedObject);
     return;
   }
 
@@ -2238,16 +2247,34 @@ function onKeyDown(event) {
   }
 
   if (event.key.toLowerCase() !== 'f') return;
-  if (!app.selectedCard) return;
-  if (app.selectedCard.data.location === 'deck') return;
-
+  if (!flipSelectedCards()) return;
   event.preventDefault();
+}
+
+// Remove o objeto ou carta especial selecionada, como o atalho Delete/Backspace.
+function deleteSelectedPiece() {
+  if (app.selectedCard?.data.specialCard) {
+    removeSpecialCard(app.selectedCard);
+    return true;
+  }
+
+  if (!app.selectedObject) return false;
+  removeTableObject(app.selectedObject);
+  return true;
+}
+
+// Vira a carta ou pilha selecionada, como o atalho F.
+function flipSelectedCards() {
+  if (!app.selectedCard) return false;
+  if (app.selectedCard.data.location === 'deck') return false;
+
   const stack = getCardStack(app.selectedCard);
   if (stack && stack.cards.length > 1) {
     flipTableStack(stack);
   } else {
     flipCard(app.selectedCard);
   }
+  return true;
 }
 
 // Inicia animacao de foco da camera para o jogador ativo.
@@ -2537,7 +2564,6 @@ function returnTableStackToDeck(stack) {
 // Embaralha automaticamente sempre que cartas fechadas voltam para o deck.
 function autoShuffleDeckAfterReturn() {
   if (state.deck.length === 0) return;
-  playVfx('shuffle');
   if (state.deck.length > 1) shuffleDeck();
 }
 
@@ -2613,6 +2639,51 @@ function addCardToTableStack(card, stack) {
   }
 
   layoutTableStack(stack);
+}
+
+// Procura outra pilha com mesma orientacao para receber a pilha arrastada.
+function findCompatibleTableStackForStack(sourceStack) {
+  if (!sourceStack) return null;
+
+  return app.tableStacks.find((stack) => {
+    if (stack.id === sourceStack.id) return false;
+    if (stack.faceUp !== sourceStack.faceUp) return false;
+    return Math.hypot(
+      stack.position.x - sourceStack.position.x,
+      stack.position.z - sourceStack.position.z
+    ) < TABLE_STACK_MERGE_RADIUS;
+  }) || null;
+}
+
+// Une duas pilhas de cartas mantendo a pilha solta no topo da pilha alvo.
+function mergeTableStacks(sourceStack, targetStack) {
+  const sourceTimer = app.stackShuffleTimers.get(sourceStack.id);
+  if (sourceTimer) {
+    window.clearTimeout(sourceTimer);
+    app.stackShuffleTimers.delete(sourceStack.id);
+  }
+
+  sourceStack.cards.forEach((id) => {
+    const card = app.cards.get(id);
+    if (!card) return;
+
+    setPieceSensor(card, false);
+    card.target = null;
+    card.flip = null;
+    card.data.stackId = targetStack.id;
+    card.data.owner = null;
+    card.data.location = 'table';
+    card.data.faceUp = targetStack.faceUp;
+    refreshCardMaterial(card);
+
+    if (!targetStack.cards.includes(id)) {
+      targetStack.cards.push(id);
+    }
+  });
+
+  app.tableStacks = app.tableStacks.filter(stack => stack.id !== sourceStack.id);
+  layoutTableStack(targetStack, true);
+  updateHud();
 }
 
 // Embaralha a ordem de uma pilha de mesa com uma pequena animacao visual.

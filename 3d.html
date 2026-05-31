@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/three-board.css">
+  <link rel="stylesheet" href="css/three-board.css?v=quick-icons">
   <script type="importmap">
     {
       "imports": {
@@ -76,16 +76,45 @@
     <nav id="playerTabs" class="player-tabs" aria-label="Jogadores"></nav>
 
     <section class="hud quick-actions" aria-label="Controles">
-      <button id="drawBtn" type="button">Comprar</button>
-      <button id="goldCoinBtn" type="button">Ouro</button>
-      <button id="silverCoinBtn" type="button">Prata</button>
-      <button id="asylumCardBtn" type="button">Asilo</button>
-      <button id="religionCardBtn" type="button">Religião</button>
+      <button id="drawBtn" type="button" title="Comprar" aria-label="Comprar" style="display: none;">
+        <img src="assets/img/icons/buy-cards.svg" alt="">
+      </button>
+      <button id="goldCoinBtn" type="button" title="Ouro" aria-label="Ouro">
+        <img src="assets/img/icons/v-romano.svg" alt="">
+      </button>
+      <button id="silverCoinBtn" type="button" title="Prata" aria-label="Prata">
+        <img src="assets/img/icons/i-romano.svg" alt="">
+      </button>
+      <button id="asylumCardBtn" type="button" title="Asilo" aria-label="Asilo">
+        <img src="assets/img/icons/church.svg" alt="">
+      </button>
+      <button id="religionCardBtn" type="button" title="Religião" aria-label="Religião">
+        <img src="assets/img/icons/shield-cross.svg" alt="">
+      </button>
       <button id="diceBtn" type="button" style="display: none;">Dado</button>
       <button id="rollBtn" type="button" style="display: none;">Rolar</button>
-      <button id="clearObjectsBtn" type="button">Limpar</button>
+      <button id="clearObjectsBtn" type="button" title="Limpar" aria-label="Limpar">
+        <img src="assets/img/icons/mop.svg" alt="">
+      </button>
       <button id="shuffleBtn" type="button" style="display: none;">Embaralhar</button>
-      <button id="dealBtn" type="button">Distribuir</button>
+      <button id="dealBtn" type="button" title="Distribuir" aria-label="Distribuir">
+        <img src="assets/img/icons/distribute-cards.svg" alt="">
+      </button>
+      <button id="flipSelectionBtn" type="button" title="Virar" aria-label="Virar carta">
+        <img src="assets/img/icons/flip.svg" alt="">
+      </button>
+      <button id="rotateLeftBtn" type="button" title="Girar esquerda" aria-label="Girar para esquerda">
+        <img src="assets/img/icons/arrow.svg" alt="">
+      </button>
+      <button id="rotateRightBtn" type="button" title="Girar direita" aria-label="Girar para direita">
+        <img class="mirror-x" src="assets/img/icons/arrow.svg" alt="">
+      </button>
+      <button id="deleteSelectionBtn" type="button" title="Deletar" aria-label="Deletar seleção">
+        <img src="assets/img/icons/delete.svg" alt="">
+      </button>
+      <button id="focusCameraBtn" type="button" title="Focar câmera" aria-label="Focar câmera">
+        <img src="assets/img/icons/focus.svg" alt="">
+      </button>
     </section>
 
 
@@ -308,7 +337,7 @@
     <audio id="resetVfxAudio" src="assets/sounds/vfx/reset-game.mp3" preload="auto"></audio>
   </main>
 
-  <script type="module" src="js/three/app.js"></script>
+  <script type="module" src="js/three/app.js?v=stack-merge"></script>
 </body>
 
 </html>
