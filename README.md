@@ -22,6 +22,16 @@ Estado atual:
 
 ## Funcionalidades
 
+### Base Online
+
+- Login em `login.html` com Google Authentication via Firebase.
+- Lobby em `lobby.html` para criar sala com codigo curto ou entrar em uma sala existente.
+- Realtime Database registra jogadores em `rooms/{roomCode}/players/{uid}`.
+- Por enquanto, somente a lista de jogadores conectados e sincronizada.
+- A mesa `3d.html` exige login e sala valida antes de iniciar o modo Three.js.
+- No modo casual, criar ou entrar em sala redireciona direto para a mesa.
+- Cartas, moedas, objetos, deck e fisica ainda continuam locais no MVP atual.
+
 ### Mesa 3D
 
 - Mesa octogonal com area central e ate 8 zonas de jogador.
@@ -139,6 +149,14 @@ http://127.0.0.1:4173/3d.html
 
 Se voce ja usa outro servidor estatico, basta servir a raiz do repositorio e acessar `3d.html`.
 
+Para o fluxo online, abra primeiro:
+
+```txt
+http://127.0.0.1:4173/login.html
+```
+
+Depois do login, o lobby cria ou entra em uma sala e redireciona direto para `3d.html?room=CODIGO`.
+
 ## Estrutura Principal
 
 ```txt
@@ -181,6 +199,7 @@ Coup-Master/
 | Renderizacao 3D | Three.js |
 | Controles de camera | OrbitControls |
 | Fisica | Rapier 3D |
+| Online | Firebase Authentication e Realtime Database |
 | Assets | PNG, SVG, audio e canvas procedural |
 
 ## Desenvolvimento

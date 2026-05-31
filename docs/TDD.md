@@ -56,7 +56,40 @@ Pastas antigas do modo 2D ou materiais nao usados no 3D podem ser removidas quan
 | Renderizacao | Three.js | Cena, camera, luzes, mesa e meshes |
 | Controles | OrbitControls | Rotacao, zoom e pan |
 | Fisica | Rapier 3D | Corpos, colliders, moedas, cartas, pilhas, extras e deck |
+| Online | Firebase Auth + Realtime Database | Login Google, lobby e presenca de jogadores |
 | Assets | PNG/SVG/canvas/audio | Cartas, moedas, icones, guias, sons e dado procedural |
+
+## 3.1 Base Online
+
+A base online fica isolada em `js/firebase/` para manter `js/three/app.js` focado na mesa 3D.
+
+Arquivos:
+
+- `login.html`: tela inicial com login Google.
+- `lobby.html`: cria sala curta ou entra em sala existente e redireciona direto para a mesa casual.
+- `js/firebase/firebase-config.js`: inicializa Firebase App, Auth e Realtime Database.
+- `js/firebase/auth-service.js`: login, logout, observacao de sessao e guard de autenticacao.
+- `js/firebase/room-service.js`: criacao de sala, entrada de jogador e assinatura da lista de jogadores.
+- `js/three/boot.js`: valida login e sala antes de importar `app.js`.
+
+Estrutura inicial no Realtime Database:
+
+```txt
+rooms/{roomCode}
+|-- code
+|-- createdAt
+|-- createdBy
+|-- status
+`-- players/{uid}
+    |-- uid
+    |-- displayName
+    |-- photoURL
+    |-- connected
+    |-- joinedAt
+    `-- lastSeen
+```
+
+Somente a lista de jogadores conectados e sincronizada nesta etapa. O lobby casual nao segura jogadores em uma sala de espera; criar ou entrar em sala abre `3d.html?room=CODIGO`. Cartas, moedas, pilhas, deck, objetos de mesa e fisica continuam locais.
 
 ## 4. Estado Local
 
@@ -334,7 +367,7 @@ Decisao atual:
 
 Os botoes inferiores devem manter proporcao quadrada semelhante aos botoes superiores. Icones SVG devem ser brancos e com fundo transparente.
 
-Perfis de jogador podem ser atualizados por `window.CoupMaster3D.setPlayerProfile(playerId, { displayName, photoURL })`, mantendo a futura integracao com Google Auth isolada do sistema visual.
+Perfis de jogador podem ser atualizados por `window.CoupMaster3D.setPlayerProfile(playerId, { displayName, photoURL })`. O `boot.js` usa esse gancho para refletir a lista online nos badges locais sem acoplar Firebase ao render 3D.
 
 ## 12. Assets
 
@@ -384,7 +417,7 @@ Essa divisao deve ser feita com testes manuais a cada etapa, porque muitos compo
 
 ## 15. Sincronizacao Futura
 
-Multiplayer ainda nao faz parte do MVP local.
+Multiplayer completo ainda nao faz parte do MVP local. A base Firebase atual sincroniza apenas autenticacao, lobby, sala e presenca/lista de jogadores.
 
 Quando for implementado, sincronizar eventos discretos:
 

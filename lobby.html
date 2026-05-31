@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>Lobby | Coup Master 3D</title>
+  <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/online.css">
+</head>
+
+<body>
+  <main class="online-shell">
+    <section class="online-panel" aria-labelledby="lobbyTitle">
+      <h1 id="lobbyTitle">Lobby</h1>
+
+      <div class="profile-row">
+        <img id="userAvatar" src="assets/img/logo/favicon-coup-master.png" alt="">
+        <span id="userName">Jogador</span>
+        <button id="signOutBtn" class="secondary-btn" type="button">Sair</button>
+      </div>
+
+      <div class="online-actions">
+        <button id="createRoomBtn" class="primary-btn" type="button">Criar sala</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <form id="joinRoomForm" class="room-form">
+        <label for="roomCodeInput">Entrar em sala existente</label>
+        <input id="roomCodeInput" name="roomCode" type="text" maxlength="5" autocomplete="off" placeholder="CODIGO">
+        <button class="secondary-btn" type="submit">Entrar na sala</button>
+      </form>
+
+      <div id="lobbyStatus" class="status-text" role="status" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script type="module" src="js/firebase/lobby-page.js"></script>
+</body>
+
+</html>

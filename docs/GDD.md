@@ -29,6 +29,18 @@ O modo 3D deve parecer um tabletop digital, nao uma tela 2D com enfeites. A refe
 | Touch em evolucao | Gestos nativos de toque ja funcionam em parte; botoes por icone devem cobrir acoes sem teclado. |
 | Evolucao incremental | Primeiro consolidar o nucleo local; multiplayer e ranqueado ficam para fases futuras. |
 
+## 2.1 Base Online
+
+O projeto agora possui uma primeira camada online para autenticacao, lobby e presenca de jogadores:
+
+- Login Google em `login.html`.
+- Lobby em `lobby.html` para criar uma sala curta ou entrar por codigo.
+- Jogadores salvos em `rooms/{roomCode}/players/{uid}` no Firebase Realtime Database.
+- Lista de jogadores conectados sincronizada na mesa.
+- No modo casual, criar ou entrar em uma sala leva direto para a mesa 3D, sem sala de espera intermediaria.
+
+Essa etapa nao sincroniza cartas, moedas, pilhas, deck, extras ou fisica. A mesa 3D continua sendo um sandbox local enquanto o fluxo online amadurece.
+
 ## 3. Mesa E Jogadores
 
 O tabuleiro atual e uma mesa octogonal com ate 8 slots de jogador. Cada slot fica alinhado a face interna correspondente do octogono, com margem visual para nao encostar nas bordas.

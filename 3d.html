@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://www.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/three-board.css?v=quick-icons">
   <script type="importmap">
@@ -28,6 +29,10 @@
     <canvas id="threeCanvas"></canvas>
 
     <section class="hud reset-actions" aria-label="Reset">
+      <button id="leaveRoomBtn3d" class="settings-btn leave-room-btn" type="button" title="Sair da sala"
+        aria-label="Sair da sala">
+        <img src="assets/img/icons/logout.svg" alt="">
+      </button>
       <button id="resetBtn3d" class="settings-btn reset-icon-btn" type="button" title="Resetar mesa"
         aria-label="Resetar mesa">
         <img src="assets/img/icons/cached.svg" alt="">
@@ -337,7 +342,7 @@
     <audio id="resetVfxAudio" src="assets/sounds/vfx/reset-game.mp3" preload="auto"></audio>
   </main>
 
-  <script type="module" src="js/three/app.js?v=player-badges"></script>
+  <script type="module" src="js/three/boot.js"></script>
 </body>
 
 </html>

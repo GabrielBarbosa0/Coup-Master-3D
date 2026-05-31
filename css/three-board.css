@@ -131,6 +131,8 @@ button {
   z-index: 10;
   top: max(14px, env(safe-area-inset-top));
   left: max(14px, env(safe-area-inset-left));
+  display: flex;
+  gap: 8px;
   padding: 8px;
   border-radius: 8px;
 }
