@@ -21,9 +21,10 @@ if (!requestedRoom || !(await roomExists(requestedRoom))) {
 }
 
 localStorage.setItem('coupMaster3dRoom', requestedRoom);
-await markPlayerConnected(requestedRoom, user);
+const playerSeat = await markPlayerConnected(requestedRoom, user);
 window.CoupMaster3DOnline = {
   roomCode: requestedRoom,
+  playerSeat,
   user
 };
 
@@ -41,9 +42,11 @@ await import('./app.js');
 subscribeRoomPlayers(requestedRoom, (players) => {
   players
     .filter((player) => player.connected)
+    .sort((a, b) => (a.seat || 99) - (b.seat || 99))
     .slice(0, 8)
     .forEach((player, index) => {
-      window.CoupMaster3D?.setPlayerProfile(index + 1, {
+      const seat = player.seat || index + 1;
+      window.CoupMaster3D?.setPlayerProfile(seat, {
         displayName: player.displayName,
         photoURL: player.photoURL
       });

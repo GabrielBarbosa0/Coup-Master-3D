@@ -50,9 +50,10 @@ Elementos atuais:
 - Mesa octogonal com area central.
 - Oito zonas de jogador, de P1 a P8.
 - Destaque verde para o jogador ativo.
-- Seletor P1 a P8 na lateral esquerda.
+- Assento local definido pela sala online, sem seletor manual P1-P8 para acessar a visao de outros jogadores.
+- Interacao fisica com cartas, pilhas e objetos em qualquer slot continua permitida.
 - Nome e avatar flutuante para cada jogador ao redor da mesa.
-- Botao de reset acima do seletor de jogadores.
+- Botoes de sair da sala e reset no topo esquerdo.
 - Barra superior direita com icones de utilidades.
 - Barra inferior com acoes rapidas por icone.
 - Deck central.
@@ -190,8 +191,8 @@ Dado:
 A HUD atual tem:
 
 - Contador de deck, cartas na mesa e objetos abaixo da barra superior direita.
-- Botao de reset no topo esquerdo, acima do seletor de jogadores.
-- Selecao P1 a P8 na lateral esquerda.
+- Botoes de sair da sala e reset no topo esquerdo.
+- Sem selecao manual P1-P8 na lateral esquerda.
 - Barra superior direita com icones:
   - musica;
   - feedback;

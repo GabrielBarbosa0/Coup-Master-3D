@@ -40,7 +40,6 @@ const {
   musicBtn,
   objectCountEl,
   openDeckConfigBtn,
-  playerTabsEl,
   religionCardBtn,
   resetBtn,
   resetVfxAudio,
@@ -236,7 +235,6 @@ function init() {
   createDropZones();
   createPlayerBadges();
   createDeck();
-  createPlayerTabs();
   setupSettingsModal();
   setupMusicControls();
   window.CoupMaster3D = {
@@ -692,20 +690,6 @@ function resetDeckPosition() {
   updateDeckCollider();
 }
 
-// Monta os botoes de selecao dos jogadores.
-function createPlayerTabs() {
-  playerTabsEl.innerHTML = '';
-
-  for (let i = 1; i <= PLAYER_COUNT; i++) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.textContent = `P${i}`;
-    btn.dataset.player = i;
-    btn.addEventListener('click', () => setActivePlayer(i));
-    playerTabsEl.appendChild(btn);
-  }
-}
-
 // Configura a abertura dos modais de configurações, feedback e baralho.
 function setupSettingsModal() {
   syncDeckConfigInputs();
@@ -1151,7 +1135,7 @@ function resetMvp() {
   });
   resetDeckPosition();
 
-  setActivePlayer(1);
+  setActivePlayer(getLocalPlayerSeat());
   updateHud();
 }
 
@@ -1697,10 +1681,6 @@ function loadTexture(path) {
 function setActivePlayer(playerId) {
   state.activePlayer = playerId;
 
-  [...playerTabsEl.children].forEach((btn) => {
-    btn.classList.toggle('active', Number(btn.dataset.player) === playerId);
-  });
-
   app.dropZones.forEach((zone) => {
     if (!zone.userData.playerId) return;
     const active = zone.userData.playerId === playerId;
@@ -1713,6 +1693,7 @@ function setActivePlayer(playerId) {
 
   app.cards.forEach((card) => {
     if (!card.data.owner) return;
+    if (card.data.specialCard) return;
     const shouldFaceUp = card.data.owner === playerId;
     if (card.data.faceUp !== shouldFaceUp) {
       card.data.faceUp = shouldFaceUp;
@@ -1721,6 +1702,11 @@ function setActivePlayer(playerId) {
   });
 
   updateHud();
+}
+
+// Retorna o assento online do jogador local, ou P1 quando estiver em modo isolado.
+function getLocalPlayerSeat() {
+  return window.CoupMaster3DOnline?.playerSeat || 1;
 }
 
 // Atualiza o material da carta quando ela vira ou muda de dono.
@@ -2553,7 +2539,9 @@ function moveCardToPlayer(card, playerId) {
   removeCardFromCollections(card);
   card.data.owner = playerId;
   card.data.location = `player-${playerId}`;
-  card.data.faceUp = playerId === state.activePlayer;
+  if (!card.data.specialCard) {
+    card.data.faceUp = playerId === state.activePlayer;
+  }
   state.players[playerId - 1].cards.push(card.data);
   refreshCardMaterial(card);
 

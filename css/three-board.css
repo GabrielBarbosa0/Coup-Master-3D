@@ -246,35 +246,6 @@ button:focus-visible {
   white-space: pre-line;
 }
 
-.player-tabs {
-  position: fixed;
-  z-index: 10;
-  left: max(14px, env(safe-area-inset-left));
-  top: calc(max(14px, env(safe-area-inset-top)) + 58px);
-  
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 6px;
-  width: 72px;
-  padding: 8px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
-  backdrop-filter: blur(14px);
-}
-
-.player-tabs button {
-  width: 100%;
-  min-width: 0;
-  padding: 0 4px;
-}
-
-.player-tabs button.active {
-  border-color: rgba(24, 242, 138, 0.9);
-  background: rgba(24, 242, 138, 0.2);
-  color: #dffff0;
-}
-
 .modal-overlay {
   position: fixed;
   z-index: 1000;
@@ -621,14 +592,6 @@ button:focus-visible {
     bottom: max(14px, env(safe-area-inset-bottom));
     flex-wrap: wrap;
     justify-content: center;
-  }
-
-  .player-tabs {
-    left: max(10px, env(safe-area-inset-left));
-    top: calc(max(14px, env(safe-area-inset-top)) + 46px);
-    width: 56px;
-    padding: 6px;
-    gap: 5px;
   }
 
   .help-panel {

@@ -356,7 +356,6 @@ Decisao atual:
 
 - botao de reset no topo esquerdo;
 - status abaixo da barra superior direita;
-- `playerTabs` na lateral esquerda;
 - `topActions`/barra superior direita com utilidades;
 - `quick-actions` na parte inferior;
 - modais de configuracao, regras de personagens e regras alternativas;
@@ -368,6 +367,8 @@ Decisao atual:
 Os botoes inferiores devem manter proporcao quadrada semelhante aos botoes superiores. Icones SVG devem ser brancos e com fundo transparente.
 
 Perfis de jogador podem ser atualizados por `window.CoupMaster3D.setPlayerProfile(playerId, { displayName, photoURL })`. O `boot.js` usa esse gancho para refletir a lista online nos badges locais sem acoplar Firebase ao render 3D.
+
+O assento ativo local vem de `window.CoupMaster3DOnline.playerSeat`. O seletor manual P1-P8 foi removido para impedir troca de visao entre maos, mas o drag/drop fisico em slots de outros jogadores continua permitido.
 
 ## 12. Assets
 

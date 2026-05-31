@@ -182,8 +182,8 @@ Ao mexer em cartas/deck/pilhas, preservar:
 
 HUD atual:
 
-- reset no topo esquerdo;
-- P1 a P8 na lateral esquerda;
+- sair da sala e reset no topo esquerdo;
+- sem seletor manual P1 a P8;
 - status de deck/mesa/objetos abaixo da barra superior direita;
 - barra superior direita com musica, feedback, regras alternativas, espectador placeholder, tela cheia, info e configuracoes;
 - barra inferior com botoes quadrados por icone.

@@ -5,6 +5,7 @@ import {
   onDisconnect,
   onValue,
   ref,
+  runTransaction,
   serverTimestamp,
   set,
   update
@@ -51,6 +52,28 @@ export async function createRoom(user) {
   throw new Error('Nao foi possivel gerar um codigo de sala livre.');
 }
 
+// Reserva um assento P1-P8 para a conta logada dentro da sala.
+async function assignPlayerSeat(roomCode, user) {
+  const code = normalizeRoomCode(roomCode);
+  const playerSnapshot = await get(ref(database, `rooms/${code}/players/${user.uid}`));
+  const currentSeat = playerSnapshot.val()?.seat;
+  if (currentSeat) {
+    const currentSeatSnapshot = await get(ref(database, `rooms/${code}/seats/${currentSeat}`));
+    if (currentSeatSnapshot.val() === user.uid) return currentSeat;
+  }
+
+  for (let seat = 1; seat <= 8; seat += 1) {
+    const seatRef = ref(database, `rooms/${code}/seats/${seat}`);
+    const result = await runTransaction(seatRef, (currentUid) => {
+      if (currentUid == null || currentUid === user.uid) return user.uid;
+      return;
+    });
+    if (result.committed && result.snapshot.val() === user.uid) return seat;
+  }
+
+  throw new Error('Sala cheia.');
+}
+
 // Entra em uma sala existente e salva o jogador em rooms/{roomCode}/players/{uid}.
 export async function joinRoom(roomCode, user) {
   const code = normalizeRoomCode(roomCode);
@@ -64,9 +87,11 @@ export async function joinRoom(roomCode, user) {
     throw new Error('Sala nao encontrada.');
   }
 
+  const seat = await assignPlayerSeat(code, user);
   const playerRef = child(roomRef, `players/${user.uid}`);
   const playerData = {
     uid: user.uid,
+    seat,
     displayName: user.displayName || 'Jogador',
     photoURL: user.photoURL || '',
     connected: true,
@@ -86,8 +111,10 @@ export async function joinRoom(roomCode, user) {
 // Atualiza a presenca do jogador ao abrir a mesa de uma sala.
 export async function markPlayerConnected(roomCode, user) {
   const code = normalizeRoomCode(roomCode);
+  const seat = await assignPlayerSeat(code, user);
   const playerRef = ref(database, `rooms/${code}/players/${user.uid}`);
   await update(playerRef, {
+    seat,
     displayName: user.displayName || 'Jogador',
     photoURL: user.photoURL || '',
     connected: true,
@@ -97,6 +124,7 @@ export async function markPlayerConnected(roomCode, user) {
     connected: false,
     lastSeen: serverTimestamp()
   });
+  return seat;
 }
 
 // Marca o jogador como fora da sala casual sem encerrar a sessao Google.
@@ -105,10 +133,15 @@ export async function leaveRoom(roomCode, user) {
   if (!code || !user) return;
 
   const playerRef = ref(database, `rooms/${code}/players/${user.uid}`);
+  const playerSnapshot = await get(playerRef);
+  const seat = playerSnapshot.val()?.seat;
   await update(playerRef, {
     connected: false,
     lastSeen: serverTimestamp()
   });
+  if (seat) {
+    await set(ref(database, `rooms/${code}/seats/${seat}`), null);
+  }
 }
 
 // Escuta a lista de jogadores da sala, sem sincronizar componentes da mesa.
