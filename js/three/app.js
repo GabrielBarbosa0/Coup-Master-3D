@@ -44,6 +44,7 @@ const {
   rollBtn,
   rotateLeftBtn,
   rotateRightBtn,
+  roomCodeStatusBtn,
   ruleBackImg,
   ruleCardsCounter,
   ruleCardsModal,
@@ -182,6 +183,7 @@ const app = {
   syncTimer: null,
   isApplyingRemoteState: false,
   isAdmin: Boolean(window.CoupMaster3DOnline?.isAdmin),
+  roomCodeFeedbackTimer: null,
   lastTime: performance.now(),
   textures: {}
 };
@@ -265,6 +267,7 @@ function init() {
   focusCameraBtn.addEventListener('click', focusTableCamera);
   resetBtn.addEventListener('pointerdown', playResetSoundFromButton);
   resetBtn.addEventListener('click', triggerResetFromButton);
+  roomCodeStatusBtn?.addEventListener('click', copyRoomCodeFromHud);
   window.addEventListener('resize', resize);
   canvas.addEventListener('pointerdown', onPointerDown);
   canvas.addEventListener('pointermove', onPointerMove);
@@ -923,6 +926,28 @@ function playResetSoundOnce() {
   playVfx('reset-game');
 }
 
+// Copia o codigo da sala exibido no HUD.
+async function copyRoomCodeFromHud(event) {
+  event?.stopPropagation();
+  const roomCode = window.CoupMaster3DOnline?.roomCode;
+  if (!roomCode) return;
+
+  try {
+    await navigator.clipboard?.writeText(roomCode);
+    showRoomCodeCopyFeedback('Copiado!');
+  } catch {
+    showRoomCodeCopyFeedback(`Sala: ${roomCode}`);
+  }
+}
+
+// Mostra feedback curto sem esconder o codigo por muito tempo.
+function showRoomCodeCopyFeedback(message) {
+  if (!roomCodeStatusBtn) return;
+  roomCodeStatusBtn.textContent = message;
+  window.clearTimeout(app.roomCodeFeedbackTimer);
+  app.roomCodeFeedbackTimer = window.setTimeout(updateRoomCodeStatus, 900);
+}
+
 // Prepara efeitos usados pela interface para evitar atraso no primeiro clique.
 function preloadVfxAudio() {
   if (resetVfxAudio) {
@@ -1332,7 +1357,13 @@ function createCardObject(data) {
   const dimensions = getCardDimensions(data);
   const radius = CARD_RADIUS * Math.min(dimensions.width / CARD_W, dimensions.height / CARD_H);
   const geo = createRoundedCardGeometry(dimensions.width, dimensions.height, CARD_D, radius);
-  const mesh = new THREE.Mesh(geo, makeCardMaterials(texturePaths.front, canRevealCardFace(data), null, texturePaths.back));
+  const mesh = new THREE.Mesh(geo, makeCardMaterials(
+    texturePaths.front,
+    canRevealCardFace(data),
+    null,
+    texturePaths.back,
+    isPrivateSlotCardHidden(data)
+  ));
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   mesh.name = data.id;
@@ -1674,9 +1705,11 @@ function makeDieFaceTexture(value) {
 }
 
 // Cria materiais da lateral, frente e verso de uma carta.
-function makeCardMaterials(frontPath, faceUp, edgeColor = null, backPath = 'assets/img/cards/base/back.png') {
+function makeCardMaterials(frontPath, faceUp, edgeColor = null, backPath = 'assets/img/cards/base/back.png', hideFront = false) {
   const frontTexture = loadTexture(frontPath);
   const backTexture = loadTexture(backPath);
+  const faceTexture = hideFront ? backTexture : (faceUp ? frontTexture : backTexture);
+  const backFaceTexture = hideFront ? backTexture : (faceUp ? backTexture : frontTexture);
   const edge = new THREE.MeshStandardMaterial({
     color: edgeColor ?? (faceUp ? 0x161d28 : 0x0e1420),
     roughness: 0.7,
@@ -1684,12 +1717,12 @@ function makeCardMaterials(frontPath, faceUp, edgeColor = null, backPath = 'asse
     side: THREE.DoubleSide
   });
   const face = new THREE.MeshStandardMaterial({
-    map: faceUp ? frontTexture : backTexture,
+    map: faceTexture,
     roughness: 0.58,
     metalness: 0.02
   });
   const back = new THREE.MeshStandardMaterial({
-    map: faceUp ? backTexture : frontTexture,
+    map: backFaceTexture,
     roughness: 0.66,
     metalness: 0.02
   });
@@ -1791,6 +1824,11 @@ function isPublicSlotCard(data) {
   return data?.type === 'religiao';
 }
 
+// Identifica carta privada de outro slot que nao pode revelar textura nem durante flip.
+function isPrivateSlotCardHidden(data) {
+  return Boolean(data?.owner) && data.owner !== state.activePlayer && !isPublicSlotCard(data);
+}
+
 // Define se a face da carta pode ser mostrada nesta tela.
 function canRevealCardFace(data) {
   if (isPublicSlotCard(data)) return Boolean(data?.faceUp);
@@ -1801,7 +1839,13 @@ function canRevealCardFace(data) {
 // Atualiza o material da carta quando ela vira, muda de dono ou troca a visao local.
 function refreshCardMaterial(card) {
   const texturePaths = getCardTexturePaths(card.data);
-  card.mesh.material = makeCardMaterials(texturePaths.front, canRevealCardFace(card.data), null, texturePaths.back);
+  card.mesh.material = makeCardMaterials(
+    texturePaths.front,
+    canRevealCardFace(card.data),
+    null,
+    texturePaths.back,
+    isPrivateSlotCardHidden(card.data)
+  );
 }
 
 // Resolve clique inicial em deck, carta, pilha ou objeto.
@@ -3749,6 +3793,7 @@ function bumpStackIdFrom(id) {
 
 // Atualiza contadores e visibilidade do deck no HUD.
 function updateHud() {
+  updateRoomCodeStatus();
   deckCountEl.textContent = `Deck: ${state.deck.length}`;
   tableCountEl.textContent = `Mesa: ${state.tableCards.length}`;
   objectCountEl.textContent = `Objetos: ${app.objects.size}`;
@@ -3763,6 +3808,14 @@ function updateHud() {
   }
 
   scheduleTableSync();
+}
+
+// Mantem o codigo da sala clicavel ao lado dos contadores.
+function updateRoomCodeStatus() {
+  if (!roomCodeStatusBtn) return;
+  const roomCode = window.CoupMaster3DOnline?.roomCode || '----';
+  roomCodeStatusBtn.textContent = `Sala: ${roomCode}`;
+  roomCodeStatusBtn.title = roomCode === '----' ? 'Código da sala indisponível' : `Copiar sala ${roomCode}`;
 }
 
 // Retorna a altura visual/fisica atual do deck real.

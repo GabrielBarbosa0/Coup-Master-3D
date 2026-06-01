@@ -3,6 +3,7 @@ export const canvas = document.getElementById('threeCanvas');
 export const deckCountEl = document.getElementById('deckCount');
 export const tableCountEl = document.getElementById('tableCount');
 export const objectCountEl = document.getElementById('objectCount');
+export const roomCodeStatusBtn = document.getElementById('roomCodeStatus');
 export const hoverTooltipEl = document.getElementById('hoverTooltip');
 export const drawBtn = document.getElementById('drawBtn');
 export const goldCoinBtn = document.getElementById('goldCoinBtn');
