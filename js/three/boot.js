@@ -70,7 +70,7 @@ subscribeRoomTableState(requestedRoom, (tableState) => {
   window.CoupMaster3D?.applyTableState?.(tableState);
 });
 
-// Liga jogadores online aos badges locais e mantem o assento da conta atual.
+// Liga jogadores com slot reservado aos badges locais e mantem o assento da conta atual.
 subscribeRoomPlayers(requestedRoom, (players) => {
   const connectedPlayers = players
     .filter((player) => player.connected)

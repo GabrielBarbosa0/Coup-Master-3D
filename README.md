@@ -27,7 +27,8 @@ Estado atual:
 - Login em `login.html` com Google Authentication via Firebase.
 - Lobby em `lobby.html` para criar sala com codigo curto ou entrar em uma sala existente.
 - Realtime Database registra jogadores em `rooms/{roomCode}/players/{uid}`.
-- Lista de jogadores conectados sincronizada com assentos espalhados pela mesa conforme a quantidade de jogadores.
+- Lista de jogadores da sala sincronizada com assentos reservados.
+- Fechar ou minimizar a aba nao libera o slot; o jogador volta para o mesmo assento ao reabrir a sala.
 - A mesa casual sincroniza snapshots finais de cartas, pilhas, deck, moedas e extras via Realtime Database.
 - A mesa `3d.html` exige login e sala valida antes de iniciar o modo Three.js.
 - No modo casual, criar ou entrar em sala redireciona direto para a mesa.
@@ -38,7 +39,7 @@ Estado atual:
 - Mesa octogonal com area central e ate 8 zonas de jogador.
 - Slots P1 a P8 alinhados as faces internas da mesa.
 - Assento local definido pela sala online, sem seletor manual P1-P8 para ver maos de outros jogadores.
-- Em salas online, 2 jogadores ficam frente a frente, 3 formam triangulo, 4 formam quadrado e os demais sao distribuidos pelo octogono.
+- Em salas online, os primeiros assentos reservados priorizam lados opostos da mesa, mantendo cada conta no mesmo slot.
 - Interacao fisica com cartas e objetos em qualquer slot continua permitida.
 - Nome e avatar flutuante por jogador, preparado para futura integracao com Google Auth.
 - Camera orbitavel com zoom, pan e foco animado no jogador ativo.

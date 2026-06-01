@@ -2,7 +2,6 @@ import {
   child,
   get,
   off,
-  onDisconnect,
   onValue,
   ref,
   runTransaction,
@@ -14,44 +13,7 @@ import { database } from './firebase-config.js';
 
 const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const ROOM_CODE_LENGTH = 4;
-const PLAYER_PRESENCE_TIMEOUT_MS = 60_000;
-const SEAT_LAYOUTS = {
-  1: [1],
-  2: [1, 5],
-  3: [1, 4, 7],
-  4: [1, 3, 5, 7],
-  5: [1, 3, 4, 6, 8],
-  6: [1, 2, 4, 5, 6, 8],
-  7: [1, 2, 3, 4, 6, 7, 8],
-  8: [1, 2, 3, 4, 5, 6, 7, 8]
-};
-
-// Considera online apenas quem atualizou presenca recentemente.
-function isRecentlySeen(player) {
-  const lastSeen = Number(player?.lastSeen) || Number(player?.joinedAt) || 0;
-  return player?.connected && lastSeen > 0 && Date.now() - lastSeen < PLAYER_PRESENCE_TIMEOUT_MS;
-}
-
-// Ordena jogadores de forma estavel para distribuir assentos.
-function sortPlayersForSeats(players) {
-  return players.slice().sort((a, b) => {
-    const joinedA = Number(a.joinedAt) || 0;
-    const joinedB = Number(b.joinedAt) || 0;
-    if (joinedA !== joinedB) return joinedA - joinedB;
-    return String(a.uid).localeCompare(String(b.uid));
-  });
-}
-
-// Aplica o layout visual final antes do Firebase concluir todos os updates.
-function arrangePlayerSeats(players) {
-  const sortedPlayers = sortPlayersForSeats(players).slice(0, 8);
-  const layout = SEAT_LAYOUTS[Math.min(sortedPlayers.length, 8)] || SEAT_LAYOUTS[8];
-
-  return sortedPlayers.map((player, index) => ({
-    ...player,
-    seat: layout[index]
-  }));
-}
+const SEAT_ORDER = [1, 5, 3, 7, 4, 6, 2, 8];
 
 // Normaliza codigo digitado para o formato curto usado nas URLs e no banco.
 export function normalizeRoomCode(value = '') {
@@ -100,7 +62,7 @@ async function assignPlayerSeat(roomCode, user) {
     if (currentSeatSnapshot.val() === user.uid) return currentSeat;
   }
 
-  for (let seat = 1; seat <= 8; seat += 1) {
+  for (const seat of SEAT_ORDER) {
     const seatRef = ref(database, `rooms/${code}/seats/${seat}`);
     const result = await runTransaction(seatRef, (currentUid) => {
       if (currentUid == null || currentUid === user.uid) return user.uid;
@@ -110,31 +72,6 @@ async function assignPlayerSeat(roomCode, user) {
   }
 
   throw new Error('Sala cheia.');
-}
-
-// Reorganiza assentos conectados para ficarem espalhados ao redor da mesa.
-async function rebalanceRoomSeats(roomCode) {
-  const code = normalizeRoomCode(roomCode);
-  const playersRef = ref(database, `rooms/${code}/players`);
-  const snapshot = await get(playersRef);
-  const players = [];
-
-  snapshot.forEach((childSnapshot) => {
-    const player = childSnapshot.val();
-    if (isRecentlySeen(player)) players.push(player);
-  });
-
-  const arrangedPlayers = arrangePlayerSeats(players);
-  const nextSeats = {};
-
-  const updates = arrangedPlayers.map((player) => {
-    const seat = player.seat;
-    nextSeats[seat] = player.uid;
-    return update(child(playersRef, `${player.uid}`), { seat });
-  });
-
-  await Promise.all(updates);
-  await set(ref(database, `rooms/${code}/seats`), nextSeats);
 }
 
 // Entra em uma sala existente e salva o jogador em rooms/{roomCode}/players/{uid}.
@@ -163,11 +100,6 @@ export async function joinRoom(roomCode, user) {
   };
 
   await set(playerRef, playerData);
-  await onDisconnect(playerRef).update({
-    connected: false,
-    lastSeen: serverTimestamp()
-  });
-  await rebalanceRoomSeats(code);
 
   return code;
 }
@@ -184,17 +116,12 @@ export async function markPlayerConnected(roomCode, user) {
     connected: true,
     lastSeen: Date.now()
   });
-  await onDisconnect(playerRef).update({
-    connected: false,
-    lastSeen: serverTimestamp()
-  });
-  await rebalanceRoomSeats(code);
 
   const latestPlayer = await get(playerRef);
   return latestPlayer.val()?.seat || seat;
 }
 
-// Mantem a presenca viva e remove fantasmas que ficaram conectados no Firebase.
+// Mantem a presenca viva sem liberar o slot ao fechar ou minimizar a aba.
 export async function refreshPlayerPresence(roomCode, user) {
   const code = normalizeRoomCode(roomCode);
   if (!code || !user) return;
@@ -203,7 +130,6 @@ export async function refreshPlayerPresence(roomCode, user) {
     connected: true,
     lastSeen: Date.now()
   });
-  await rebalanceRoomSeats(code);
 }
 
 // Marca o jogador como fora da sala casual sem encerrar a sessao Google.
@@ -216,15 +142,15 @@ export async function leaveRoom(roomCode, user) {
   const seat = playerSnapshot.val()?.seat;
   await update(playerRef, {
     connected: false,
+    seat: null,
     lastSeen: Date.now()
   });
   if (seat) {
     await set(ref(database, `rooms/${code}/seats/${seat}`), null);
   }
-  await rebalanceRoomSeats(code);
 }
 
-// Escuta a lista recente de jogadores da sala.
+// Escuta jogadores com assento reservado na sala.
 export function subscribeRoomPlayers(roomCode, callback) {
   const code = normalizeRoomCode(roomCode);
   const playersRef = ref(database, `rooms/${code}/players`);
@@ -233,9 +159,9 @@ export function subscribeRoomPlayers(roomCode, callback) {
     const players = [];
     snapshot.forEach((childSnapshot) => {
       const player = childSnapshot.val();
-      if (isRecentlySeen(player)) players.push(player);
+      if (player?.seat) players.push(player);
     });
-    callback(arrangePlayerSeats(players));
+    callback(players.sort((a, b) => (a.seat || 99) - (b.seat || 99)));
   });
 
   return () => off(playersRef);

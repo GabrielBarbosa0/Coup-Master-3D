@@ -103,7 +103,7 @@ rooms/{roomCode}
     `-- updatedBy
 ```
 
-A lista de jogadores conectados define os badges e o assento local. A sala reequilibra assentos conectados para espalhar a partida pelo octogono: 2 jogadores em lados opostos, 3 em triangulo, 4 em quadrado e 5 a 8 preenchendo a mesa.
+A lista de jogadores com assento reservado define os badges e o assento local. Fechar ou minimizar a aba nao libera o slot; apenas a acao explicita de sair da sala remove a reserva. A ordem de alocacao prioriza lados opostos da mesa, mas nao rebalanceia jogadores ja assentados para preservar o dono das cartas e o estado da partida.
 
 O lobby casual nao segura jogadores em uma sala de espera; criar ou entrar em sala abre `3d.html?room=CODIGO`. A mesa casual sincroniza snapshots finais via `tableState`, sem transmitir animacoes ou posicoes intermediarias durante drag.
 
@@ -434,7 +434,7 @@ Essa divisao deve ser feita com testes manuais a cada etapa, porque muitos compo
 
 ## 15. Sincronizacao Casual
 
-Multiplayer completo autoritativo ainda nao faz parte do MVP local. A base Firebase atual sincroniza autenticacao, lobby, sala, presenca/lista de jogadores, assentos e snapshots finais da mesa casual.
+Multiplayer completo autoritativo ainda nao faz parte do MVP local. A base Firebase atual sincroniza autenticacao, lobby, sala, lista de jogadores com assento reservado, presenca informativa e snapshots finais da mesa casual.
 
 O snapshot atual inclui:
 
