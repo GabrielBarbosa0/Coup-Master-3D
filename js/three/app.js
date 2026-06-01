@@ -1176,7 +1176,7 @@ function drawCardToPlayer(playerId, animateDraw = true) {
 
   data.owner = playerId;
   data.location = `player-${playerId}`;
-  data.faceUp = playerId === state.activePlayer;
+  data.faceUp = false;
   state.players[playerId - 1].cards.push(data);
 
   const card = createCardObject(data);
@@ -1283,7 +1283,7 @@ function createCardObject(data) {
   const dimensions = getCardDimensions(data);
   const radius = CARD_RADIUS * Math.min(dimensions.width / CARD_W, dimensions.height / CARD_H);
   const geo = createRoundedCardGeometry(dimensions.width, dimensions.height, CARD_D, radius);
-  const mesh = new THREE.Mesh(geo, makeCardMaterials(texturePaths.front, data.faceUp, null, texturePaths.back));
+  const mesh = new THREE.Mesh(geo, makeCardMaterials(texturePaths.front, canRevealCardFace(data), null, texturePaths.back));
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   mesh.name = data.id;
@@ -1698,7 +1698,7 @@ function loadTexture(path) {
   return texture;
 }
 
-// Atualiza jogador ativo, zonas de destaque e visibilidade das maos.
+// Atualiza jogador ativo, zonas de destaque e materiais visiveis das maos.
 function setActivePlayer(playerId) {
   state.activePlayer = playerId;
 
@@ -1712,15 +1712,7 @@ function setActivePlayer(playerId) {
   state.players.forEach(player => refreshPlayerBadge(player.id));
   updatePlayerBadges();
 
-  app.cards.forEach((card) => {
-    if (!card.data.owner) return;
-    if (card.data.specialCard) return;
-    const shouldFaceUp = card.data.owner === playerId;
-    if (card.data.faceUp !== shouldFaceUp) {
-      card.data.faceUp = shouldFaceUp;
-      refreshCardMaterial(card);
-    }
-  });
+  app.cards.forEach(refreshCardMaterial);
 
   updateHud();
 }
@@ -1745,10 +1737,16 @@ function getLocalPlayerSeat() {
   return window.CoupMaster3DOnline?.playerSeat || 1;
 }
 
-// Atualiza o material da carta quando ela vira ou muda de dono.
+// Define se a face da carta pode ser mostrada nesta tela.
+function canRevealCardFace(data) {
+  if (!data?.owner) return Boolean(data?.faceUp);
+  return data.owner === state.activePlayer;
+}
+
+// Atualiza o material da carta quando ela vira, muda de dono ou troca a visao local.
 function refreshCardMaterial(card) {
   const texturePaths = getCardTexturePaths(card.data);
-  card.mesh.material = makeCardMaterials(texturePaths.front, card.data.faceUp, null, texturePaths.back);
+  card.mesh.material = makeCardMaterials(texturePaths.front, canRevealCardFace(card.data), null, texturePaths.back);
 }
 
 // Resolve clique inicial em deck, carta, pilha ou objeto.
@@ -1887,10 +1885,10 @@ function getHoverLabel(piece) {
 function getCardHoverLabel(card) {
   if (card.data.specialCard) {
     const labels = SPECIAL_CARD_LABELS[card.data.type];
-    return card.data.faceUp ? labels?.front : labels?.back;
+    return canRevealCardFace(card.data) ? labels?.front : labels?.back;
   }
 
-  if (!card.data.faceUp) return 'Carta fechada';
+  if (!canRevealCardFace(card.data)) return 'Carta fechada';
 
   const stack = getCardStack(card);
   if (!stack || stack.cards.length <= 1) {
@@ -2602,9 +2600,7 @@ function moveCardToPlayer(card, playerId) {
   removeCardFromCollections(card);
   card.data.owner = playerId;
   card.data.location = `player-${playerId}`;
-  if (!card.data.specialCard) {
-    card.data.faceUp = playerId === state.activePlayer;
-  }
+  card.data.faceUp = false;
   state.players[playerId - 1].cards.push(card.data);
   refreshCardMaterial(card);
 
