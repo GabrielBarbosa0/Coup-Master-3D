@@ -477,7 +477,7 @@ button:focus-visible {
 .card-config-list {
   max-height: 60vh;
   margin: 0;
-  padding: 0 12px 0 0;
+  padding: 0 12px 8px 0;
   overflow-y: auto;
   list-style: none;
 }
@@ -521,9 +521,16 @@ button:focus-visible {
   outline: none;
 }
 
+.card-config-apply-item {
+  position: sticky;
+  bottom: 0;
+  padding: 12px 0 0;
+  background: linear-gradient(180deg, rgba(13, 18, 26, 0), rgba(13, 18, 26, 0.96) 34%);
+  list-style: none;
+}
+
 #applyDeckConfigBtn {
   width: 100%;
-  margin-top: 12px;
   padding: 14px;
   background: #00ff73;
   color: #000;
