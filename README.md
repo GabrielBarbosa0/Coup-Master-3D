@@ -14,7 +14,7 @@ O projeto esta em MVP local, em desenvolvimento ativo.
 
 Estado atual:
 
-- Modo principal: `3d.html`.
+- Modo principal: `index.html`.
 - Renderizacao: Three.js/WebGL.
 - Fisica: Rapier 3D.
 - Multiplayer completo: fora do escopo atual.
@@ -30,7 +30,7 @@ Estado atual:
 - Lista de jogadores da sala sincronizada com assentos reservados.
 - Fechar ou minimizar a aba nao libera o slot; o jogador volta para o mesmo assento ao reabrir a sala.
 - A mesa casual sincroniza snapshots finais de cartas, pilhas, deck, moedas e extras via Realtime Database.
-- A mesa `3d.html` exige login e sala valida antes de iniciar o modo Three.js.
+- A mesa `index.html` exige login e sala valida antes de iniciar o modo Three.js.
 - No modo casual, criar ou entrar em sala redireciona direto para a mesa.
 - Movimentos durante drag nao sao transmitidos em tempo real nesta etapa; outros jogadores recebem o estado quando a acao termina.
 
@@ -148,10 +148,10 @@ python -m http.server 4173
 Depois abra:
 
 ```txt
-http://127.0.0.1:4173/3d.html
+http://127.0.0.1:4173/index.html
 ```
 
-Se voce ja usa outro servidor estatico, basta servir a raiz do repositorio e acessar `3d.html`.
+Se voce ja usa outro servidor estatico, basta servir a raiz do repositorio e acessar `index.html`.
 
 Para o fluxo online, abra primeiro:
 
@@ -159,13 +159,13 @@ Para o fluxo online, abra primeiro:
 http://127.0.0.1:4173/login.html
 ```
 
-Depois do login, o lobby cria ou entra em uma sala e redireciona direto para `3d.html?room=CODIGO`.
+Depois do login, o lobby cria ou entra em uma sala e redireciona direto para `index.html?room=CODIGO`.
 
 ## Estrutura Principal
 
 ```txt
 Coup-Master/
-|-- 3d.html
+|-- index.html
 |-- css/
 |   `-- three-board.css
 |-- js/
@@ -217,7 +217,7 @@ node --check js\three\app.js
 Para mudancas visuais ou interativas, testar no navegador:
 
 ```txt
-http://127.0.0.1:4173/3d.html
+http://127.0.0.1:4173/index.html
 ```
 
 Ao mexer em HUD, fisica, deck, pilhas ou controles, consulte tambem `docs/GDD.md`, `docs/TDD.md` e `AGENTS.md`.

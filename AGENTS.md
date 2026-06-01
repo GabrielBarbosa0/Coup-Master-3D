@@ -43,7 +43,7 @@ Evoluir o modo 3D local ate ele ser uma mesa tabletop confortavel:
 
 Trabalhe principalmente em:
 
-- `3d.html`
+- `index.html`
 - `css/three-board.css`
 - `js/three/app.js`
 - `docs/GDD.md`
@@ -207,7 +207,7 @@ node --check js\three\app.js
 Quando houver mudanca visual ou interativa, abrir ou recarregar:
 
 ```txt
-http://127.0.0.1:4173/3d.html
+http://127.0.0.1:4173/index.html
 ```
 
 Se o servidor local nao estiver rodando:

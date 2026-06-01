@@ -23,7 +23,7 @@ function setStatus(message) {
 // Entra direto na mesa casual depois que a sala foi validada.
 function openCasualRoom(roomCode) {
   localStorage.setItem('coupMaster3dRoom', roomCode);
-  location.assign(`3d.html?room=${encodeURIComponent(roomCode)}`);
+  location.assign(`index.html?room=${encodeURIComponent(roomCode)}`);
 }
 
 createRoomBtn?.addEventListener('click', async () => {

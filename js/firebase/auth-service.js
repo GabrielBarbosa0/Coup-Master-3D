@@ -53,7 +53,7 @@ export async function resolveRedirectSignIn() {
 export async function requireAuth(redirectTo = 'login.html') {
   const user = await waitForAuth();
   if (!user) {
-    const next = `${location.pathname.split('/').pop() || '3d.html'}${location.search || ''}`;
+    const next = `${location.pathname.split('/').pop() || 'index.html'}${location.search || ''}`;
     location.replace(`${redirectTo}?next=${encodeURIComponent(next)}`);
     return null;
   }

@@ -14,7 +14,7 @@ Documento tecnico do modo 3D do Coup Master.
 
 ## 1. Visao Tecnica
 
-O modo 3D e uma aplicacao browser-first baseada em `3d.html`, `css/three-board.css` e `js/three/app.js`.
+O modo 3D e uma aplicacao browser-first baseada em `index.html`, `css/three-board.css` e `js/three/app.js`.
 
 O foco atual e manter uma mesa local funcional e iteravel. A arquitetura ainda esta concentrada em um unico arquivo JavaScript grande, mas as responsabilidades internas ja estao separadas por funcoes e comentarios. A modularizacao deve acontecer quando o comportamento estabilizar.
 
@@ -22,7 +22,7 @@ O foco atual e manter uma mesa local funcional e iteravel. A arquitetura ainda e
 
 ```txt
 Coup-Master/
-|-- 3d.html
+|-- index.html
 |-- css/
 |   `-- three-board.css
 |-- js/
@@ -51,7 +51,7 @@ Pastas antigas do modo 2D ou materiais nao usados no 3D podem ser removidas quan
 
 | Area | Tecnologia | Uso |
 | --- | --- | --- |
-| HTML | `3d.html` | Estrutura da tela, HUD, modais, audio e import map |
+| HTML | `index.html` | Estrutura da tela, HUD, modais, audio e import map |
 | CSS | `css/three-board.css` | HUD, botoes, modais, responsividade e canvas |
 | Renderizacao | Three.js | Cena, camera, luzes, mesa e meshes |
 | Controles | OrbitControls | Rotacao, zoom e pan |
@@ -105,7 +105,7 @@ rooms/{roomCode}
 
 A lista de jogadores com assento reservado define os badges e o assento local. Fechar ou minimizar a aba nao libera o slot; apenas a acao explicita de sair da sala remove a reserva. A ordem de alocacao prioriza lados opostos da mesa, mas nao rebalanceia jogadores ja assentados para preservar o dono das cartas e o estado da partida.
 
-O lobby casual nao segura jogadores em uma sala de espera; criar ou entrar em sala abre `3d.html?room=CODIGO`. A mesa casual sincroniza snapshots finais via `tableState`, sem transmitir animacoes ou posicoes intermediarias durante drag.
+O lobby casual nao segura jogadores em uma sala de espera; criar ou entrar em sala abre `index.html?room=CODIGO`. A mesa casual sincroniza snapshots finais via `tableState`, sem transmitir animacoes ou posicoes intermediarias durante drag.
 
 ## 4. Estado Local
 
@@ -277,7 +277,7 @@ Dado:
 
 ### 6.7 Audio
 
-Audios DOM em `3d.html`:
+Audios DOM em `index.html`:
 
 - BGM em `assets/sounds/soundtrack/bgm.mp3`;
 - reset em `assets/sounds/vfx/reset-game.mp3`.
@@ -368,7 +368,7 @@ Decisao atual:
 
 ## 11. HUD E DOM
 
-`3d.html` define:
+`index.html` define:
 
 - botao de reset no topo esquerdo;
 - status abaixo da barra superior direita;
@@ -453,7 +453,7 @@ Nao sincronizar cada frame do drag nesta etapa. A intencao e que o outro jogador
 Antes de finalizar uma mudanca relevante:
 
 - `node --check js/three/app.js` deve passar quando JS for alterado.
-- `http://127.0.0.1:4173/3d.html` deve carregar.
+- `http://127.0.0.1:4173/index.html` deve carregar.
 - Console do navegador nao deve mostrar erro fatal.
 - Mudancas visuais devem ser verificadas no navegador quando possivel.
 - Mudancas de fisica devem ser testadas com cartas, moedas, pilhas e deck.
