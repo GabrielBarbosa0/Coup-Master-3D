@@ -2,6 +2,14 @@
   box-sizing: border-box;
 }
 
+@font-face {
+  font-family: "Tilda Script";
+  src: url("../assets/fonts/tilda-script-bold.woff2") format("woff2");
+  font-display: swap;
+  font-weight: 800;
+  font-style: normal;
+}
+
 :root {
   color-scheme: dark;
   --bg: #070a0f;
@@ -16,9 +24,7 @@
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(circle at 50% 35%, rgba(61, 163, 255, 0.18), transparent 30rem),
-    linear-gradient(135deg, #090d13, #111820 45%, #070a0f);
+    background-color: #171d26;
   color: var(--text);
   font-family: "Cinzel", Georgia, "Times New Roman", serif;
 }
@@ -51,10 +57,21 @@ input {
   line-height: 1;
 }
 
+#loginTitle {
+  font-family: "Tilda Script", "Cinzel", Georgia, serif;
+  font-weight: 800;
+  text-align: center;
+}
+
 .online-panel p {
   margin: 0 0 18px;
   color: var(--muted);
   line-height: 1.5;
+}
+
+.login-title-spacer {
+  height: 24px;
+  margin-bottom: 18px;
 }
 
 .online-actions,

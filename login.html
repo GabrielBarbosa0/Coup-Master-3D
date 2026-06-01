@@ -17,11 +17,13 @@
 <body>
   <main class="online-shell">
     <section class="online-panel" aria-labelledby="loginTitle">
-      <h1 id="loginTitle">Coup Master 3D</h1>
-      <p>Entre com sua conta Google para criar uma mesa online ou participar de uma sala.</p>
+      <h1 id="loginTitle">Coup Master</h1>
+      <!-- <p>Entre com sua conta Google para criar uma mesa online ou participar de uma sala.</p> -->
+      <div class="login-title-spacer" aria-hidden="true"></div>
 
       <div class="online-actions">
         <button id="googleLoginBtn" class="primary-btn" type="button">Entrar com Google</button>
+        <button id="guestLoginBtn" class="secondary-btn local-only" type="button" hidden>Entrar como visitante</button>
       </div>
 
       <div id="loginStatus" class="status-text" role="status" aria-live="polite"></div>

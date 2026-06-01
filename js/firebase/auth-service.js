@@ -2,6 +2,7 @@ import {
   GoogleAuthProvider,
   getRedirectResult,
   onAuthStateChanged,
+  signInAnonymously,
   signInWithPopup,
   signInWithRedirect,
   signOut
@@ -37,6 +38,11 @@ export async function signInWithGoogle() {
     }
     throw error;
   }
+}
+
+// Inicia login anonimo para desenvolvimento local sem popup Google.
+export function signInAsGuest() {
+  return signInAnonymously(auth);
 }
 
 // Completa o retorno do login por redirect quando ele foi usado.

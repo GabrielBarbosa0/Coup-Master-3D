@@ -15,6 +15,11 @@ const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const ROOM_CODE_LENGTH = 4;
 const SEAT_ORDER = [1, 5, 3, 7, 4, 6, 2, 8];
 
+// Define nome padrao para contas Google ou visitantes anonimos.
+function getPlayerDisplayName(user) {
+  return user.displayName || (user.isAnonymous ? 'Visitante' : 'Jogador');
+}
+
 // Normaliza codigo digitado para o formato curto usado nas URLs e no banco.
 export function normalizeRoomCode(value = '') {
   return String(value)
@@ -92,7 +97,7 @@ export async function joinRoom(roomCode, user) {
   const playerData = {
     uid: user.uid,
     seat,
-    displayName: user.displayName || 'Jogador',
+    displayName: getPlayerDisplayName(user),
     photoURL: user.photoURL || '',
     connected: true,
     joinedAt: Date.now(),
@@ -111,7 +116,7 @@ export async function markPlayerConnected(roomCode, user) {
   const playerRef = ref(database, `rooms/${code}/players/${user.uid}`);
   await update(playerRef, {
     seat,
-    displayName: user.displayName || 'Jogador',
+    displayName: getPlayerDisplayName(user),
     photoURL: user.photoURL || '',
     connected: true,
     lastSeen: Date.now()

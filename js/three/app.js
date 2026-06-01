@@ -256,7 +256,7 @@ function init() {
   religionCardBtn.addEventListener('click', () => spawnSpecialCard('religiao'));
   diceBtn.addEventListener('click', () => spawnDie());
   rollBtn.addEventListener('click', rollDice);
-  clearObjectsBtn.addEventListener('click', clearTableObjects);
+  clearObjectsBtn?.addEventListener('click', clearTableObjects);
   shuffleBtn.addEventListener('click', shuffleDeck);
   dealBtn.addEventListener('click', dealInitialHands);
   flipSelectionBtn.addEventListener('click', flipSelectedCards);

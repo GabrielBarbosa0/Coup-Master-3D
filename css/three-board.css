@@ -68,6 +68,7 @@ body,
 
 .status-row {
   display: flex;
+  justify-content: flex-end;
   gap: 10px;
   color: var(--muted);
   font-size: 12px;
@@ -82,6 +83,8 @@ body,
 .top-actions {
   top: max(14px, env(safe-area-inset-top));
   right: max(14px, env(safe-area-inset-right));
+  display: grid;
+  gap: 8px;
   padding: 8px;
   border-radius: 8px;
 }
@@ -561,37 +564,53 @@ button:focus-visible {
   background: var(--accent);
 }
 
-@media (max-width: 560px) {
-  .top-left h1 {
-    font-size: 14px;
-  }
-
-  .top-left {
-    top: calc(max(14px, env(safe-area-inset-top)) + 114px);
-    right: max(10px, env(safe-area-inset-right));
-    padding: 8px 10px;
-  }
-
+@media (max-width: 1200px), (max-height: 560px) {
   .status-row {
-    flex-direction: column;
-    gap: 2px;
+    justify-content: flex-end;
+    gap: 7px;
+    font-size: 11px;
   }
 
   .hud-actions {
-    display: grid;
-    grid-template-columns: repeat(6, 34px);
-    gap: 6px;
+    gap: 4px;
   }
 
   .top-actions {
     right: max(10px, env(safe-area-inset-right));
-    padding: 6px;
+    gap: 6px;
+    padding: 5px;
+  }
+
+  .settings-btn,
+  .quick-actions button {
+    width: 29px;
+    height: 29px;
+    min-height: 29px;
+    padding: 5px;
+  }
+
+  .quick-actions button img {
+    width: 18px;
+    height: 18px;
+  }
+
+  .reset-actions {
+    gap: 5px;
+    padding: 5px;
   }
 
   .quick-actions {
     bottom: max(14px, env(safe-area-inset-bottom));
-    flex-wrap: wrap;
-    justify-content: center;
+    gap: 4px;
+    padding: 5px;
+    max-width: calc(100vw - 12px);
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .quick-actions::-webkit-scrollbar {
+    display: none;
   }
 
   .help-panel {
