@@ -537,6 +537,22 @@ button:focus-visible {
   font-size: 16px;
 }
 
+#applyDeckConfigBtn:disabled,
+.preset-btn:disabled,
+.card-config-item input:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.75);
+  opacity: 0.58;
+}
+
+.permission-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 #openDeckConfigBtn {
   font-size: 14px;
 }

@@ -753,7 +753,6 @@ function setupSettingsModal() {
   });
 
   openDeckConfigBtn?.addEventListener('click', () => {
-    if (!app.isAdmin) return;
     syncDeckConfigInputs();
     closeModal(settingsModal);
     openModal(configModal);
@@ -772,7 +771,10 @@ function setupSettingsModal() {
   });
 
   document.querySelectorAll('.preset-btn').forEach((button) => {
-    button.addEventListener('click', () => applyDeckPreset(button.dataset.preset));
+    button.addEventListener('click', () => {
+      if (!app.isAdmin) return;
+      applyDeckPreset(button.dataset.preset);
+    });
   });
 
   document.querySelectorAll('.modal-overlay').forEach((overlay) => {
@@ -788,27 +790,38 @@ function setAdminRole(isAdmin) {
   syncAdminControls();
 }
 
-// Esconde acoes que somente o administrador da sala pode executar.
+// Esconde reset e deixa a configuracao do baralho em leitura para jogadores comuns.
 function syncAdminControls() {
-  const adminOnlyControls = [
-    resetBtn,
-    openDeckConfigBtn,
-    applyDeckConfigBtn
-  ];
+  if (resetBtn) {
+    resetBtn.disabled = !app.isAdmin;
+    resetBtn.hidden = !app.isAdmin;
+    resetBtn.setAttribute('aria-hidden', String(!app.isAdmin));
+  }
 
-  adminOnlyControls.forEach((control) => {
-    if (!control) return;
-    control.disabled = !app.isAdmin;
-    control.hidden = !app.isAdmin;
-    control.setAttribute('aria-hidden', String(!app.isAdmin));
+  if (openDeckConfigBtn) {
+    openDeckConfigBtn.disabled = false;
+    openDeckConfigBtn.hidden = false;
+    openDeckConfigBtn.removeAttribute('aria-hidden');
+  }
+
+  document.querySelectorAll('.preset-btn').forEach((button) => {
+    button.disabled = !app.isAdmin;
+    button.title = app.isAdmin ? '' : 'Apenas o host pode alterar presets.';
   });
 
-  const deckConfigRow = openDeckConfigBtn?.closest('.setting-row');
-  if (deckConfigRow) deckConfigRow.hidden = !app.isAdmin;
+  document.querySelectorAll('.card-config-item input').forEach((input) => {
+    input.disabled = !app.isAdmin;
+    input.title = app.isAdmin ? '' : 'Apenas o host pode editar.';
+  });
 
-  if (!app.isAdmin && configModal?.style.display !== 'none') {
-    closeModal(configModal);
+  if (applyDeckConfigBtn) {
+    applyDeckConfigBtn.disabled = !app.isAdmin;
+    applyDeckConfigBtn.textContent = app.isAdmin ? 'Aplicar e Resetar Jogo' : 'Apenas o host pode aplicar';
+    applyDeckConfigBtn.title = app.isAdmin ? '' : 'Apenas o host pode aplicar esta configuracao.';
   }
+
+  const permissionNote = document.getElementById('deckConfigPermissionNote');
+  if (permissionNote) permissionNote.hidden = app.isAdmin;
 }
 
 // Alterna a página 3D entre tela cheia e modo normal.
@@ -1773,8 +1786,14 @@ function getLocalPlayerSeat() {
   return window.CoupMaster3DOnline?.playerSeat || 1;
 }
 
+// Define cartas que continuam publicas mesmo quando estao em um slot de jogador.
+function isPublicSlotCard(data) {
+  return data?.type === 'religiao';
+}
+
 // Define se a face da carta pode ser mostrada nesta tela.
 function canRevealCardFace(data) {
+  if (isPublicSlotCard(data)) return Boolean(data?.faceUp);
   if (!data?.owner) return Boolean(data?.faceUp);
   return data.owner === state.activePlayer;
 }
@@ -2636,7 +2655,9 @@ function moveCardToPlayer(card, playerId) {
   removeCardFromCollections(card);
   card.data.owner = playerId;
   card.data.location = `player-${playerId}`;
-  card.data.faceUp = false;
+  if (!isPublicSlotCard(card.data)) {
+    card.data.faceUp = false;
+  }
   state.players[playerId - 1].cards.push(card.data);
   refreshCardMaterial(card);
 
