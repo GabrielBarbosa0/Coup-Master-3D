@@ -1323,7 +1323,10 @@ function shuffleHoveredCards() {
 // Calcula quais jogadores ainda precisam receber cartas iniciais.
 function getInitialDealQueue() {
   const queue = [];
-  const seatedPlayers = state.players.map(player => player.id);
+  let seatedPlayers = state.players
+    .filter(player => player.isReserved)
+    .map(player => player.id);
+  if (seatedPlayers.length === 0) seatedPlayers = [state.activePlayer];
 
   for (let round = 0; round < 2; round++) {
     seatedPlayers.forEach((playerId) => {
