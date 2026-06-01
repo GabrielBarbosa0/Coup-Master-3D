@@ -1671,7 +1671,8 @@ function spawnCoin(type = 'gold', options = {}) {
   mesh.name = id;
   mesh.userData.objectId = id;
   mesh.userData.kind = isGold ? 'gold-coin' : 'silver-coin';
-  const initialPosition = vectorFromSnapshot(options.position, new THREE.Vector3(random(-0.5, 0.5), 1.2, random(-0.5, 0.5)));
+  const spawnPlayer = options.playerId || state.activePlayer;
+  const initialPosition = vectorFromSnapshot(options.position, getCoinSpawnPosition(spawnPlayer));
   const initialQuaternion = quaternionFromSnapshot(
     options.quaternion,
     new THREE.Quaternion().setFromEuler(new THREE.Euler(random(-0.3, 0.3), random(0, Math.PI * 2), random(-0.3, 0.3)))
@@ -1721,17 +1722,27 @@ function spawnSpecialCard(type, options = {}) {
   updateHud();
 }
 
-// Posiciona cartas especiais em um anel interno proximo ao slot do jogador.
-function getSpecialCardSpawnPosition(playerId) {
+// Calcula uma posicao em um anel interno proximo ao slot de um jogador.
+function getNearbyPlayerSpawnPosition(playerId, y, innerOffset, tangentJitter) {
   const angle = getPlayerAngle(playerId);
   const radial = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
   const tangent = new THREE.Vector3(-Math.sin(angle), 0, Math.cos(angle));
-  const radius = HAND_RADIUS - 0.74 + random(-0.06, 0.06);
+  const radius = HAND_RADIUS - innerOffset + random(-0.06, 0.06);
 
   return radial
     .multiplyScalar(radius)
-    .add(tangent.multiplyScalar(random(-0.18, 0.18)))
-    .setY(0.42);
+    .add(tangent.multiplyScalar(random(-tangentJitter, tangentJitter)))
+    .setY(y);
+}
+
+// Posiciona moedas no espaco de mesa mais proximo do jogador que pediu.
+function getCoinSpawnPosition(playerId) {
+  return getNearbyPlayerSpawnPosition(playerId, 1.2, 0.78, 0.24);
+}
+
+// Posiciona cartas especiais em um anel interno proximo ao slot do jogador.
+function getSpecialCardSpawnPosition(playerId) {
+  return getNearbyPlayerSpawnPosition(playerId, 0.42, 0.74, 0.18);
 }
 
 // Cria lateral metalica e textura igual na frente e no verso da moeda.
@@ -1943,10 +1954,11 @@ function syncPlayerView(playerId) {
 // Atualiza o assento da conta local sem expor troca manual de jogadores.
 function setLocalPlayerSeat(playerId, options = {}) {
   const seat = playerId || 1;
-  setActivePlayer(seat);
+  state.activePlayer = seat;
+  syncPlayerView(options.preserveView ? state.viewPlayer || seat : seat);
 
   if (options.instant) {
-    snapCameraToPlayer(seat);
+    snapCameraToPlayer(state.viewPlayer);
     return;
   }
 
@@ -3817,7 +3829,7 @@ function applyTableState(snapshot) {
   });
 
   state.players.forEach(player => layoutPlayerHand(player.id, 0));
-  setLocalPlayerSeat(getLocalPlayerSeat(), { focus: false });
+  setLocalPlayerSeat(getLocalPlayerSeat(), { focus: false, preserveView: true });
   updateHud();
   app.isApplyingRemoteState = false;
 }
