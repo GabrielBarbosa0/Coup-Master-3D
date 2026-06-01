@@ -125,6 +125,7 @@ const {
 
 const state = {
   activePlayer: 1,
+  viewPlayer: 1,
   deckConfig: { ...DEFAULT_DECK_CONFIG },
   deck: [],
   tableCards: [],
@@ -222,7 +223,7 @@ function init() {
   app.scene.fog = new THREE.Fog(0x171d26, 18, 32);
 
   app.camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 80);
-  app.camera.position.copy(getPlayerCameraPosition(state.activePlayer));
+  app.camera.position.copy(getPlayerCameraPosition(state.viewPlayer));
 
   app.controls = new OrbitControls(app.camera, canvas);
   app.controls.target.copy(DEFAULT_CAMERA_TARGET);
@@ -384,7 +385,7 @@ function createDropZones() {
 
   for (let i = 1; i <= PLAYER_COUNT; i++) {
     const pos = getPlayerSeatPosition(i);
-    const zone = makeZone(`player-${i}`, pos.x, pos.z, 1.90, 1.25, i === state.activePlayer ? 0x18f28a : 0x3da3ff, 0.16);
+    const zone = makeZone(`player-${i}`, pos.x, pos.z, 1.90, 1.25, i === state.viewPlayer ? 0x18f28a : 0x3da3ff, 0.16);
     zone.userData.playerId = i;
     zone.rotation.z = -getPlayerAngle(i) + Math.PI / 2;
     app.dropZones.push(zone);
@@ -450,7 +451,7 @@ function createPlayerBadges() {
     avatar.position.set(0, 0.26, 0);
     group.add(avatar);
 
-    const label = createPlayerNameMesh(player.name, player.id === state.activePlayer);
+    const label = createPlayerNameMesh(player.name, player.id === state.viewPlayer);
     label.position.set(0, -0.04, 0.01);
     group.add(label);
 
@@ -508,7 +509,7 @@ function refreshPlayerBadge(playerId) {
   badge.group.add(nextAvatar);
   badge.avatar = nextAvatar;
 
-  const nextLabel = createPlayerNameMesh(player.name, playerId === state.activePlayer);
+  const nextLabel = createPlayerNameMesh(player.name, playerId === state.viewPlayer);
   nextLabel.position.copy(badge.label.position);
   badge.group.remove(badge.label);
   disposeObject3D(badge.label);
@@ -611,7 +612,7 @@ function createPlayerAvatarTexture(player) {
   ctx.restore();
 
   ctx.lineWidth = 10;
-  ctx.strokeStyle = player.id === state.activePlayer ? '#18f28a' : '#ffffff';
+  ctx.strokeStyle = player.id === state.viewPlayer ? '#18f28a' : '#ffffff';
   ctx.beginPath();
   ctx.arc(128, 128, 108, 0, Math.PI * 2);
   ctx.stroke();
@@ -926,7 +927,7 @@ async function respondCurrentSpectatorRequest(status) {
 // Muda a visao local para o slot autorizado pelo jogador alvo.
 function startSpectatingPlayer(request) {
   if (!request?.targetSeat) return;
-  setLocalPlayerSeat(request.targetSeat, { focus: true });
+  setObservedPlayerSeat(request.targetSeat, { focus: true });
   if (spectatorStatusText) {
     spectatorStatusText.textContent = `Espectando ${request.targetName || 'jogador'}.`;
     spectatorPlayerList.innerHTML = '';
@@ -1901,7 +1902,14 @@ function loadTexture(path) {
 // Atualiza jogador ativo, zonas de destaque e materiais visiveis das maos.
 function setActivePlayer(playerId) {
   state.activePlayer = playerId;
+  state.viewPlayer = playerId;
 
+  syncPlayerView(playerId);
+}
+
+// Atualiza destaque, badges e materiais para o assento atualmente observado.
+function syncPlayerView(playerId) {
+  state.viewPlayer = playerId;
   app.dropZones.forEach((zone) => {
     if (!zone.userData.playerId) return;
     const active = zone.userData.playerId === playerId;
@@ -1937,6 +1945,21 @@ function getLocalPlayerSeat() {
   return window.CoupMaster3DOnline?.playerSeat || 1;
 }
 
+// Troca apenas a visao local sem mudar o assento real do jogador.
+function setObservedPlayerSeat(playerId, options = {}) {
+  const seat = playerId || state.activePlayer;
+  syncPlayerView(seat);
+
+  if (options.instant) {
+    snapCameraToPlayer(seat);
+    return;
+  }
+
+  if (options.focus !== false) {
+    focusTableCamera();
+  }
+}
+
 // Define cartas que continuam publicas mesmo quando estao em um slot de jogador.
 function isPublicSlotCard(data) {
   return data?.type === 'religiao';
@@ -1944,14 +1967,14 @@ function isPublicSlotCard(data) {
 
 // Identifica carta privada de outro slot que nao pode revelar textura nem durante flip.
 function isPrivateSlotCardHidden(data) {
-  return Boolean(data?.owner) && data.owner !== state.activePlayer && !isPublicSlotCard(data);
+  return Boolean(data?.owner) && data.owner !== state.viewPlayer && !isPublicSlotCard(data);
 }
 
 // Define se a face da carta pode ser mostrada nesta tela.
 function canRevealCardFace(data) {
   if (isPublicSlotCard(data)) return Boolean(data?.faceUp);
   if (!data?.owner) return Boolean(data?.faceUp);
-  return data.owner === state.activePlayer && Boolean(data.faceUp);
+  return data.owner === state.viewPlayer && Boolean(data.faceUp);
 }
 
 // Atualiza o material da carta quando ela vira, muda de dono ou troca a visao local.
@@ -2663,7 +2686,7 @@ function focusTableCamera() {
     progress: 0,
     startPosition: app.camera.position.clone(),
     startTarget: app.controls.target.clone(),
-    endPosition: getPlayerCameraPosition(state.activePlayer),
+    endPosition: getPlayerCameraPosition(state.viewPlayer),
     endTarget: DEFAULT_CAMERA_TARGET.clone()
   };
 }
@@ -3384,7 +3407,7 @@ function updateHoveredDrop(event) {
 // Remove destaque visual da zona de drop atual.
 function clearDropHover() {
   if (!app.hoveredDrop) return;
-  app.hoveredDrop.material.opacity = app.hoveredDrop.userData.playerId === state.activePlayer
+  app.hoveredDrop.material.opacity = app.hoveredDrop.userData.playerId === state.viewPlayer
     ? 0.24
     : app.hoveredDrop.userData.baseOpacity;
   app.hoveredDrop = null;
@@ -3517,7 +3540,7 @@ function updatePlayerBadges() {
 
   app.playerBadges.forEach((badge, playerId) => {
     const player = state.players[playerId - 1];
-    badge.group.visible = Boolean(player?.isReserved) && playerId !== state.activePlayer;
+    badge.group.visible = Boolean(player?.isReserved) && playerId !== state.viewPlayer;
     badge.group.position.copy(getPlayerBadgePosition(playerId));
     badge.group.lookAt(app.camera.position);
   });
