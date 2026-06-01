@@ -4,6 +4,7 @@ import {
   leaveRoom,
   markPlayerConnected,
   normalizeRoomCode,
+  refreshPlayerPresence,
   roomExists,
   subscribeRoomPlayers,
   subscribeRoomTableState,
@@ -30,10 +31,16 @@ window.CoupMaster3DOnline = {
   playerSeat,
   user
 };
+const presenceTimer = window.setInterval(() => {
+  refreshPlayerPresence(requestedRoom, user).catch((error) => {
+    console.error('Falha ao atualizar presenca.', error);
+  });
+}, 20_000);
 
 const leaveRoomBtn = document.getElementById('leaveRoomBtn3d');
 leaveRoomBtn?.addEventListener('click', async () => {
   leaveRoomBtn.disabled = true;
+  window.clearInterval(presenceTimer);
   await leaveRoom(requestedRoom, user);
   localStorage.removeItem('coupMaster3dRoom');
   location.assign('lobby.html');
@@ -75,12 +82,11 @@ subscribeRoomPlayers(requestedRoom, (players) => {
     window.CoupMaster3D?.setLocalPlayerSeat?.(localPlayer.seat);
   }
 
-  connectedPlayers.slice(0, 8)
-    .forEach((player, index) => {
-      const seat = player.seat || index + 1;
-      window.CoupMaster3D?.setPlayerProfile(seat, {
-        displayName: player.displayName,
-        photoURL: player.photoURL
-      });
-    });
+  window.CoupMaster3D?.setOnlinePlayerProfiles?.(
+    connectedPlayers.slice(0, 8).map((player, index) => ({
+      seat: player.seat || index + 1,
+      displayName: player.displayName,
+      photoURL: player.photoURL
+    }))
+  );
 });

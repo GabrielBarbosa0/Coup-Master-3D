@@ -127,6 +127,7 @@ const state = {
     id: index + 1,
     name: `Jogador ${index + 1}`,
     avatarUrl: null,
+    isOnline: false,
     cards: []
   }))
 };
@@ -244,6 +245,7 @@ function init() {
     applyTableState,
     getTableState,
     setLocalPlayerSeat,
+    setOnlinePlayerProfiles,
     setPlayerProfile
   };
 
@@ -450,7 +452,24 @@ function setPlayerProfile(playerId, profile = {}) {
 
   player.name = profile.name || profile.displayName || player.name || `Jogador ${playerId}`;
   player.avatarUrl = profile.avatarUrl || profile.photoURL || player.avatarUrl || null;
+  player.isOnline = true;
   refreshPlayerBadge(playerId);
+}
+
+// Reaplica a lista online sem deixar nomes antigos presos em assentos vazios.
+function setOnlinePlayerProfiles(profiles = []) {
+  state.players.forEach((player) => {
+    player.name = `Jogador ${player.id}`;
+    player.avatarUrl = null;
+    player.isOnline = false;
+  });
+
+  profiles.forEach((profile) => {
+    setPlayerProfile(profile.seat, profile);
+  });
+
+  state.players.forEach(player => refreshPlayerBadge(player.id));
+  updatePlayerBadges();
 }
 
 // Recria os materiais do badge quando nome, avatar ou destaque mudam.
@@ -1140,7 +1159,7 @@ function resetMvp() {
   });
   resetDeckPosition();
 
-  setActivePlayer(getLocalPlayerSeat());
+  setLocalPlayerSeat(getLocalPlayerSeat(), { instant: true });
   updateHud();
 }
 
@@ -1727,8 +1746,18 @@ function setActivePlayer(playerId) {
 }
 
 // Atualiza o assento da conta local sem expor troca manual de jogadores.
-function setLocalPlayerSeat(playerId) {
-  setActivePlayer(playerId || 1);
+function setLocalPlayerSeat(playerId, options = {}) {
+  const seat = playerId || 1;
+  setActivePlayer(seat);
+
+  if (options.instant) {
+    snapCameraToPlayer(seat);
+    return;
+  }
+
+  if (options.focus !== false) {
+    focusTableCamera();
+  }
 }
 
 // Retorna o assento online do jogador local, ou P1 quando estiver em modo isolado.
@@ -2430,6 +2459,14 @@ function focusTableCamera() {
     endPosition: getPlayerCameraPosition(state.activePlayer),
     endTarget: DEFAULT_CAMERA_TARGET.clone()
   };
+}
+
+// Coloca a camera diretamente na vista padrao de um assento.
+function snapCameraToPlayer(playerId) {
+  app.cameraFocus = null;
+  app.camera.position.copy(getPlayerCameraPosition(playerId));
+  app.controls.target.copy(DEFAULT_CAMERA_TARGET);
+  app.controls.update();
 }
 
 // Calcula a posicao padrao da camera para um jogador.
@@ -3272,7 +3309,8 @@ function updatePlayerBadges() {
   if (!app.camera) return;
 
   app.playerBadges.forEach((badge, playerId) => {
-    badge.group.visible = playerId !== state.activePlayer;
+    const player = state.players[playerId - 1];
+    badge.group.visible = Boolean(player?.isOnline) && playerId !== state.activePlayer;
     badge.group.position.copy(getPlayerBadgePosition(playerId));
     badge.group.lookAt(app.camera.position);
   });
@@ -3534,7 +3572,7 @@ function applyTableState(snapshot) {
   });
 
   state.players.forEach(player => layoutPlayerHand(player.id, 0));
-  setActivePlayer(getLocalPlayerSeat());
+  setLocalPlayerSeat(getLocalPlayerSeat(), { focus: false });
   updateHud();
   app.isApplyingRemoteState = false;
 }
