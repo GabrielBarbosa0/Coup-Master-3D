@@ -32,6 +32,27 @@ function isRecentlySeen(player) {
   return player?.connected && lastSeen > 0 && Date.now() - lastSeen < PLAYER_PRESENCE_TIMEOUT_MS;
 }
 
+// Ordena jogadores de forma estavel para distribuir assentos.
+function sortPlayersForSeats(players) {
+  return players.slice().sort((a, b) => {
+    const joinedA = Number(a.joinedAt) || 0;
+    const joinedB = Number(b.joinedAt) || 0;
+    if (joinedA !== joinedB) return joinedA - joinedB;
+    return String(a.uid).localeCompare(String(b.uid));
+  });
+}
+
+// Aplica o layout visual final antes do Firebase concluir todos os updates.
+function arrangePlayerSeats(players) {
+  const sortedPlayers = sortPlayersForSeats(players).slice(0, 8);
+  const layout = SEAT_LAYOUTS[Math.min(sortedPlayers.length, 8)] || SEAT_LAYOUTS[8];
+
+  return sortedPlayers.map((player, index) => ({
+    ...player,
+    seat: layout[index]
+  }));
+}
+
 // Normaliza codigo digitado para o formato curto usado nas URLs e no banco.
 export function normalizeRoomCode(value = '') {
   return String(value)
@@ -103,18 +124,11 @@ async function rebalanceRoomSeats(roomCode) {
     if (isRecentlySeen(player)) players.push(player);
   });
 
-  players.sort((a, b) => {
-    const joinedA = Number(a.joinedAt) || 0;
-    const joinedB = Number(b.joinedAt) || 0;
-    if (joinedA !== joinedB) return joinedA - joinedB;
-    return String(a.uid).localeCompare(String(b.uid));
-  });
-
-  const layout = SEAT_LAYOUTS[Math.min(players.length, 8)] || SEAT_LAYOUTS[8];
+  const arrangedPlayers = arrangePlayerSeats(players);
   const nextSeats = {};
 
-  const updates = players.slice(0, 8).map((player, index) => {
-    const seat = layout[index];
+  const updates = arrangedPlayers.map((player) => {
+    const seat = player.seat;
     nextSeats[seat] = player.uid;
     return update(child(playersRef, `${player.uid}`), { seat });
   });
@@ -221,7 +235,7 @@ export function subscribeRoomPlayers(roomCode, callback) {
       const player = childSnapshot.val();
       if (isRecentlySeen(player)) players.push(player);
     });
-    callback(players);
+    callback(arrangePlayerSeats(players));
   });
 
   return () => off(playersRef);
