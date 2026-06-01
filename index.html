@@ -289,18 +289,17 @@
 
     <div id="ruleCardsModal" class="modal-overlay" style="display: none;">
       <div class="modal-actions-and-rules rule-cards-modal">
-        <button id="closeRuleCardsBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+        <div class="rule-card-stage">
+          <button id="closeRuleCardsBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
 
-        <button id="rulePrevBtn" class="rule-nav-btn rule-nav-prev" type="button" aria-label="Carta anterior">‹</button>
-        <button id="ruleNextBtn" class="rule-nav-btn rule-nav-next" type="button" aria-label="Próxima carta">›</button>
-
-        <div id="ruleFlipCard" class="rule-flip-card" role="button" tabindex="0" aria-label="Alternar carta de regras">
-          <div class="rule-flip-card-inner">
-            <div class="rule-flip-card-face rule-flip-card-front">
-              <img id="ruleFrontImg" src="assets/img/guides/front-actions.png" alt="Regras dos personagens">
-            </div>
-            <div class="rule-flip-card-face rule-flip-card-back">
-              <img id="ruleBackImg" src="assets/img/guides/back-actions.png" alt="Resumo de turno">
+          <div id="ruleFlipCard" class="rule-flip-card" role="button" tabindex="0" aria-label="Alternar carta de regras">
+            <div class="rule-flip-card-inner">
+              <div class="rule-flip-card-face rule-flip-card-front">
+                <img id="ruleFrontImg" src="assets/img/guides/front-actions.png" alt="Regras dos personagens">
+              </div>
+              <div class="rule-flip-card-face rule-flip-card-back">
+                <img id="ruleBackImg" src="assets/img/guides/back-actions.png" alt="Resumo de turno">
+              </div>
             </div>
           </div>
         </div>
@@ -311,21 +310,18 @@
 
     <div id="altRulesModal" class="modal-overlay" style="display: none;">
       <div class="modal-actions-and-rules rule-cards-modal">
-        <button id="closeAltRulesBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+        <div class="rule-card-stage">
+          <button id="closeAltRulesBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
 
-        <button id="altRulePrevBtn" class="rule-nav-btn rule-nav-prev" type="button"
-          aria-label="Regra anterior">‹</button>
-        <button id="altRuleNextBtn" class="rule-nav-btn rule-nav-next" type="button"
-          aria-label="Próxima regra">›</button>
-
-        <div id="altRuleFlipCard" class="rule-flip-card" role="button" tabindex="0"
-          aria-label="Alternar regra alternativa">
-          <div class="rule-flip-card-inner">
-            <div class="rule-flip-card-face rule-flip-card-front">
-              <img id="altRuleFrontImg" src="assets/img/guides/alternative-rules1.png" alt="Regra alternativa">
-            </div>
-            <div class="rule-flip-card-face rule-flip-card-back">
-              <img id="altRuleBackImg" src="assets/img/guides/alternative-rules2.png" alt="Regra alternativa">
+          <div id="altRuleFlipCard" class="rule-flip-card" role="button" tabindex="0"
+            aria-label="Alternar regra alternativa">
+            <div class="rule-flip-card-inner">
+              <div class="rule-flip-card-face rule-flip-card-front">
+                <img id="altRuleFrontImg" src="assets/img/guides/alternative-rules1.png" alt="Regra alternativa">
+              </div>
+              <div class="rule-flip-card-face rule-flip-card-back">
+                <img id="altRuleBackImg" src="assets/img/guides/alternative-rules2.png" alt="Regra alternativa">
+              </div>
             </div>
           </div>
         </div>

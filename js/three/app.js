@@ -9,8 +9,6 @@ const {
   altRuleCounter,
   altRuleFlipCard,
   altRuleFrontImg,
-  altRuleNextBtn,
-  altRulePrevBtn,
   altRulesBtn,
   altRulesModal,
   applyDeckConfigBtn,
@@ -51,8 +49,6 @@ const {
   ruleCardsModal,
   ruleFlipCard,
   ruleFrontImg,
-  ruleNextBtn,
-  rulePrevBtn,
   settingsBtn,
   settingsModal,
   shuffleBtn,
@@ -737,14 +733,6 @@ function setupSettingsModal() {
   closeRuleCardsBtn?.addEventListener('click', () => {
     closeModal(ruleCardsModal);
   });
-  rulePrevBtn?.addEventListener('click', (event) => {
-    event.stopPropagation();
-    stepRuleCard(-1);
-  });
-  ruleNextBtn?.addEventListener('click', (event) => {
-    event.stopPropagation();
-    stepRuleCard(1);
-  });
   ruleFlipCard?.addEventListener('click', () => stepRuleCard(1));
   ruleFlipCard?.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -753,14 +741,6 @@ function setupSettingsModal() {
     }
   });
   closeAltRulesBtn?.addEventListener('click', () => closeModal(altRulesModal));
-  altRulePrevBtn?.addEventListener('click', (event) => {
-    event.stopPropagation();
-    stepAltRuleCard(-1);
-  });
-  altRuleNextBtn?.addEventListener('click', (event) => {
-    event.stopPropagation();
-    stepAltRuleCard(1);
-  });
   altRuleFlipCard?.addEventListener('click', () => stepAltRuleCard(1));
   altRuleFlipCard?.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
