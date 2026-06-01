@@ -1,5 +1,6 @@
 import { requireAuth } from '../firebase/auth-service.js';
 import {
+  getRoomInfo,
   getRoomTableState,
   leaveRoom,
   markPlayerConnected,
@@ -24,10 +25,14 @@ if (!requestedRoom || !(await roomExists(requestedRoom))) {
   throw new Error('Sala obrigatoria para abrir a mesa.');
 }
 
+const roomInfo = await getRoomInfo(requestedRoom);
+const isAdmin = roomInfo?.adminUid === user.uid;
 localStorage.setItem('coupMaster3dRoom', requestedRoom);
 const playerSeat = await markPlayerConnected(requestedRoom, user);
 window.CoupMaster3DOnline = {
   roomCode: requestedRoom,
+  adminUid: roomInfo?.adminUid || null,
+  isAdmin,
   playerSeat,
   user
 };
@@ -47,6 +52,7 @@ leaveRoomBtn?.addEventListener('click', async () => {
 });
 
 await import('./app.js');
+window.CoupMaster3D?.setAdminRole?.(isAdmin);
 
 let syncReady = false;
 window.CoupMaster3DOnline.publishTableState = (tableState) => {

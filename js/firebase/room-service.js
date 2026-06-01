@@ -20,6 +20,11 @@ function getPlayerDisplayName(user) {
   return user.displayName || (user.isAnonymous ? 'Visitante' : 'Jogador');
 }
 
+// Resolve o UID do administrador permanente da sala.
+function getRoomAdminUid(room) {
+  return room?.adminUid || room?.createdBy || null;
+}
+
 // Normaliza codigo digitado para o formato curto usado nas URLs e no banco.
 export function normalizeRoomCode(value = '') {
   return String(value)
@@ -46,6 +51,7 @@ export async function createRoom(user) {
 
     await set(roomRef, {
       code: roomCode,
+      adminUid: user.uid,
       createdAt: serverTimestamp(),
       createdBy: user.uid,
       status: 'lobby'
@@ -92,11 +98,15 @@ export async function joinRoom(roomCode, user) {
     throw new Error('Sala nao encontrada.');
   }
 
+  const room = roomSnapshot.val();
+  const isAdmin = getRoomAdminUid(room) === user.uid;
   const seat = await assignPlayerSeat(code, user);
   const playerRef = child(roomRef, `players/${user.uid}`);
   const playerData = {
     uid: user.uid,
     seat,
+    role: isAdmin ? 'admin' : 'player',
+    isAdmin,
     displayName: getPlayerDisplayName(user),
     photoURL: user.photoURL || '',
     connected: true,
@@ -113,9 +123,13 @@ export async function joinRoom(roomCode, user) {
 export async function markPlayerConnected(roomCode, user) {
   const code = normalizeRoomCode(roomCode);
   const seat = await assignPlayerSeat(code, user);
+  const roomSnapshot = await get(ref(database, `rooms/${code}`));
+  const isAdmin = getRoomAdminUid(roomSnapshot.val()) === user.uid;
   const playerRef = ref(database, `rooms/${code}/players/${user.uid}`);
   await update(playerRef, {
     seat,
+    role: isAdmin ? 'admin' : 'player',
+    isAdmin,
     displayName: getPlayerDisplayName(user),
     photoURL: user.photoURL || '',
     connected: true,
@@ -178,6 +192,21 @@ export async function roomExists(roomCode) {
   if (code.length !== ROOM_CODE_LENGTH) return false;
   const snapshot = await get(ref(database, `rooms/${code}`));
   return snapshot.exists();
+}
+
+// Le metadados permanentes da sala, incluindo o administrador criador.
+export async function getRoomInfo(roomCode) {
+  const code = normalizeRoomCode(roomCode);
+  if (code.length !== ROOM_CODE_LENGTH) return null;
+  const snapshot = await get(ref(database, `rooms/${code}`));
+  if (!snapshot.exists()) return null;
+  const room = snapshot.val();
+  return {
+    code,
+    adminUid: getRoomAdminUid(room),
+    createdBy: room.createdBy || null,
+    status: room.status || 'lobby'
+  };
 }
 
 // Le o snapshot compartilhado da mesa casual.

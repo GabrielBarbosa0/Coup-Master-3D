@@ -181,6 +181,7 @@ const app = {
   vfx: new Map(),
   syncTimer: null,
   isApplyingRemoteState: false,
+  isAdmin: Boolean(window.CoupMaster3DOnline?.isAdmin),
   lastTime: performance.now(),
   textures: {}
 };
@@ -240,10 +241,12 @@ function init() {
     ...(window.CoupMaster3D || {}),
     applyTableState,
     getTableState,
+    setAdminRole,
     setLocalPlayerSeat,
     setOnlinePlayerProfiles,
     setPlayerProfile
   };
+  syncAdminControls();
 
   drawBtn.addEventListener('click', () => drawCardToPlayer(state.activePlayer));
   goldCoinBtn.addEventListener('click', () => spawnCoin('gold'));
@@ -750,6 +753,7 @@ function setupSettingsModal() {
   });
 
   openDeckConfigBtn?.addEventListener('click', () => {
+    if (!app.isAdmin) return;
     syncDeckConfigInputs();
     closeModal(settingsModal);
     openModal(configModal);
@@ -761,6 +765,7 @@ function setupSettingsModal() {
   });
 
   applyDeckConfigBtn?.addEventListener('click', () => {
+    if (!app.isAdmin) return;
     state.deckConfig = readDeckConfigInputs();
     closeModal(configModal);
     resetMvp();
@@ -775,6 +780,35 @@ function setupSettingsModal() {
       if (event.target === overlay) closeModal(overlay);
     });
   });
+}
+
+// Atualiza a permissao local de administrador e os controles exclusivos.
+function setAdminRole(isAdmin) {
+  app.isAdmin = Boolean(isAdmin);
+  syncAdminControls();
+}
+
+// Esconde acoes que somente o administrador da sala pode executar.
+function syncAdminControls() {
+  const adminOnlyControls = [
+    resetBtn,
+    openDeckConfigBtn,
+    applyDeckConfigBtn
+  ];
+
+  adminOnlyControls.forEach((control) => {
+    if (!control) return;
+    control.disabled = !app.isAdmin;
+    control.hidden = !app.isAdmin;
+    control.setAttribute('aria-hidden', String(!app.isAdmin));
+  });
+
+  const deckConfigRow = openDeckConfigBtn?.closest('.setting-row');
+  if (deckConfigRow) deckConfigRow.hidden = !app.isAdmin;
+
+  if (!app.isAdmin && configModal?.style.display !== 'none') {
+    closeModal(configModal);
+  }
 }
 
 // Alterna a página 3D entre tela cheia e modo normal.
@@ -856,6 +890,7 @@ function playVfx(name) {
 // Toca o feedback do reset dentro do clique e reinicia a mesa logo depois.
 function triggerResetFromButton(event) {
   event?.stopPropagation();
+  if (!app.isAdmin) return;
   playResetSoundOnce();
   window.setTimeout(resetMvp, 90);
 }
@@ -863,6 +898,7 @@ function triggerResetFromButton(event) {
 // Dispara o som no primeiro evento do clique para garantir ativacao de audio.
 function playResetSoundFromButton(event) {
   event.stopPropagation();
+  if (!app.isAdmin) return;
   playResetSoundOnce();
 }
 
