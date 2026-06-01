@@ -313,7 +313,8 @@ button:focus-visible {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  padding: 0 16px 58px;
+  gap: clamp(10px, 3.6vh, 22px);
+  padding: 0 16px;
   border: 0;
   background: transparent;
   box-shadow: none;
@@ -321,7 +322,7 @@ button:focus-visible {
 
 .rule-card-stage {
   position: relative;
-  width: min(390px, 70vw, calc((100dvh - 96px) * 0.69));
+  width: min(390px, 70vw, calc((100dvh - 104px) * 0.69));
   container-type: inline-size;
 }
 
@@ -367,18 +368,21 @@ button:focus-visible {
 }
 
 .rule-cards-modal .close-btn {
-  top: clamp(-16px, -4cqw, -10px);
-  right: clamp(-16px, -4cqw, -10px);
+  top: clamp(-16px, -4cqw, -8px);
+  right: clamp(-16px, -4cqw, -8px);
+  width: clamp(22px, 8.2cqw, 32px);
+  height: clamp(22px, 8.2cqw, 32px);
+  min-height: clamp(22px, 8.2cqw, 32px);
+  font-size: clamp(14px, 5.7cqw, 22px);
 }
 
 .rule-cards-counter {
-  margin-top: 22px;
-  padding: 6px 10px;
+  padding: clamp(4px, 1.3vh, 6px) clamp(8px, 2.4vh, 10px);
   border: 1px solid var(--line);
   border-radius: 999px;
   background: rgba(7, 10, 15, 0.8);
   color: var(--muted);
-  font-size: 12px;
+  font-size: clamp(10px, 3.2vh, 12px);
   font-weight: 700;
 }
 
@@ -618,10 +622,11 @@ button:focus-visible {
 
   .rule-cards-modal {
     min-height: 0;
-    padding: 0 10px 46px;
+    gap: clamp(8px, 3vh, 16px);
+    padding: 0 10px;
   }
 
   .rule-card-stage {
-    width: min(310px, 72vw, calc((100dvh - 78px) * 0.69));
+    width: min(310px, 72vw, calc((100dvh - 82px) * 0.69));
   }
 }
