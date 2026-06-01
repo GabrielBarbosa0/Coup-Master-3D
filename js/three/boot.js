@@ -78,10 +78,9 @@ subscribeRoomTableState(requestedRoom, (tableState) => {
 
 // Liga jogadores com slot reservado aos badges locais e mantem o assento da conta atual.
 subscribeRoomPlayers(requestedRoom, (players) => {
-  const connectedPlayers = players
-    .filter((player) => player.connected)
+  const seatedPlayers = players
     .sort((a, b) => (a.seat || 99) - (b.seat || 99));
-  const localPlayer = connectedPlayers.find((player) => player.uid === user.uid);
+  const localPlayer = seatedPlayers.find((player) => player.uid === user.uid);
 
   if (localPlayer?.seat && localPlayer.seat !== window.CoupMaster3DOnline.playerSeat) {
     window.CoupMaster3DOnline.playerSeat = localPlayer.seat;
@@ -89,10 +88,11 @@ subscribeRoomPlayers(requestedRoom, (players) => {
   }
 
   window.CoupMaster3D?.setOnlinePlayerProfiles?.(
-    connectedPlayers.slice(0, 8).map((player, index) => ({
+    seatedPlayers.slice(0, 8).map((player, index) => ({
       seat: player.seat || index + 1,
       displayName: player.displayName,
-      photoURL: player.photoURL
+      photoURL: player.photoURL,
+      connected: Boolean(player.connected)
     }))
   );
 });

@@ -124,6 +124,7 @@ const state = {
     id: index + 1,
     name: `Jogador ${index + 1}`,
     avatarUrl: null,
+    isReserved: false,
     isOnline: false,
     cards: []
   }))
@@ -454,20 +455,25 @@ function setPlayerProfile(playerId, profile = {}) {
 
   player.name = profile.name || profile.displayName || player.name || `Jogador ${playerId}`;
   player.avatarUrl = profile.avatarUrl || profile.photoURL || player.avatarUrl || null;
-  player.isOnline = true;
+  player.isReserved = true;
+  player.isOnline = profile.connected !== false;
   refreshPlayerBadge(playerId);
 }
 
-// Reaplica a lista online sem deixar nomes antigos presos em assentos vazios.
+// Reaplica jogadores com assento reservado sem apagar perfis que ficaram offline.
 function setOnlinePlayerProfiles(profiles = []) {
-  state.players.forEach((player) => {
-    player.name = `Jogador ${player.id}`;
-    player.avatarUrl = null;
-    player.isOnline = false;
-  });
+  const reservedSeats = new Set(profiles.map(profile => profile.seat).filter(Boolean));
 
   profiles.forEach((profile) => {
     setPlayerProfile(profile.seat, profile);
+  });
+
+  state.players.forEach((player) => {
+    if (reservedSeats.has(player.id)) return;
+    if (player.isReserved) return;
+    player.name = `Jogador ${player.id}`;
+    player.avatarUrl = null;
+    player.isOnline = false;
   });
 
   state.players.forEach(player => refreshPlayerBadge(player.id));
@@ -798,6 +804,7 @@ function syncAdminControls() {
   if (resetBtn) {
     resetBtn.disabled = !app.isAdmin;
     resetBtn.hidden = !app.isAdmin;
+    resetBtn.style.display = app.isAdmin ? '' : 'none';
     resetBtn.setAttribute('aria-hidden', String(!app.isAdmin));
   }
 
@@ -3399,7 +3406,7 @@ function updatePlayerBadges() {
 
   app.playerBadges.forEach((badge, playerId) => {
     const player = state.players[playerId - 1];
-    badge.group.visible = Boolean(player?.isOnline) && playerId !== state.activePlayer;
+    badge.group.visible = Boolean(player?.isReserved) && playerId !== state.activePlayer;
     badge.group.position.copy(getPlayerBadgePosition(playerId));
     badge.group.lookAt(app.camera.position);
   });

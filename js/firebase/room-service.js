@@ -156,17 +156,10 @@ export async function leaveRoom(roomCode, user) {
   const code = normalizeRoomCode(roomCode);
   if (!code || !user) return;
 
-  const playerRef = ref(database, `rooms/${code}/players/${user.uid}`);
-  const playerSnapshot = await get(playerRef);
-  const seat = playerSnapshot.val()?.seat;
-  await update(playerRef, {
+  await update(ref(database, `rooms/${code}/players/${user.uid}`), {
     connected: false,
-    seat: null,
     lastSeen: Date.now()
   });
-  if (seat) {
-    await set(ref(database, `rooms/${code}/seats/${seat}`), null);
-  }
 }
 
 // Escuta jogadores com assento reservado na sala.
