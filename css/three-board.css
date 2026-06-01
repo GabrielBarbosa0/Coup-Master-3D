@@ -83,8 +83,6 @@ body,
 .top-actions {
   top: max(14px, env(safe-area-inset-top));
   right: max(14px, env(safe-area-inset-right));
-  display: grid;
-  gap: 8px;
   padding: 8px;
   border-radius: 8px;
 }
@@ -99,6 +97,17 @@ body,
   width: auto;
   max-width: calc(100vw - 28px);
   transform: translateX(-50%);
+}
+
+.table-status {
+  position: fixed;
+  z-index: 10;
+  left: 50%;
+  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 54px);
+  justify-content: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.82);
 }
 
 button {
@@ -577,7 +586,6 @@ button:focus-visible {
 
   .top-actions {
     right: max(10px, env(safe-area-inset-right));
-    gap: 6px;
     padding: 5px;
   }
 
@@ -611,6 +619,10 @@ button:focus-visible {
 
   .quick-actions::-webkit-scrollbar {
     display: none;
+  }
+
+  .table-status {
+    bottom: calc(max(14px, env(safe-area-inset-bottom)) + 42px);
   }
 
   .help-panel {
