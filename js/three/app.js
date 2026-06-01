@@ -1713,10 +1713,25 @@ function spawnSpecialCard(type, options = {}) {
   state.tableCards.push(data);
 
   const card = createCardObject(data);
-  const position = vectorFromSnapshot(options.position, new THREE.Vector3(random(-0.45, 0.45), 0.42, random(-0.45, 0.45)));
-  placeCard(card, position, options.rotationY ?? random(-0.22, 0.22), true);
+  const defaultPosition = getSpecialCardSpawnPosition(state.activePlayer);
+  const position = vectorFromSnapshot(options.position, defaultPosition);
+  const rotationY = options.rotationY ?? getHandRotation(state.activePlayer) + random(-0.12, 0.12);
+  placeCard(card, position, rotationY, true);
   if (!options.silent) playVfx('card-whoosh');
   updateHud();
+}
+
+// Posiciona cartas especiais em um anel interno proximo ao slot do jogador.
+function getSpecialCardSpawnPosition(playerId) {
+  const angle = getPlayerAngle(playerId);
+  const radial = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
+  const tangent = new THREE.Vector3(-Math.sin(angle), 0, Math.cos(angle));
+  const radius = HAND_RADIUS - 0.74 + random(-0.06, 0.06);
+
+  return radial
+    .multiplyScalar(radius)
+    .add(tangent.multiplyScalar(random(-0.18, 0.18)))
+    .setY(0.42);
 }
 
 // Cria lateral metalica e textura igual na frente e no verso da moeda.
