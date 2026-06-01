@@ -2350,10 +2350,17 @@ function finishObjectDrag(object, wasDragged) {
   scheduleTableSync();
 }
 
-// Fallback de duplo clique nativo para devolver carta ao deck.
+// Fallback de duplo clique nativo para remover moedas ou devolver carta ao deck.
 function onDoubleClick(event) {
   setPointer(event);
   if (isPointerOverDeck(event)) return;
+
+  const objectHit = getIntersections(getObjectMeshes())[0];
+  const object = objectHit ? app.objects.get(objectHit.object.userData.objectId) : null;
+  if (isCoinObject(object)) {
+    removeTableObject(object);
+    return;
+  }
 
   const hits = getIntersections(getCardMeshes());
   const hit = hits[0];
@@ -2361,6 +2368,11 @@ function onDoubleClick(event) {
 
   const card = app.cards.get(hit.object.userData.cardId);
   if (card && !card.target) tryReturnCardToDeck(card, true);
+}
+
+// Identifica moedas que podem ser descartadas por duplo clique.
+function isCoinObject(object) {
+  return object?.kind === 'gold-coin' || object?.kind === 'silver-coin';
 }
 
 // Evita que cliques no deck atinjam cartas recém-compradas ainda em trânsito.
