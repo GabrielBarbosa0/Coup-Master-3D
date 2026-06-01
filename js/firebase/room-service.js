@@ -13,7 +13,7 @@ import {
 import { database } from './firebase-config.js';
 
 const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const ROOM_CODE_LENGTH = 5;
+const ROOM_CODE_LENGTH = 4;
 const PLAYER_PRESENCE_TIMEOUT_MS = 60_000;
 const SEAT_LAYOUTS = {
   1: [1],
