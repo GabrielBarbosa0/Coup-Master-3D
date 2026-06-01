@@ -584,6 +584,9 @@ button:focus-visible {
 .spectator-player-list {
   display: grid;
   gap: 8px;
+  max-height: min(320px, 48vh);
+  overflow-y: auto;
+  padding-right: 6px;
 }
 
 .spectator-player-btn {
@@ -616,6 +619,20 @@ button:focus-visible {
 
 .decline-spectator-btn {
   background: #ff3b3b;
+}
+
+.spectator-player-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.spectator-player-list::-webkit-scrollbar-track {
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.spectator-player-list::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: var(--accent);
 }
 
 #openDeckConfigBtn {
