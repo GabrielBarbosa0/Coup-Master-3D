@@ -292,6 +292,26 @@
       </div>
     </div>
 
+    <div id="spectatorModal" class="modal-overlay" style="display: none;">
+      <div class="modal-content">
+        <button id="closeSpectatorBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+        <h2>Espectar</h2>
+        <p id="spectatorStatusText" class="muted spectator-status-text">Escolha um jogador.</p>
+        <div id="spectatorPlayerList" class="spectator-player-list"></div>
+      </div>
+    </div>
+
+    <div id="spectatorRequestModal" class="modal-overlay" style="display: none;">
+      <div class="modal-content">
+        <h2>Pedido de Espectador</h2>
+        <p id="spectatorRequestText" class="muted spectator-status-text"></p>
+        <div class="spectator-request-actions">
+          <button id="acceptSpectatorBtn" class="settings-action-btn accept-spectator-btn" type="button">Aceitar</button>
+          <button id="declineSpectatorBtn" class="settings-action-btn decline-spectator-btn" type="button">Recusar</button>
+        </div>
+      </div>
+    </div>
+
     <div id="ruleCardsModal" class="modal-overlay" style="display: none;">
       <div class="modal-actions-and-rules rule-cards-modal">
         <div class="rule-card-stage">

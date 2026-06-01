@@ -3,6 +3,7 @@ import {
   get,
   off,
   onValue,
+  push,
   ref,
   runTransaction,
   serverTimestamp,
@@ -229,4 +230,64 @@ export function subscribeRoomTableState(roomCode, callback) {
   });
 
   return () => off(tableStateRef);
+}
+
+// Envia um pedido para espectar a mao de outro jogador.
+export async function sendSpectatorRequest(roomCode, user, targetPlayer) {
+  const code = normalizeRoomCode(roomCode);
+  if (!code || !user || !targetPlayer?.uid) return null;
+
+  const requestRef = push(ref(database, `rooms/${code}/spectatorRequests`));
+  const request = {
+    id: requestRef.key,
+    requesterUid: user.uid,
+    requesterName: getPlayerDisplayName(user),
+    requesterPhotoURL: user.photoURL || '',
+    targetUid: targetPlayer.uid,
+    targetSeat: targetPlayer.seat || null,
+    targetName: targetPlayer.displayName || targetPlayer.name || 'Jogador',
+    status: 'pending',
+    createdAt: Date.now()
+  };
+
+  await set(requestRef, request);
+  return request;
+}
+
+// Responde um pedido recebido pelo jogador alvo.
+export async function respondSpectatorRequest(roomCode, requestId, status) {
+  const code = normalizeRoomCode(roomCode);
+  if (!code || !requestId) return;
+
+  await update(ref(database, `rooms/${code}/spectatorRequests/${requestId}`), {
+    status,
+    respondedAt: Date.now()
+  });
+}
+
+// Remove um pedido ja consumido para manter a sala leve.
+export async function clearSpectatorRequest(roomCode, requestId) {
+  const code = normalizeRoomCode(roomCode);
+  if (!code || !requestId) return;
+  await set(ref(database, `rooms/${code}/spectatorRequests/${requestId}`), null);
+}
+
+// Escuta pedidos de espectador relevantes para o usuario local.
+export function subscribeSpectatorRequests(roomCode, user, callback) {
+  const code = normalizeRoomCode(roomCode);
+  const requestsRef = ref(database, `rooms/${code}/spectatorRequests`);
+
+  onValue(requestsRef, (snapshot) => {
+    const requests = [];
+    snapshot.forEach((childSnapshot) => {
+      const request = childSnapshot.val();
+      if (!request) return;
+      if (request.targetUid === user.uid || request.requesterUid === user.uid) {
+        requests.push({ ...request, id: request.id || childSnapshot.key });
+      }
+    });
+    callback(requests);
+  });
+
+  return () => off(requestsRef);
 }

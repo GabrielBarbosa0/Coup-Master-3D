@@ -1,12 +1,16 @@
 import { requireAuth } from '../firebase/auth-service.js';
 import {
+  clearSpectatorRequest,
   getRoomInfo,
   getRoomTableState,
   leaveRoom,
   markPlayerConnected,
   normalizeRoomCode,
   refreshPlayerPresence,
+  respondSpectatorRequest,
   roomExists,
+  sendSpectatorRequest,
+  subscribeSpectatorRequests,
   subscribeRoomPlayers,
   subscribeRoomTableState,
   writeRoomTableState
@@ -34,7 +38,9 @@ window.CoupMaster3DOnline = {
   adminUid: roomInfo?.adminUid || null,
   isAdmin,
   playerSeat,
-  user
+  user,
+  requestSpectate: (targetPlayer) => sendSpectatorRequest(requestedRoom, user, targetPlayer),
+  respondSpectateRequest: (requestId, status) => respondSpectatorRequest(requestedRoom, requestId, status)
 };
 const presenceTimer = window.setInterval(() => {
   refreshPlayerPresence(requestedRoom, user).catch((error) => {
@@ -90,9 +96,35 @@ subscribeRoomPlayers(requestedRoom, (players) => {
   window.CoupMaster3D?.setOnlinePlayerProfiles?.(
     seatedPlayers.slice(0, 8).map((player, index) => ({
       seat: player.seat || index + 1,
+      uid: player.uid,
       displayName: player.displayName,
       photoURL: player.photoURL,
       connected: Boolean(player.connected)
     }))
   );
+});
+
+const shownSpectatorRequests = new Set();
+
+// Coordena pedidos de espectador entre solicitante e jogador alvo.
+subscribeSpectatorRequests(requestedRoom, user, (requests) => {
+  requests.forEach((request) => {
+    if (request.targetUid === user.uid && request.status === 'pending') {
+      if (shownSpectatorRequests.has(request.id)) return;
+      shownSpectatorRequests.add(request.id);
+      window.CoupMaster3D?.showSpectatorRequest?.(request);
+      return;
+    }
+
+    if (request.requesterUid !== user.uid || request.status === 'pending') return;
+    if (request.status === 'accepted') {
+      window.CoupMaster3D?.startSpectatingPlayer?.(request);
+    }
+    if (request.status === 'declined') {
+      window.CoupMaster3D?.showSpectatorResponse?.('Pedido recusado.');
+    }
+    clearSpectatorRequest(requestedRoom, request.id).catch((error) => {
+      console.error('Falha ao limpar pedido de espectador.', error);
+    });
+  });
 });

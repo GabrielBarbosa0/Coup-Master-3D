@@ -5,6 +5,7 @@ import * as config from './config.js';
 import * as dom from './dom.js';
 
 const {
+  acceptSpectatorBtn,
   altRuleBackImg,
   altRuleCounter,
   altRuleFlipCard,
@@ -21,10 +22,12 @@ const {
   closeFeedbackBtn,
   closeRuleCardsBtn,
   closeSettingsBtn,
+  closeSpectatorBtn,
   configModal,
   dealBtn,
   deckCountEl,
   deleteSelectionBtn,
+  declineSpectatorBtn,
   diceBtn,
   drawBtn,
   feedbackBtn,
@@ -55,6 +58,11 @@ const {
   shuffleBtn,
   silverCoinBtn,
   spectatorBtn,
+  spectatorModal,
+  spectatorPlayerList,
+  spectatorRequestModal,
+  spectatorRequestText,
+  spectatorStatusText,
   tableCountEl,
   vfxVolumeSlider,
   volumeSlider
@@ -122,6 +130,7 @@ const state = {
   tableCards: [],
   players: Array.from({ length: PLAYER_COUNT }, (_, index) => ({
     id: index + 1,
+    uid: null,
     name: `Jogador ${index + 1}`,
     avatarUrl: null,
     isReserved: false,
@@ -161,6 +170,7 @@ const app = {
   hoveredPiece: null,
   hoverOutline: null,
   cameraFocus: null,
+  spectatorRequest: null,
   deckShuffle: null,
   deckVisualCount: -1,
   deckHitHeight: 0,
@@ -247,6 +257,9 @@ function init() {
     setAdminRole,
     setLocalPlayerSeat,
     setOnlinePlayerProfiles,
+    showSpectatorRequest,
+    showSpectatorResponse,
+    startSpectatingPlayer,
     setPlayerProfile
   };
   syncAdminControls();
@@ -454,6 +467,7 @@ function setPlayerProfile(playerId, profile = {}) {
   if (!player) return;
 
   player.name = profile.name || profile.displayName || player.name || `Jogador ${playerId}`;
+  player.uid = profile.uid || player.uid || null;
   player.avatarUrl = profile.avatarUrl || profile.photoURL || player.avatarUrl || null;
   player.isReserved = true;
   player.isOnline = profile.connected !== false;
@@ -472,6 +486,7 @@ function setOnlinePlayerProfiles(profiles = []) {
     if (reservedSeats.has(player.id)) return;
     if (player.isReserved) return;
     player.name = `Jogador ${player.id}`;
+    player.uid = null;
     player.avatarUrl = null;
     player.isOnline = false;
   });
@@ -735,9 +750,7 @@ function setupSettingsModal() {
   closeFeedbackBtn?.addEventListener('click', () => closeModal(feedbackModal));
   infoBtn?.addEventListener('click', openRuleCardsModal);
   altRulesBtn?.addEventListener('click', openAltRulesModal);
-  spectatorBtn?.addEventListener('click', () => {
-    spectatorBtn.blur();
-  });
+  spectatorBtn?.addEventListener('click', openSpectatorModal);
   fullscreenBtn?.addEventListener('click', toggleFullscreen);
   document.addEventListener('fullscreenchange', syncFullscreenButton);
   syncFullscreenButton();
@@ -760,6 +773,10 @@ function setupSettingsModal() {
       stepAltRuleCard(1);
     }
   });
+
+  closeSpectatorBtn?.addEventListener('click', () => closeModal(spectatorModal));
+  acceptSpectatorBtn?.addEventListener('click', () => respondCurrentSpectatorRequest('accepted'));
+  declineSpectatorBtn?.addEventListener('click', () => respondCurrentSpectatorRequest('declined'));
 
   openDeckConfigBtn?.addEventListener('click', () => {
     syncDeckConfigInputs();
@@ -788,6 +805,7 @@ function setupSettingsModal() {
 
   document.querySelectorAll('.modal-overlay').forEach((overlay) => {
     overlay.addEventListener('click', (event) => {
+      if (overlay === spectatorRequestModal) return;
       if (event.target === overlay) closeModal(overlay);
     });
   });
@@ -832,6 +850,96 @@ function syncAdminControls() {
 
   const permissionNote = document.getElementById('deckConfigPermissionNote');
   if (permissionNote) permissionNote.hidden = app.isAdmin;
+}
+
+// Abre a lista de jogadores conectados que podem autorizar espectador.
+function openSpectatorModal() {
+  renderSpectatorTargets();
+  openModal(spectatorModal);
+  spectatorBtn?.blur();
+}
+
+// Atualiza a lista de alvos disponiveis para espectar.
+function renderSpectatorTargets(statusText = 'Escolha um jogador.') {
+  if (!spectatorPlayerList || !spectatorStatusText) return;
+
+  const localUid = window.CoupMaster3DOnline?.user?.uid;
+  const targets = state.players.filter((player) => {
+    return player.uid && player.uid !== localUid && player.isOnline;
+  });
+
+  spectatorPlayerList.innerHTML = '';
+  if (targets.length === 0) {
+    spectatorStatusText.textContent = 'Nao ha nenhum jogador para espectar.';
+    return;
+  }
+
+  spectatorStatusText.textContent = statusText;
+  targets.forEach((player) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'spectator-player-btn';
+    button.innerHTML = `${player.name}<span>P${player.id}</span>`;
+    button.addEventListener('click', () => requestSpectatorTarget(player));
+    spectatorPlayerList.append(button);
+  });
+}
+
+// Envia o pedido ao jogador escolhido na sala.
+async function requestSpectatorTarget(player) {
+  if (!window.CoupMaster3DOnline?.requestSpectate) return;
+  spectatorStatusText.textContent = `Pedido enviado para ${player.name}.`;
+  spectatorPlayerList.querySelectorAll('button').forEach((button) => {
+    button.disabled = true;
+  });
+  try {
+    await window.CoupMaster3DOnline.requestSpectate({
+      uid: player.uid,
+      seat: player.id,
+      displayName: player.name,
+      photoURL: player.avatarUrl || ''
+    });
+  } catch (error) {
+    console.error('Falha ao pedir espectador.', error);
+    renderSpectatorTargets('Nao foi possivel enviar o pedido.');
+  }
+}
+
+// Mostra o pedido recebido pelo dono do slot.
+function showSpectatorRequest(request) {
+  app.spectatorRequest = request;
+  if (spectatorRequestText) {
+    spectatorRequestText.textContent = `${request.requesterName || 'Um jogador'} quer espectar sua mao.`;
+  }
+  openModal(spectatorRequestModal);
+}
+
+// Responde o pedido atualmente exibido.
+async function respondCurrentSpectatorRequest(status) {
+  if (!app.spectatorRequest || !window.CoupMaster3DOnline?.respondSpectateRequest) return;
+  const request = app.spectatorRequest;
+  app.spectatorRequest = null;
+  closeModal(spectatorRequestModal);
+  await window.CoupMaster3DOnline.respondSpectateRequest(request.id, status);
+}
+
+// Muda a visao local para o slot autorizado pelo jogador alvo.
+function startSpectatingPlayer(request) {
+  if (!request?.targetSeat) return;
+  setLocalPlayerSeat(request.targetSeat, { focus: true });
+  if (spectatorStatusText) {
+    spectatorStatusText.textContent = `Espectando ${request.targetName || 'jogador'}.`;
+    spectatorPlayerList.innerHTML = '';
+    openModal(spectatorModal);
+  }
+}
+
+// Mostra retorno de pedido recusado ou expirado.
+function showSpectatorResponse(message) {
+  if (!spectatorStatusText || !spectatorPlayerList) return;
+  spectatorStatusText.textContent = message;
+  spectatorPlayerList.innerHTML = '';
+  openModal(spectatorModal);
 }
 
 // Alterna a página 3D entre tela cheia e modo normal.
