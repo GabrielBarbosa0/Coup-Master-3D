@@ -1257,7 +1257,7 @@ function drawCardToPlayer(playerId, animateDraw = true) {
 
   data.owner = playerId;
   data.location = `player-${playerId}`;
-  data.faceUp = false;
+  data.faceUp = true;
   state.players[playerId - 1].cards.push(data);
 
   const card = createCardObject(data);
@@ -1840,7 +1840,7 @@ function isPrivateSlotCardHidden(data) {
 function canRevealCardFace(data) {
   if (isPublicSlotCard(data)) return Boolean(data?.faceUp);
   if (!data?.owner) return Boolean(data?.faceUp);
-  return data.owner === state.activePlayer;
+  return data.owner === state.activePlayer && Boolean(data.faceUp);
 }
 
 // Atualiza o material da carta quando ela vira, muda de dono ou troca a visao local.
@@ -2707,7 +2707,7 @@ function moveCardToPlayer(card, playerId) {
   card.data.owner = playerId;
   card.data.location = `player-${playerId}`;
   if (!isPublicSlotCard(card.data)) {
-    card.data.faceUp = false;
+    card.data.faceUp = true;
   }
   state.players[playerId - 1].cards.push(card.data);
   refreshCardMaterial(card);
