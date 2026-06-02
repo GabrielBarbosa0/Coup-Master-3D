@@ -269,6 +269,46 @@ export function subscribeRoomTableActions(roomCode, callback) {
   return () => off(actionsRef);
 }
 
+// Envia uma mensagem de chat casual para a sala.
+export async function sendRoomChatMessage(roomCode, user, message) {
+  const code = normalizeRoomCode(roomCode);
+  const text = String(message?.text || '').trim().slice(0, 240);
+  if (!code || !user || !text) return null;
+
+  const messageRef = push(ref(database, `rooms/${code}/chatMessages`));
+  const chatMessage = {
+    id: messageRef.key,
+    type: message.type || 'text',
+    text,
+    actorUid: user.uid,
+    actorName: getPlayerDisplayName(user),
+    actorPhotoURL: user.photoURL || '',
+    actorSeat: message.actorSeat || null,
+    createdAt: Date.now(),
+    serverCreatedAt: serverTimestamp()
+  };
+
+  await set(messageRef, chatMessage);
+  return chatMessage;
+}
+
+// Escuta as ultimas mensagens de chat da sala.
+export function subscribeRoomChatMessages(roomCode, callback) {
+  const code = normalizeRoomCode(roomCode);
+  const messagesRef = query(ref(database, `rooms/${code}/chatMessages`), limitToLast(60));
+
+  onValue(messagesRef, (snapshot) => {
+    const messages = [];
+    snapshot.forEach((childSnapshot) => {
+      const message = childSnapshot.val();
+      if (message?.text) messages.push({ ...message, id: message.id || childSnapshot.key });
+    });
+    callback(messages.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)));
+  });
+
+  return () => off(messagesRef);
+}
+
 // Envia um pedido para espectar a mao de outro jogador.
 export async function sendSpectatorRequest(roomCode, user, targetPlayer) {
   const code = normalizeRoomCode(roomCode);

@@ -116,6 +116,15 @@ rooms/{roomCode}
 |   |-- actorSeat
 |   |-- createdAt
 |   `-- serverCreatedAt
+|-- chatMessages/{messageId}
+|   |-- id
+|   |-- type
+|   |-- text
+|   |-- actorUid
+|   |-- actorName
+|   |-- actorSeat
+|   |-- createdAt
+|   `-- serverCreatedAt
 `-- spectatorRequests/{requestId}
     |-- requesterUid
     |-- targetUid
@@ -128,6 +137,8 @@ rooms/{roomCode}
 A lista de jogadores com assento reservado define os badges e o assento local. Fechar ou minimizar a aba nao libera o slot; apenas a acao explicita de sair da sala remove a reserva. A ordem de alocacao prioriza lados opostos da mesa, mas nao rebalanceia jogadores ja assentados para preservar o dono das cartas e o estado da partida.
 
 O lobby casual nao segura jogadores em uma sala de espera; criar ou entrar em sala abre `index.html?room=CODIGO`. A mesa casual sincroniza snapshots finais via `tableState` e usa `tableActions` para animacoes deterministicas de compra simples, distribuicao inicial e devolucao animada ao deck. Drag livre ainda nao transmite posicoes intermediarias.
+
+O chat casual usa `chatMessages` com limite de leitura das ultimas mensagens. O `boot.js` assina esse caminho e entrega os dados para o HUD; o envio tambem passa por `room-service.js` para manter Firebase fora da renderizacao 3D.
 
 ## 4. Estado Local
 

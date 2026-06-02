@@ -40,6 +40,7 @@ O projeto agora possui uma primeira camada online para autenticacao, lobby e pre
 - Fechar ou minimizar a aba nao libera o assento; o jogador volta para o mesmo slot ao reabrir a sala.
 - A mesa casual sincroniza snapshots finais de cartas, pilhas, deck, moedas e extras via Realtime Database.
 - A mesa casual tambem publica eventos discretos em `rooms/{roomCode}/tableActions` para animacoes previsiveis, como comprar carta, distribuir cartas e devolver carta ao deck.
+- O chat da sala sincroniza texto livre e mensagens rapidas de blefe/acao em tempo real.
 - No modo casual, criar ou entrar em uma sala leva direto para a mesa 3D, sem sala de espera intermediaria.
 - O criador da sala e o administrador permanente da sala casual.
 - Jogadores comuns nao veem o botao de reset e nao podem aplicar configuracoes de baralho.
@@ -223,6 +224,7 @@ A HUD atual tem:
   - girar direita;
   - deletar;
   - focar camera.
+- Barra lateral esquerda com chat e historico; o chat permite conversa por texto e mensagens rapidas como declarar personagem, acao, contestar ou bloquear.
 
 Textos da interface devem ser evitados em botoes de acao quando houver icone claro. A barra inferior deve ajudar especialmente em touchscreen, onde atalhos de teclado como `F`, `Q`, `E`, `Delete` e `Space` nao existem.
 

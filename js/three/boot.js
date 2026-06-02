@@ -12,6 +12,8 @@ import {
   sendRoomTableAction,
   sendSpectatorRequest,
   subscribeSpectatorRequests,
+  sendRoomChatMessage,
+  subscribeRoomChatMessages,
   subscribeRoomTableActions,
   subscribeRoomPlayers,
   subscribeRoomTableState,
@@ -42,7 +44,11 @@ window.CoupMaster3DOnline = {
   playerSeat,
   user,
   requestSpectate: (targetPlayer) => sendSpectatorRequest(requestedRoom, user, targetPlayer),
-  respondSpectateRequest: (requestId, status) => respondSpectatorRequest(requestedRoom, requestId, status)
+  respondSpectateRequest: (requestId, status) => respondSpectatorRequest(requestedRoom, requestId, status),
+  sendChatMessage: (message) => sendRoomChatMessage(requestedRoom, user, {
+    ...message,
+    actorSeat: window.CoupMaster3DOnline?.playerSeat || playerSeat
+  })
 };
 const presenceTimer = window.setInterval(() => {
   refreshPlayerPresence(requestedRoom, user).catch((error) => {
@@ -127,6 +133,11 @@ subscribeRoomPlayers(requestedRoom, (players) => {
       connected: Boolean(player.connected)
     }))
   );
+});
+
+// Mantem o chat casual da sala em tempo real sem interferir no estado da mesa.
+subscribeRoomChatMessages(requestedRoom, (messages) => {
+  window.CoupMaster3D?.setChatMessages?.(messages);
 });
 
 const shownSpectatorRequests = new Set();

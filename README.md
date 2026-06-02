@@ -32,6 +32,7 @@ Estado atual:
 - A mesa casual sincroniza snapshots finais de cartas, pilhas, deck, moedas e extras via Realtime Database.
 - Acoes discretas publicadas em `rooms/{roomCode}/tableActions` sincronizam animacoes previsiveis de comprar carta, distribuir cartas e devolver carta ao deck.
 - O modo espectador permite pedir permissao para ver a mao de outro jogador.
+- Chat em tempo real por sala com texto livre e mensagens rapidas de blefe/acao.
 - A mesa `index.html` exige login e sala valida antes de iniciar o modo Three.js.
 - No modo casual, criar ou entrar em sala redireciona direto para a mesa.
 - Movimentos durante drag nao sao transmitidos em tempo real nesta etapa; outros jogadores recebem o estado quando a acao termina.
@@ -95,6 +96,7 @@ Estado atual:
   - regras de personagens;
   - configuracoes.
 - Codigo da sala clicavel, contadores de deck, mesa e objetos acima da barra inferior.
+- Barra lateral esquerda com atalhos de chat e historico.
 - Barras de HUD sem sombra externa, com icones SVG claros para melhor compatibilidade com navegadores mobile em alto contraste.
 - Barra inferior com botoes por icone para acoes rapidas:
   - ouro;
