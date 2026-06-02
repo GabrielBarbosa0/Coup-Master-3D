@@ -28,10 +28,12 @@ const {
   closeAltRulesBtn,
   closeConfigModalBtn,
   closeFeedbackBtn,
+  closePlayerInfoBtn,
   closeRuleCardsBtn,
   closeSettingsBtn,
   closeSpectatorBtn,
   configModal,
+  confirmRemovePlayerBtn,
   dealBtn,
   deckCountEl,
   deleteSelectionBtn,
@@ -49,13 +51,16 @@ const {
   musicBtn,
   objectCountEl,
   openDeckConfigBtn,
+  cancelRemovePlayerBtn,
   religionCardBtn,
+  removePlayerBtn,
   resetBtn,
   resetVfxAudio,
   rollBtn,
   rotateLeftBtn,
   rotateRightBtn,
   roomCodeStatusBtn,
+  roomPlayerList,
   ruleBackImg,
   ruleCardsCounter,
   ruleCardsModal,
@@ -72,6 +77,13 @@ const {
   spectatorRequestModal,
   spectatorRequestText,
   spectatorStatusText,
+  playerInfoModal,
+  playerInfoName,
+  playerInfoNote,
+  playerInfoRole,
+  playerInfoSeat,
+  playerInfoStatus,
+  playerRemoveConfirm,
   tableCountEl,
   vfxVolumeSlider,
   volumeSlider
@@ -189,6 +201,7 @@ const app = {
   pendingDeckDrag: null,
   pendingStackDrag: null,
   hasDragged: false,
+  selectedRoomPlayer: null,
   lastCardClick: null,
   lastCardReturnAt: 0,
   selectedCard: null,
@@ -280,6 +293,7 @@ function init() {
   createDeck();
   setupSettingsModal();
   setupChatPanel();
+  setupRoomPlayerList();
   setupMusicControls();
   window.CoupMaster3D = {
     ...(window.CoupMaster3D || {}),
@@ -505,9 +519,10 @@ function setPlayerProfile(playerId, profile = {}) {
   player.isReserved = true;
   player.isOnline = profile.connected !== false;
   refreshPlayerBadge(playerId);
+  renderRoomPlayerList();
 }
 
-// Reaplica jogadores com assento reservado sem apagar perfis que ficaram offline.
+// Reaplica jogadores com assento reservado e limpa slots removidos pelo host.
 function setOnlinePlayerProfiles(profiles = []) {
   const reservedSeats = new Set(profiles.map(profile => profile.seat).filter(Boolean));
 
@@ -517,15 +532,17 @@ function setOnlinePlayerProfiles(profiles = []) {
 
   state.players.forEach((player) => {
     if (reservedSeats.has(player.id)) return;
-    if (player.isReserved) return;
     player.name = `Jogador ${player.id}`;
     player.uid = null;
     player.avatarUrl = null;
+    player.isReserved = false;
     player.isOnline = false;
   });
 
   state.players.forEach(player => refreshPlayerBadge(player.id));
   updatePlayerBadges();
+  renderRoomPlayerList();
+  refreshOpenPlayerInfoModal();
 }
 
 // Recria os materiais do badge quando nome, avatar ou destaque mudam.
@@ -908,6 +925,153 @@ function formatChatTime(timestamp) {
   });
 }
 
+// Configura a lista lateral de jogadores e o modal de informacoes do perfil.
+function setupRoomPlayerList() {
+  closePlayerInfoBtn?.addEventListener('click', closePlayerInfoModal);
+  removePlayerBtn?.addEventListener('click', showPlayerRemoveConfirmation);
+  cancelRemovePlayerBtn?.addEventListener('click', hidePlayerRemoveConfirmation);
+  confirmRemovePlayerBtn?.addEventListener('click', removeSelectedRoomPlayer);
+  renderRoomPlayerList();
+}
+
+// Desenha jogadores reservados no HUD lateral esquerdo.
+function renderRoomPlayerList() {
+  if (!roomPlayerList) return;
+  roomPlayerList.innerHTML = '';
+
+  getReservedPlayers().forEach((player) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'room-player-btn';
+    if (!player.isOnline) button.classList.add('is-offline');
+    button.textContent = player.name || `Jogador ${player.id}`;
+    button.title = `${player.name || `Jogador ${player.id}`} · P${player.id}`;
+    button.addEventListener('click', () => openPlayerInfoModal(player.id));
+    roomPlayerList.append(button);
+  });
+}
+
+// Retorna somente os assentos realmente reservados por jogadores da sala.
+function getReservedPlayers() {
+  return state.players.filter(player => player.uid && player.isReserved);
+}
+
+// Abre o modal com informacoes do jogador escolhido.
+function openPlayerInfoModal(playerId) {
+  const player = state.players[playerId - 1];
+  if (!player?.uid) return;
+  app.selectedRoomPlayer = player;
+  hidePlayerRemoveConfirmation();
+  renderPlayerInfoModal(player);
+  openModal(playerInfoModal);
+}
+
+// Atualiza o modal aberto quando a lista de jogadores muda.
+function refreshOpenPlayerInfoModal() {
+  if (!playerInfoModal || playerInfoModal.style.display === 'none') return;
+  const player = app.selectedRoomPlayer
+    ? state.players[app.selectedRoomPlayer.id - 1]
+    : null;
+
+  if (!player?.uid) {
+    closePlayerInfoModal();
+    return;
+  }
+
+  app.selectedRoomPlayer = player;
+  renderPlayerInfoModal(player);
+}
+
+// Preenche dados e permissao de remocao do modal de jogador.
+function renderPlayerInfoModal(player) {
+  const localUid = window.CoupMaster3DOnline?.user?.uid;
+  const canRemove = Boolean(app.isAdmin && player.uid && player.uid !== localUid);
+  const isConfirmingRemoval = Boolean(playerRemoveConfirm && !playerRemoveConfirm.hidden);
+
+  if (playerInfoName) playerInfoName.textContent = player.name || `Jogador ${player.id}`;
+  if (playerInfoSeat) playerInfoSeat.textContent = `P${player.id}`;
+  if (playerInfoStatus) playerInfoStatus.textContent = player.isOnline ? 'Online' : 'Offline';
+  if (playerInfoRole) playerInfoRole.textContent = getPlayerRoomRole(player);
+
+  if (removePlayerBtn) {
+    removePlayerBtn.hidden = !canRemove || isConfirmingRemoval;
+    removePlayerBtn.disabled = !canRemove;
+  }
+
+  if (playerInfoNote) {
+    if (!app.isAdmin) {
+      playerInfoNote.textContent = 'Apenas o host pode remover jogadores.';
+      playerInfoNote.hidden = false;
+    } else if (player.uid === localUid) {
+      playerInfoNote.textContent = 'Voce nao pode remover a si mesmo.';
+      playerInfoNote.hidden = false;
+    } else {
+      playerInfoNote.textContent = '';
+      playerInfoNote.hidden = true;
+    }
+  }
+}
+
+// Mostra se o perfil pertence ao host permanente da sala.
+function getPlayerRoomRole(player) {
+  const adminUid = window.CoupMaster3DOnline?.adminUid;
+  return player.uid && adminUid && player.uid === adminUid ? 'Host' : 'Jogador';
+}
+
+// Fecha o modal e limpa estados temporarios de remocao.
+function closePlayerInfoModal() {
+  app.selectedRoomPlayer = null;
+  hidePlayerRemoveConfirmation();
+  closeModal(playerInfoModal);
+}
+
+// Exibe a confirmacao antes da acao destrutiva do host.
+function showPlayerRemoveConfirmation() {
+  if (!app.selectedRoomPlayer || !app.isAdmin) return;
+  if (playerRemoveConfirm) playerRemoveConfirm.hidden = false;
+  if (removePlayerBtn) removePlayerBtn.hidden = true;
+}
+
+// Volta ao estado normal do modal de jogador.
+function hidePlayerRemoveConfirmation() {
+  if (playerRemoveConfirm) playerRemoveConfirm.hidden = true;
+  if (removePlayerBtn && app.selectedRoomPlayer) {
+    const localUid = window.CoupMaster3DOnline?.user?.uid;
+    removePlayerBtn.hidden = !(app.isAdmin && app.selectedRoomPlayer.uid !== localUid);
+  }
+}
+
+// Remove um jogador da sala atraves do servico online, liberando o assento.
+async function removeSelectedRoomPlayer() {
+  const player = app.selectedRoomPlayer;
+  if (!player?.uid || !app.isAdmin || !window.CoupMaster3DOnline?.removePlayerFromRoom) return;
+
+  if (confirmRemovePlayerBtn) confirmRemovePlayerBtn.disabled = true;
+  if (cancelRemovePlayerBtn) cancelRemovePlayerBtn.disabled = true;
+  if (playerInfoNote) {
+    playerInfoNote.textContent = 'Removendo jogador...';
+    playerInfoNote.hidden = false;
+  }
+
+  try {
+    await window.CoupMaster3DOnline.removePlayerFromRoom({
+      uid: player.uid,
+      seat: player.id,
+      displayName: player.name
+    });
+    closePlayerInfoModal();
+  } catch (error) {
+    console.error('Falha ao remover jogador.', error);
+    if (playerInfoNote) {
+      playerInfoNote.textContent = error?.message || 'Nao foi possivel remover o jogador.';
+      playerInfoNote.hidden = false;
+    }
+  } finally {
+    if (confirmRemovePlayerBtn) confirmRemovePlayerBtn.disabled = false;
+    if (cancelRemovePlayerBtn) cancelRemovePlayerBtn.disabled = false;
+  }
+}
+
 // Configura a abertura dos modais de configurações, feedback e baralho.
 function setupSettingsModal() {
   syncDeckConfigInputs();
@@ -1021,6 +1185,8 @@ function syncAdminControls() {
 
   const permissionNote = document.getElementById('deckConfigPermissionNote');
   if (permissionNote) permissionNote.hidden = app.isAdmin;
+
+  refreshOpenPlayerInfoModal();
 }
 
 // Abre a lista de jogadores conectados que podem autorizar espectador.

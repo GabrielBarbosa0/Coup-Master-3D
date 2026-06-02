@@ -6,6 +6,7 @@ import {
   leaveRoom,
   markPlayerConnected,
   normalizeRoomCode,
+  removeRoomPlayer,
   refreshPlayerPresence,
   respondSpectatorRequest,
   roomExists,
@@ -43,6 +44,7 @@ window.CoupMaster3DOnline = {
   isAdmin,
   playerSeat,
   user,
+  removePlayerFromRoom: (targetPlayer) => removeRoomPlayer(requestedRoom, user, targetPlayer),
   requestSpectate: (targetPlayer) => sendSpectatorRequest(requestedRoom, user, targetPlayer),
   respondSpectateRequest: (requestId, status) => respondSpectatorRequest(requestedRoom, requestId, status),
   sendChatMessage: (message) => sendRoomChatMessage(requestedRoom, user, {
@@ -118,6 +120,13 @@ subscribeRoomPlayers(requestedRoom, (players) => {
   const seatedPlayers = players
     .sort((a, b) => (a.seat || 99) - (b.seat || 99));
   const localPlayer = seatedPlayers.find((player) => player.uid === user.uid);
+
+  if (!localPlayer) {
+    window.clearInterval(presenceTimer);
+    localStorage.removeItem('coupMaster3dRoom');
+    location.assign('lobby.html');
+    return;
+  }
 
   if (localPlayer?.seat && localPlayer.seat !== window.CoupMaster3DOnline.playerSeat) {
     window.CoupMaster3DOnline.playerSeat = localPlayer.seat;

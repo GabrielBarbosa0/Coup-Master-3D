@@ -74,6 +74,10 @@
       </button>
     </section>
 
+    <section id="roomPlayerListPanel" class="room-player-list-panel" aria-label="Jogadores da sala">
+      <div id="roomPlayerList" class="room-player-list"></div>
+    </section>
+
     <section class="hud top-actions" aria-label="Menus rápidos">
       <div class="hud-actions" aria-label="Menus rápidos">
         <button id="musicBtn3d" class="settings-btn music-toggle-btn" type="button" title="Mutar música"
@@ -330,6 +334,35 @@
         <h2>Espectar</h2>
         <p id="spectatorStatusText" class="muted spectator-status-text">Escolha um jogador.</p>
         <div id="spectatorPlayerList" class="spectator-player-list"></div>
+      </div>
+    </div>
+
+    <div id="playerInfoModal" class="modal-overlay" style="display: none;">
+      <div class="modal-content player-info-modal-content">
+        <button id="closePlayerInfoBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+        <h2>Jogador</h2>
+
+        <div class="player-info-list">
+          <p><span>Nome</span><strong id="playerInfoName">Jogador</strong></p>
+          <p><span>Slot</span><strong id="playerInfoSeat">P1</strong></p>
+          <p><span>Status</span><strong id="playerInfoStatus">Online</strong></p>
+          <p><span>Perfil</span><strong id="playerInfoRole">Jogador</strong></p>
+        </div>
+
+        <p id="playerInfoNote" class="permission-note" hidden></p>
+
+        <div id="playerRemoveConfirm" class="player-remove-confirm" hidden>
+          <p>Tem certeza que deseja remover este jogador da sala?</p>
+          <div class="player-remove-actions">
+            <button id="confirmRemovePlayerBtn" class="settings-action-btn remove-player-confirm-btn"
+              type="button">Remover</button>
+            <button id="cancelRemovePlayerBtn" class="settings-action-btn cancel-remove-player-btn"
+              type="button">Cancelar</button>
+          </div>
+        </div>
+
+        <button id="removePlayerBtn" class="settings-action-btn remove-player-btn" type="button"
+          hidden>Remover da sala</button>
       </div>
     </div>
 

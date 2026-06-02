@@ -165,6 +165,42 @@ export async function leaveRoom(roomCode, user) {
   });
 }
 
+// Remove explicitamente um jogador da sala e libera o assento reservado.
+export async function removeRoomPlayer(roomCode, user, targetPlayer) {
+  const code = normalizeRoomCode(roomCode);
+  const targetUid = targetPlayer?.uid;
+  if (!code || !user || !targetUid) {
+    throw new Error('Jogador invalido.');
+  }
+
+  if (targetUid === user.uid) {
+    throw new Error('O host nao pode remover a si mesmo.');
+  }
+
+  const roomRef = ref(database, `rooms/${code}`);
+  const roomSnapshot = await get(roomRef);
+  if (!roomSnapshot.exists()) {
+    throw new Error('Sala nao encontrada.');
+  }
+
+  if (getRoomAdminUid(roomSnapshot.val()) !== user.uid) {
+    throw new Error('Apenas o host pode remover jogadores.');
+  }
+
+  const playerSnapshot = await get(child(roomRef, `players/${targetUid}`));
+  const player = playerSnapshot.val();
+  const seat = targetPlayer.seat || player?.seat || null;
+  const updates = {
+    [`players/${targetUid}`]: null
+  };
+
+  if (seat) {
+    updates[`seats/${seat}`] = null;
+  }
+
+  await update(roomRef, updates);
+}
+
 // Escuta jogadores com assento reservado na sala.
 export function subscribeRoomPlayers(roomCode, callback) {
   const code = normalizeRoomCode(roomCode);
