@@ -250,7 +250,6 @@ function init() {
 
   app.scene = new THREE.Scene();
   app.scene.background = new THREE.Color(0x171d26);
-  app.scene.fog = new THREE.Fog(0x171d26, 18, 32);
 
   app.camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 80);
   app.camera.position.copy(getPlayerCameraPosition(state.viewPlayer));
