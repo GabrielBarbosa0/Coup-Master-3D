@@ -1,16 +1,7 @@
-# Impede que os robôs percam tempo com pastas de código e sistema
+# Coup Master 3D - robots.txt
+# Permite que mecanismos de busca rastreiem o site principal.
+
 User-agent: *
-Disallow: /js/
-Disallow: /css/
-Disallow: /audio/
-Disallow: /fonts/
-Disallow: /docs/
-Disallow: /.git/
+Allow: /Coup-Master-3D/
 
-# Permite a indexação das páginas principais e imagens
-Allow: /index.html
-Allow: /lobby.html
-Allow: /img/
-
-# Indica o caminho do mapa do site para o Google
-Sitemap: https://gabrielbarbosa0.github.io/Coup-Master/sitemap.xml
+Sitemap: https://gabrielbarbosa0.github.io/Coup-Master-3D/sitemap.xml

@@ -58,7 +58,7 @@ input {
 
 #loginTitle {
   font-family: "Tilda Script", "Cinzel", Georgia, serif;
-  font-size: clamp(48px, 12vw, 68px);
+  font-size: clamp(48px, 12vw, 50px);
   font-weight: 800;
   line-height: 0.92;
   text-align: center;
@@ -222,7 +222,7 @@ input {
   }
 
   #loginTitle {
-    font-size: clamp(50px, 15vw, 62px);
+    font-size: clamp(36px, 10vw, 62px);
   }
 
   .login-title-spacer {
