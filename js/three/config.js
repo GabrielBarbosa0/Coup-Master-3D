@@ -136,5 +136,6 @@ export const ALT_RULE_IMAGES = [
   'assets/img/guides/alternative-rules1.png',
   'assets/img/guides/alternative-rules2.png',
   'assets/img/guides/alternative-rules3.png',
-  'assets/img/guides/alternative-rules4.png'
+  'assets/img/guides/alternative-rules4.png',
+  'assets/img/guides/alternative-rules5.png'
 ];
