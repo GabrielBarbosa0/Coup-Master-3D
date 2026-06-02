@@ -9,8 +9,10 @@ import {
   refreshPlayerPresence,
   respondSpectatorRequest,
   roomExists,
+  sendRoomTableAction,
   sendSpectatorRequest,
   subscribeSpectatorRequests,
+  subscribeRoomTableActions,
   subscribeRoomPlayers,
   subscribeRoomTableState,
   writeRoomTableState
@@ -67,6 +69,13 @@ window.CoupMaster3DOnline.publishTableState = (tableState) => {
     console.error('Falha ao sincronizar mesa.', error);
   });
 };
+window.CoupMaster3DOnline.publishTableAction = (action) => {
+  if (!syncReady) return null;
+  return sendRoomTableAction(requestedRoom, user, action).catch((error) => {
+    console.error('Falha ao sincronizar acao de mesa.', error);
+    return null;
+  });
+};
 
 const initialTableState = await getRoomTableState(requestedRoom);
 if (initialTableState) {
@@ -80,6 +89,22 @@ syncReady = true;
 subscribeRoomTableState(requestedRoom, (tableState) => {
   if (!tableState || tableState.updatedBy === user.uid) return;
   window.CoupMaster3D?.applyTableState?.(tableState);
+});
+
+const tableActionSubscriptionStartedAt = Date.now();
+const seenTableActionIds = new Set();
+let tableActionsInitialized = false;
+
+// Aplica acoes discretas para animar compras, distribuicoes e devolucoes.
+subscribeRoomTableActions(requestedRoom, (actions) => {
+  actions.forEach((action) => {
+    if (!action?.id || seenTableActionIds.has(action.id)) return;
+    seenTableActionIds.add(action.id);
+    if (!action || action.actorUid === user.uid) return;
+    if (!tableActionsInitialized && (action.createdAt || 0) < tableActionSubscriptionStartedAt) return;
+    window.CoupMaster3D?.applyTableAction?.(action);
+  });
+  tableActionsInitialized = true;
 });
 
 // Liga jogadores com slot reservado aos badges locais e mantem o assento da conta atual.

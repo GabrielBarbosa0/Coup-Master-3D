@@ -1,9 +1,11 @@
 import {
   child,
   get,
+  limitToLast,
   off,
   onValue,
   push,
+  query,
   ref,
   runTransaction,
   serverTimestamp,
@@ -230,6 +232,41 @@ export function subscribeRoomTableState(roomCode, callback) {
   });
 
   return () => off(tableStateRef);
+}
+
+// Publica uma acao discreta de mesa para que outros clientes animem localmente.
+export async function sendRoomTableAction(roomCode, user, action) {
+  const code = normalizeRoomCode(roomCode);
+  if (!code || !user || !action?.type) return null;
+
+  const actionId = action.id || push(ref(database, `rooms/${code}/tableActions`)).key;
+  const actionRef = ref(database, `rooms/${code}/tableActions/${actionId}`);
+  await set(actionRef, {
+    ...action,
+    id: actionId,
+    actorUid: user.uid,
+    actorName: getPlayerDisplayName(user),
+    createdAt: action.createdAt || Date.now(),
+    serverCreatedAt: serverTimestamp()
+  });
+  return actionId;
+}
+
+// Escuta as ultimas acoes discretas publicadas na mesa casual.
+export function subscribeRoomTableActions(roomCode, callback) {
+  const code = normalizeRoomCode(roomCode);
+  const actionsRef = query(ref(database, `rooms/${code}/tableActions`), limitToLast(40));
+
+  onValue(actionsRef, (snapshot) => {
+    const actions = [];
+    snapshot.forEach((childSnapshot) => {
+      const action = childSnapshot.val();
+      if (action?.type) actions.push({ ...action, id: action.id || childSnapshot.key });
+    });
+    callback(actions.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)));
+  });
+
+  return () => off(actionsRef);
 }
 
 // Envia um pedido para espectar a mao de outro jogador.

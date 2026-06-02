@@ -140,6 +140,10 @@ const state = {
   }))
 };
 
+const DRAW_ACTION_SYNC_DELAY_MS = 560;
+const RETURN_ACTION_SYNC_DELAY_MS = 620;
+const DEAL_CARD_DELAY_MS = 140;
+
 const app = {
   renderer: null,
   scene: null,
@@ -193,8 +197,10 @@ const app = {
   lastResetVfxAt: 0,
   vfx: new Map(),
   syncTimer: null,
+  tableSyncSuppressCount: 0,
   isApplyingRemoteState: false,
   isAdmin: Boolean(window.CoupMaster3DOnline?.isAdmin),
+  appliedTableActions: new Set(),
   roomCodeFeedbackTimer: null,
   lastTime: performance.now(),
   textures: {}
@@ -261,6 +267,7 @@ function init() {
     showSpectatorRequest,
     showSpectatorResponse,
     startSpectatingPlayer,
+    applyTableAction,
     setPlayerProfile
   };
   syncAdminControls();
@@ -1356,50 +1363,150 @@ function buildDeck() {
 }
 
 // Compra uma carta do deck e anima ate a mao do jogador.
-function drawCardToPlayer(playerId, animateDraw = true) {
-  const data = state.deck.pop();
+function drawCardToPlayer(playerId, animateDraw = true, options = {}) {
+  const targetPlayerId = normalizePlayerId(playerId);
+  const data = takeDeckCard(options.cardData);
   if (!data) {
     updateHud();
-    return;
+    return false;
   }
-  playVfx('card-whoosh');
 
+  const action = options.publishAction === false
+    ? null
+    : publishTableAction('draw-card', {
+      playerId: targetPlayerId,
+      card: cloneCardData(data),
+      animateDraw: Boolean(animateDraw)
+    });
+  const runDraw = () => animateDrawnCardToPlayer(data, targetPlayerId, animateDraw);
+
+  if (action) {
+    runWithTableSyncSuppressed(DRAW_ACTION_SYNC_DELAY_MS, runDraw, scheduleTableSync);
+  } else {
+    runDraw();
+  }
+
+  return true;
+}
+
+// Retira do deck a carta solicitada pelo evento ou a carta do topo local.
+function takeDeckCard(cardData = null) {
+  if (cardData?.id) {
+    const deckIndex = state.deck.findIndex(data => data.id === cardData.id);
+    if (deckIndex >= 0) return state.deck.splice(deckIndex, 1)[0];
+    if (app.cards.has(cardData.id)) return null;
+    return cloneCardData(cardData);
+  }
+
+  return state.deck.pop() || null;
+}
+
+// Anima uma carta ja retirada do deck ate a mao de um jogador.
+function animateDrawnCardToPlayer(data, playerId, animateDraw = true) {
+  const player = state.players[playerId - 1];
+  if (!data || !player || app.cards.has(data.id)) return false;
+
+  playVfx('card-whoosh');
   data.owner = playerId;
   data.location = `player-${playerId}`;
   data.faceUp = true;
-  state.players[playerId - 1].cards.push(data);
+  player.cards = player.cards.filter(card => card.id !== data.id);
+  player.cards.push(data);
 
   const card = createCardObject(data);
-  const target = getHandCardPosition(playerId, state.players[playerId - 1].cards.length - 1);
+  const target = getHandCardPosition(playerId, player.cards.length - 1);
   const start = animateDraw ? getDeckDrawPosition(1.0) : target.clone().add(new THREE.Vector3(0, 0.35, 0));
   placeCard(card, start, getHandRotation(playerId), false);
   layoutPlayerHand(playerId, animateDraw ? 0.34 : 0);
   updateHud();
+  return true;
 }
 
 // Distribui ate duas cartas para cada assento com animacao sequencial.
-function dealInitialHands() {
-  if (app.isDealing) return;
+function dealInitialHands(options = {}) {
+  if (app.isDealing) return false;
 
+  const deals = Array.isArray(options.deals)
+    ? prepareDealsFromPayload(options.deals)
+    : prepareInitialDeals();
+  if (deals.length === 0) return false;
+
+  const action = options.publishAction === false
+    ? null
+    : publishTableAction('deal-initial-hands', {
+      deals: deals.map(serializeDeal)
+    });
+  const runDeal = () => runDealSequence(deals);
+  const duration = getDealActionDuration(deals.length);
+
+  if (action) {
+    runWithTableSyncSuppressed(duration, runDeal, scheduleTableSync);
+  } else {
+    runDeal();
+  }
+
+  return true;
+}
+
+// Prepara a fila local de distribuicao removendo cartas do deck uma unica vez.
+function prepareInitialDeals() {
   const dealQueue = getInitialDealQueue();
-  if (dealQueue.length === 0 || state.deck.length === 0) return;
+  const totalCards = Math.min(dealQueue.length, state.deck.length);
+  const deals = [];
 
+  dealQueue.slice(0, totalCards).forEach((playerId) => {
+    const card = takeDeckCard();
+    if (card) deals.push({ playerId, card });
+  });
+
+  return deals;
+}
+
+// Recria a fila recebida pela rede removendo as mesmas cartas do deck local.
+function prepareDealsFromPayload(deals) {
+  return deals
+    .map((deal) => {
+      if (!deal) return null;
+      const card = takeDeckCard(deal.card);
+      if (!card) return null;
+      return {
+        playerId: normalizePlayerId(deal.playerId),
+        card
+      };
+    })
+    .filter(Boolean);
+}
+
+// Executa a animacao sequencial de distribuicao ja preparada.
+function runDealSequence(deals) {
   app.isDealing = true;
   dealBtn.disabled = true;
 
-  const totalCards = Math.min(dealQueue.length, state.deck.length);
   let completed = 0;
-  dealQueue.forEach((playerId, index) => {
+  deals.forEach((deal, index) => {
     window.setTimeout(() => {
-      drawCardToPlayer(playerId, true);
+      animateDrawnCardToPlayer(deal.card, deal.playerId, true);
       completed += 1;
 
-      if (completed >= totalCards) {
+      if (completed >= deals.length) {
         app.isDealing = false;
         dealBtn.disabled = false;
       }
-    }, index * 140);
+    }, index * DEAL_CARD_DELAY_MS);
   });
+}
+
+// Serializa uma entrada de distribuicao para publicar no Firebase.
+function serializeDeal(deal) {
+  return {
+    playerId: deal.playerId,
+    card: cloneCardData(deal.card)
+  };
+}
+
+// Calcula a janela minima para evitar tableState antes do fim da animacao.
+function getDealActionDuration(cardCount) {
+  return Math.max(RETURN_ACTION_SYNC_DELAY_MS, (Math.max(cardCount, 1) - 1) * DEAL_CARD_DELAY_MS + DRAW_ACTION_SYNC_DELAY_MS);
 }
 
 // Embaralha a ordem interna do deck e dispara a animacao visual.
@@ -1972,6 +2079,13 @@ function getLocalPlayerSeat() {
   return window.CoupMaster3DOnline?.playerSeat || 1;
 }
 
+// Normaliza um assento para garantir que eventos remotos nao apontem fora da mesa.
+function normalizePlayerId(playerId) {
+  const id = Number(playerId);
+  if (Number.isInteger(id) && id >= 1 && id <= PLAYER_COUNT) return id;
+  return state.activePlayer;
+}
+
 // Troca apenas a visao local sem mudar o assento real do jogador.
 function setObservedPlayerSeat(playerId, options = {}) {
   const seat = playerId || state.activePlayer;
@@ -1984,6 +2098,81 @@ function setObservedPlayerSeat(playerId, options = {}) {
 
   if (options.focus !== false) {
     focusTableCamera();
+  }
+}
+
+// Publica uma acao discreta para outros clientes reproduzirem a animacao.
+function publishTableAction(type, payload = {}) {
+  if (!window.CoupMaster3DOnline?.publishTableAction) return null;
+
+  const action = {
+    id: createTableActionId(),
+    type,
+    payload,
+    actorSeat: state.activePlayer,
+    createdAt: Date.now()
+  };
+  app.appliedTableActions.add(action.id);
+  window.CoupMaster3DOnline.publishTableAction(action);
+  return action;
+}
+
+// Cria IDs locais estaveis o bastante para deduplicar eventos recebidos.
+function createTableActionId() {
+  const randomPart = Math.random().toString(36).slice(2, 10);
+  return `action-${Date.now()}-${randomPart}`;
+}
+
+// Bloqueia publicacao de tableState ate uma animacao discreta terminar.
+function runWithTableSyncSuppressed(durationMs, actionFn, onComplete = null) {
+  app.tableSyncSuppressCount += 1;
+
+  try {
+    actionFn();
+  } finally {
+    window.setTimeout(() => {
+      app.tableSyncSuppressCount = Math.max(0, app.tableSyncSuppressCount - 1);
+      onComplete?.();
+    }, durationMs);
+  }
+}
+
+// Aplica uma acao de mesa recebida pela rede sem reemitir eco.
+function applyTableAction(action) {
+  if (!action?.id || app.appliedTableActions.has(action.id)) return;
+  if (action.actorUid && action.actorUid === window.CoupMaster3DOnline?.user?.uid) return;
+
+  app.appliedTableActions.add(action.id);
+  const payload = action.payload || {};
+
+  if (action.type === 'draw-card') {
+    runWithTableSyncSuppressed(DRAW_ACTION_SYNC_DELAY_MS, () => {
+      drawCardToPlayer(payload.playerId, payload.animateDraw !== false, {
+        cardData: payload.card,
+        publishAction: false
+      });
+    });
+    return;
+  }
+
+  if (action.type === 'deal-initial-hands') {
+    const deals = Array.isArray(payload.deals) ? payload.deals : [];
+    runWithTableSyncSuppressed(getDealActionDuration(deals.length), () => {
+      dealInitialHands({
+        deals,
+        publishAction: false
+      });
+    });
+    return;
+  }
+
+  if (action.type === 'return-card-to-deck') {
+    const card = app.cards.get(payload.cardId);
+    if (!card || card.data.specialCard || card.data.location === 'deck') return;
+
+    runWithTableSyncSuppressed(RETURN_ACTION_SYNC_DELAY_MS, () => {
+      animateCardReturnToDeck(card);
+    });
   }
 }
 
@@ -2626,7 +2815,7 @@ function isCardOverDeckGesture(card, event) {
 }
 
 // Devolve carta ao deck respeitando cooldown contra cliques duplicados.
-function tryReturnCardToDeck(card, animated = false) {
+function tryReturnCardToDeck(card, animated = false, options = {}) {
   if (!card || card.data.location === 'deck') return false;
   if (card.data.specialCard) return false;
 
@@ -2634,11 +2823,26 @@ function tryReturnCardToDeck(card, animated = false) {
   if (now - app.lastCardReturnAt < CARD_RETURN_COOLDOWN_MS) return false;
 
   app.lastCardReturnAt = now;
-  if (animated) {
-    animateCardReturnToDeck(card);
-  } else {
-    returnCardToDeck(card);
+  const action = animated && options.publishAction !== false
+    ? publishTableAction('return-card-to-deck', {
+      cardId: card.id,
+      card: cloneCardData(card.data)
+    })
+    : null;
+  const runReturn = () => {
+    if (animated) {
+      animateCardReturnToDeck(card);
+    } else {
+      returnCardToDeck(card);
+    }
+  };
+
+  if (action) {
+    runWithTableSyncSuppressed(RETURN_ACTION_SYNC_DELAY_MS, runReturn, scheduleTableSync);
+    return true;
   }
+
+  runReturn();
   return true;
 }
 
@@ -3706,6 +3910,7 @@ function resize() {
 // Agenda sincronizacao do estado final da mesa sem transmitir animacoes.
 function scheduleTableSync() {
   if (app.isApplyingRemoteState) return;
+  if (app.tableSyncSuppressCount > 0) return;
   if (!window.CoupMaster3DOnline?.publishTableState) return;
 
   window.clearTimeout(app.syncTimer);
