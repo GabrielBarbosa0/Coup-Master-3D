@@ -138,6 +138,7 @@ Estado atual:
 | Tecla | Acao |
 | --- | --- |
 | `F` | Vira carta, pilha ou extra sob hover/selecao |
+| `C` | Abre o chat da sala |
 | `Q` | Gira objeto selecionado para a esquerda |
 | `E` | Gira objeto selecionado para a direita |
 | `R` | Embaralha deck ou pilha sob hover |

@@ -192,6 +192,7 @@ Dado:
 | Tecla | Acao |
 | --- | --- |
 | `F` | Vira carta ou pilha sob selecao/hover |
+| `C` | Abre o chat da sala |
 | `Q` | Gira objeto selecionado para a esquerda |
 | `E` | Gira objeto selecionado para a direita |
 | `R` | Embaralha deck ou pilha sob o mouse |

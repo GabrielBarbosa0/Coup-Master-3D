@@ -3019,6 +3019,12 @@ function onKeyDown(event) {
     return;
   }
 
+  if (event.key.toLowerCase() === 'c') {
+    event.preventDefault();
+    openChatModal();
+    return;
+  }
+
   if (event.code === 'Space') {
     event.preventDefault();
     focusTableCamera();

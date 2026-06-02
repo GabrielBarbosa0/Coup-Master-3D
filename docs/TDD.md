@@ -369,6 +369,7 @@ Touch:
 | Tecla/Botao | Funcao |
 | --- | --- |
 | `F` / `flip.svg` | Vira carta, pilha ou extra sob hover/selecao |
+| `C` / `chat.svg` | Abre o chat da sala |
 | `Q` / `arrow.svg` esquerda | Gira objeto selecionado para a esquerda |
 | `E` / `arrow.svg` direita | Gira objeto selecionado para a direita |
 | `R` | Embaralha deck ou pilha sob hover |
