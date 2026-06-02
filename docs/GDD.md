@@ -33,15 +33,19 @@ O modo 3D deve parecer um tabletop digital, nao uma tela 2D com enfeites. A refe
 
 O projeto agora possui uma primeira camada online para autenticacao, lobby e presenca de jogadores:
 
-- Login Google em `login.html`.
+- Login Google ou visitante anonimo em `login.html`.
 - Lobby em `lobby.html` para criar uma sala curta ou entrar por codigo.
 - Jogadores salvos em `rooms/{roomCode}/players/{uid}` no Firebase Realtime Database.
 - Lista de jogadores da sala sincronizada na mesa, com assentos reservados por conta.
 - Fechar ou minimizar a aba nao libera o assento; o jogador volta para o mesmo slot ao reabrir a sala.
 - A mesa casual sincroniza snapshots finais de cartas, pilhas, deck, moedas e extras via Realtime Database.
+- A mesa casual tambem publica eventos discretos em `rooms/{roomCode}/tableActions` para animacoes previsiveis, como comprar carta, distribuir cartas e devolver carta ao deck.
 - No modo casual, criar ou entrar em uma sala leva direto para a mesa 3D, sem sala de espera intermediaria.
+- O criador da sala e o administrador permanente da sala casual.
+- Jogadores comuns nao veem o botao de reset e nao podem aplicar configuracoes de baralho.
+- O modo espectador permite pedir permissao para ver a mao de outro jogador; quando aceito, o espectador passa a enxergar as cartas daquele slot.
 
-Essa etapa nao sincroniza animacoes nem arrasto em tempo real. Quando uma acao termina, os outros jogadores recebem o estado final e os componentes podem aparecer diretamente na posicao publicada.
+Essa etapa nao sincroniza arrasto livre em tempo real. Movimentos manuais de cartas, deck, pilhas e objetos continuam sendo publicados como estado final; animacoes predefinidas podem ser reproduzidas por todos os jogadores quando houver um gatilho claro.
 
 ## 3. Mesa E Jogadores
 
@@ -55,14 +59,14 @@ Elementos atuais:
 - Assento local definido pela sala online, sem seletor manual P1-P8 para acessar a visao de outros jogadores.
 - Distribuicao online de assentos prioriza lados opostos nos primeiros jogadores, mas nao rebalanceia quem ja tem slot para preservar dono e estado das cartas.
 - Interacao fisica com cartas, pilhas e objetos em qualquer slot continua permitida.
-- Nome e avatar flutuante para cada jogador ao redor da mesa.
-- Botoes de sair da sala e reset no topo esquerdo.
+- Nome e avatar flutuante para cada jogador ao redor da mesa, preservados mesmo quando o jogador fica offline.
+- Botoes de sair da sala e reset no topo esquerdo; reset aparece apenas para administrador.
 - Barra superior direita com icones de utilidades.
 - Barra inferior com acoes rapidas por icone.
 - Deck central.
 - Objetos de mesa: cartas, pilhas, moedas de ouro, moedas de prata, carta de asilo e carta de religiao.
 
-Os nomes e avatares usam dados locais por enquanto, mas ja devem estar prontos para receber `displayName` e `photoURL` quando o login com Google voltar ao fluxo online.
+Os nomes e avatares usam `displayName` e `photoURL` da sala online. O slot permanece identificado mesmo quando o jogador minimiza, fecha a aba ou fica offline.
 
 ## 4. Cartas
 
@@ -118,6 +122,7 @@ Comportamentos implementados:
 - `R` ainda pode embaralhar o deck ou pilha sob o mouse quando essa funcao for desejada.
 - A animacao de giro do deck ao embaralhar esta desativada temporariamente.
 - `shuffle.mp3` nao deve tocar quando uma carta entra no deck.
+- Em salas online, clique simples para comprar carta e distribuicao inicial publicam eventos discretos para que todos vejam a mesma animacao.
 
 ## 6. Pilhas De Cartas
 
@@ -148,12 +153,15 @@ Moedas atuais:
 - Moedas usam textura de frente e verso em `assets/img/coins`.
 - Moedas tem espessura reduzida.
 - Moedas sao objetos fisicos, arrastaveis e removiveis.
+- Moedas nascem proximas ao slot do jogador que pediu.
+- Duplo clique em moeda de ouro ou prata remove a moeda.
 - Criar moeda toca `falling-coin.mp3`.
 
 Cartas especiais:
 
 - Asilo: carta horizontal, maior que uma carta de personagem comum.
 - Religiao: carta menor, com frente catolica e verso protestante.
+- Asilo e religiao nascem proximos ao slot do jogador que pediu, sem cair sobre o deck.
 - Asilo e religiao podem ser flipadas.
 - Asilo e religiao sao extras de mesa e podem ser deletadas.
 
@@ -193,24 +201,22 @@ Dado:
 
 A HUD atual tem:
 
-- Contador de deck, cartas na mesa e objetos abaixo da barra superior direita.
-- Botoes de sair da sala e reset no topo esquerdo.
+- Codigo da sala clicavel, contador de deck, cartas na mesa e objetos acima da barra inferior.
+- Botoes de sair da sala e reset no topo esquerdo; reset aparece apenas para administrador.
 - Sem selecao manual P1-P8 na lateral esquerda.
 - Barra superior direita com icones:
   - musica;
   - feedback;
   - regras alternativas;
-  - modo espectador placeholder;
+  - modo espectador;
   - tela cheia;
   - informacoes/regras de personagens;
   - configuracoes.
 - Barra inferior com acoes rapidas por icone:
-  - comprar carta;
   - ouro;
   - prata;
   - asilo;
   - religiao;
-  - limpar;
   - distribuir;
   - flip;
   - girar esquerda;
@@ -219,6 +225,8 @@ A HUD atual tem:
   - focar camera.
 
 Textos da interface devem ser evitados em botoes de acao quando houver icone claro. A barra inferior deve ajudar especialmente em touchscreen, onde atalhos de teclado como `F`, `Q`, `E`, `Delete` e `Space` nao existem.
+
+As barras de HUD nao devem usar sombra externa. Os icones SVG devem permanecer claros tambem em navegadores mobile que ativam alto contraste ou ajuste automatico de cores.
 
 ## 10. Modais E Configuracoes
 
@@ -261,8 +269,9 @@ Estado atual desejado:
 - O jogo inicia com as maos vazias.
 - O deck inicia cheio no centro.
 - O botao `Distribuir` anima cartas saindo do deck para as maos dos jogadores.
-- Cada jogador recebe ate 2 cartas conforme a distribuicao inicial.
+- Cada jogador com slot reservado recebe ate 2 cartas conforme a distribuicao inicial.
 - Distribuir cartas toca som de carta.
+- Em salas online, a distribuicao inicial usa evento discreto com fila fixa de cartas para que todos vejam a mesma animacao.
 
 ## 13. Camera
 
@@ -323,6 +332,8 @@ Nao implementar no MVP local, exceto se pedido explicitamente:
 - Modais de regras e configuracoes.
 - Musica e SFX.
 - Distribuir cartas.
+- Sincronizacao por eventos discretos para compra simples, distribuicao inicial e devolucao animada ao deck.
+- Modo espectador com aceite do jogador alvo.
 - Auto-shuffle interno ao devolver cartas fechadas ao deck.
 - Embaralhar pilhas.
 - Agrupar pilhas compativeis.
@@ -338,8 +349,8 @@ Nao implementar no MVP local, exceto se pedido explicitamente:
 - Separar `js/three/app.js` em modulos menores.
 - Melhorar testes manuais e automatizados de fisica.
 - Refinar comandos para touchscreen.
-- Implementar modo espectador.
-- Implementar multiplayer casual.
-- Sincronizar objetos via Firebase ou outra solucao realtime.
+- Expandir modo espectador.
+- Expandir multiplayer casual sem transmitir drag frame a frame.
+- Avaliar novas acoes discretas para sincronizacao visual.
 - Criar logs de mesa.
 - Melhorar UX de inspecao de carta.

@@ -26,7 +26,14 @@ Coup-Master/
 |-- css/
 |   `-- three-board.css
 |-- js/
+|   |-- firebase/
+|   |   |-- auth-service.js
+|   |   |-- firebase-config.js
+|   |   |-- login-page.js
+|   |   |-- lobby-page.js
+|   |   `-- room-service.js
 |   `-- three/
+|       |-- boot.js
 |       `-- app.js
 |-- assets/
 |   |-- img/
@@ -56,7 +63,7 @@ Pastas antigas do modo 2D ou materiais nao usados no 3D podem ser removidas quan
 | Renderizacao | Three.js | Cena, camera, luzes, mesa e meshes |
 | Controles | OrbitControls | Rotacao, zoom e pan |
 | Fisica | Rapier 3D | Corpos, colliders, moedas, cartas, pilhas, extras e deck |
-| Online | Firebase Auth + Realtime Database | Login Google, lobby e presenca de jogadores |
+| Online | Firebase Auth + Realtime Database | Login Google/anonimo, lobby e presenca de jogadores |
 | Assets | PNG/SVG/canvas/audio | Cartas, moedas, icones, guias, sons e dado procedural |
 
 ## 3.1 Base Online
@@ -65,11 +72,11 @@ A base online fica isolada em `js/firebase/` para manter `js/three/app.js` focad
 
 Arquivos:
 
-- `login.html`: tela inicial com login Google.
+- `login.html`: tela inicial com login Google e visitante anonimo.
 - `lobby.html`: cria sala curta ou entra em sala existente e redireciona direto para a mesa casual.
 - `js/firebase/firebase-config.js`: inicializa Firebase App, Auth e Realtime Database.
 - `js/firebase/auth-service.js`: login, logout, observacao de sessao e guard de autenticacao.
-- `js/firebase/room-service.js`: criacao de sala, entrada de jogador, assentos, assinatura de jogadores e snapshots de mesa.
+- `js/firebase/room-service.js`: criacao de sala, entrada de jogador, assentos, assinatura de jogadores, snapshots de mesa, eventos discretos de mesa e pedidos de espectador.
 - `js/three/boot.js`: valida login e sala antes de importar `app.js`.
 
 Estrutura inicial no Realtime Database:
@@ -80,38 +87,54 @@ rooms/{roomCode}
 |-- createdAt
 |-- createdBy
 |-- status
-`-- players/{uid}
-    |-- uid
-    |-- displayName
-    |-- photoURL
-    |-- connected
-    |-- seat
-    |-- joinedAt
-    `-- lastSeen
+|-- players/{uid}
+|   |-- uid
+|   |-- displayName
+|   |-- photoURL
+|   |-- connected
+|   |-- seat
+|   |-- joinedAt
+|   `-- lastSeen
 |-- seats/{seat}
-`-- tableState
-    |-- version
-    |-- deckConfig
-    |-- deck
-    |-- deckTransform
-    |-- players
-    |-- tableCards
-    |-- cards
-    |-- objects
-    |-- stacks
-    |-- updatedAt
-    `-- updatedBy
+|-- tableState
+|   |-- version
+|   |-- deckConfig
+|   |-- deck
+|   |-- deckTransform
+|   |-- players
+|   |-- tableCards
+|   |-- cards
+|   |-- objects
+|   |-- stacks
+|   |-- updatedAt
+|   `-- updatedBy
+|-- tableActions/{actionId}
+|   |-- id
+|   |-- type
+|   |-- payload
+|   |-- actorUid
+|   |-- actorSeat
+|   |-- createdAt
+|   `-- serverCreatedAt
+`-- spectatorRequests/{requestId}
+    |-- requesterUid
+    |-- targetUid
+    |-- targetSeat
+    |-- status
+    |-- createdAt
+    `-- respondedAt
 ```
 
 A lista de jogadores com assento reservado define os badges e o assento local. Fechar ou minimizar a aba nao libera o slot; apenas a acao explicita de sair da sala remove a reserva. A ordem de alocacao prioriza lados opostos da mesa, mas nao rebalanceia jogadores ja assentados para preservar o dono das cartas e o estado da partida.
 
-O lobby casual nao segura jogadores em uma sala de espera; criar ou entrar em sala abre `index.html?room=CODIGO`. A mesa casual sincroniza snapshots finais via `tableState`, sem transmitir animacoes ou posicoes intermediarias durante drag.
+O lobby casual nao segura jogadores em uma sala de espera; criar ou entrar em sala abre `index.html?room=CODIGO`. A mesa casual sincroniza snapshots finais via `tableState` e usa `tableActions` para animacoes deterministicas de compra simples, distribuicao inicial e devolucao animada ao deck. Drag livre ainda nao transmite posicoes intermediarias.
 
 ## 4. Estado Local
 
 O estado principal vive no objeto `state`:
 
 - `activePlayer`;
+- `viewPlayer`;
 - `deck`;
 - `tableCards`;
 - `players`.
@@ -126,6 +149,8 @@ O runtime visual/fisico vive no objeto `app`:
 - pilhas de mesa;
 - zonas de drop;
 - estados de hover, drag, camera focus, audio e animacoes.
+- `tableSyncSuppressCount` para adiar snapshots finais enquanto uma animacao discreta esta rodando;
+- `appliedTableActions` para deduplicar eventos discretos recebidos pela rede.
 
 A cena Three.js nao deve ser a unica fonte de verdade. Sempre que uma carta, deck, objeto ou pilha muda, atualizar tambem o estado JS correspondente.
 
@@ -210,6 +235,7 @@ Responsabilidades:
 - slot de retorno quando o deck esta vazio;
 - auto-shuffle interno quando cartas ou pilhas fechadas entram;
 - retorno ao centro no reset.
+- eventos discretos de compra simples para outros clientes reproduzirem a animacao localmente.
 
 A animacao de giro do deck ao embaralhar esta desativada temporariamente. `shuffle.mp3` nao deve tocar no retorno de carta ao deck.
 
@@ -229,6 +255,7 @@ Responsabilidades:
 - giro com `Q`/`E`;
 - agrupamento em pilhas;
 - retorno animado ao deck.
+- devolucao animada ao deck publicada como evento discreto quando acontece por duplo clique.
 
 ### 6.5 Pilhas
 
@@ -382,9 +409,13 @@ Decisao atual:
 
 Os botoes inferiores devem manter proporcao quadrada semelhante aos botoes superiores. Icones SVG devem ser brancos e com fundo transparente.
 
+As barras de HUD nao devem usar sombra externa. Os icones do HUD devem evitar filtros de inversao quando o SVG ja possui cor clara, pois navegadores mobile com alto contraste podem inverter o resultado e deixar os icones escuros.
+
 Perfis de jogador podem ser atualizados por `window.CoupMaster3D.setPlayerProfile(playerId, { displayName, photoURL })`. O `boot.js` usa esse gancho para refletir a lista online nos badges locais sem acoplar Firebase ao render 3D.
 
 O assento ativo local vem de `window.CoupMaster3DOnline.playerSeat`. O seletor manual P1-P8 foi removido para impedir troca de visao entre maos, mas o drag/drop fisico em slots de outros jogadores continua permitido.
+
+`viewPlayer` pode ser diferente de `activePlayer` quando o modo espectador e aceito. Essa diferenca controla quais cartas privadas podem revelar textura localmente.
 
 ## 12. Assets
 
@@ -434,7 +465,7 @@ Essa divisao deve ser feita com testes manuais a cada etapa, porque muitos compo
 
 ## 15. Sincronizacao Casual
 
-Multiplayer completo autoritativo ainda nao faz parte do MVP local. A base Firebase atual sincroniza autenticacao, lobby, sala, lista de jogadores com assento reservado, presenca informativa e snapshots finais da mesa casual.
+Multiplayer completo autoritativo ainda nao faz parte do MVP. A base Firebase atual sincroniza autenticacao, lobby, sala, lista de jogadores com assento reservado, presenca informativa, snapshots finais da mesa casual, eventos discretos de animacao e pedidos de espectador.
 
 O snapshot atual inclui:
 
@@ -446,13 +477,27 @@ O snapshot atual inclui:
 - pilhas e ordem das cartas;
 - reset e distribuicao inicial como novo estado final.
 
-Nao sincronizar cada frame do drag nesta etapa. A intencao e que o outro jogador receba a posicao final quando a acao termina, mesmo que isso ainda pareca um teleporte visual.
+`tableActions` publica eventos pequenos, deduplicados por ID, para acoes que possuem um gatilho claro e uma animacao previsivel:
+
+- `draw-card`: clique simples no deck compra uma carta para um slot.
+- `deal-initial-hands`: distribuicao inicial usa uma fila fixa de cartas e assentos.
+- `return-card-to-deck`: duplo clique em carta fechada executa devolucao animada ao deck.
+
+Enquanto uma acao discreta esta rodando, `tableSyncSuppressCount` adia a publicacao do `tableState`. Ao fim da animacao, o snapshot final e publicado como garantia para quem perdeu o evento, entrou depois ou ficou com estado divergente.
+
+Nao sincronizar cada frame do drag nesta etapa. A intencao e que o outro jogador receba a posicao final quando a acao manual termina, mesmo que isso ainda pareca um teleporte visual.
+
+### 15.1 Modo Espectador
+
+Pedidos de espectador ficam em `rooms/{roomCode}/spectatorRequests`. O jogador alvo recebe um modal para aceitar ou recusar. Quando aceito, o solicitante altera apenas `viewPlayer`, sem mudar `activePlayer`; isso permite ver a mao autorizada sem trocar o assento real nem publicar mudancas indevidas.
 
 ## 16. Criterios De Aceite Tecnicos
 
 Antes de finalizar uma mudanca relevante:
 
 - `node --check js/three/app.js` deve passar quando JS for alterado.
+- `node --check js/three/boot.js` deve passar quando o fluxo online da mesa for alterado.
+- `node --check js/firebase/room-service.js` deve passar quando servicos Firebase forem alterados.
 - `http://127.0.0.1:4173/index.html` deve carregar.
 - Console do navegador nao deve mostrar erro fatal.
 - Mudancas visuais devem ser verificadas no navegador quando possivel.

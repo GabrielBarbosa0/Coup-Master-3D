@@ -10,26 +10,28 @@ O objetivo nao e automatizar tudo. A ideia e dar uma mesa digital confortavel pa
 
 ## Status Atual
 
-O projeto esta em MVP local, em desenvolvimento ativo.
+O projeto esta em MVP 3D online casual, em desenvolvimento ativo.
 
 Estado atual:
 
 - Modo principal: `index.html`.
 - Renderizacao: Three.js/WebGL.
 - Fisica: Rapier 3D.
-- Multiplayer completo: fora do escopo atual.
-- Modo 2D/Firebase: legado do projeto, nao e mais o foco desta branch.
+- Multiplayer casual: parcial, com sala, assentos, snapshots finais e algumas animacoes discretas sincronizadas.
+- Modo 2D antigo: legado do projeto, nao e mais o foco desta branch.
 
 ## Funcionalidades
 
 ### Base Online
 
-- Login em `login.html` com Google Authentication via Firebase.
+- Login em `login.html` com Google Authentication ou visitante anonimo via Firebase.
 - Lobby em `lobby.html` para criar sala com codigo curto ou entrar em uma sala existente.
 - Realtime Database registra jogadores em `rooms/{roomCode}/players/{uid}`.
 - Lista de jogadores da sala sincronizada com assentos reservados.
 - Fechar ou minimizar a aba nao libera o slot; o jogador volta para o mesmo assento ao reabrir a sala.
 - A mesa casual sincroniza snapshots finais de cartas, pilhas, deck, moedas e extras via Realtime Database.
+- Acoes discretas publicadas em `rooms/{roomCode}/tableActions` sincronizam animacoes previsiveis de comprar carta, distribuir cartas e devolver carta ao deck.
+- O modo espectador permite pedir permissao para ver a mao de outro jogador.
 - A mesa `index.html` exige login e sala valida antes de iniciar o modo Three.js.
 - No modo casual, criar ou entrar em sala redireciona direto para a mesa.
 - Movimentos durante drag nao sao transmitidos em tempo real nesta etapa; outros jogadores recebem o estado quando a acao termina.
@@ -41,7 +43,7 @@ Estado atual:
 - Assento local definido pela sala online, sem seletor manual P1-P8 para ver maos de outros jogadores.
 - Em salas online, os primeiros assentos reservados priorizam lados opostos da mesa, mantendo cada conta no mesmo slot.
 - Interacao fisica com cartas e objetos em qualquer slot continua permitida.
-- Nome e avatar flutuante por jogador, preparado para futura integracao com Google Auth.
+- Nome e avatar flutuante por jogador sincronizados a partir do perfil da sala.
 - Camera orbitavel com zoom, pan e foco animado no jogador ativo.
 - Resgate automatico de objetos que caem fora da mesa.
 
@@ -72,30 +74,33 @@ Estado atual:
 
 - Moeda de ouro com textura.
 - Moeda de prata com textura e proporcao menor.
+- Moedas nascem proximas ao slot do jogador que pediu.
+- Duplo clique em moeda de ouro ou prata remove a moeda da mesa.
 - Carta especial de Asilo, horizontal.
 - Carta especial de Religiao, com frente catolica e verso protestante.
+- Cartas especiais nascem proximas ao slot do jogador que pediu.
 - Extras podem ser arrastados, virados, girados e deletados.
 - O codigo ainda preserva dado e rolagem, mas os botoes estao ocultos no HUD atual.
 
 ### HUD
 
-- Botao de reset no topo esquerdo.
+- Botao de sair da sala no topo esquerdo.
+- Botao de reset no topo esquerdo apenas para o administrador da sala.
 - Barra superior direita com:
   - musica;
   - feedback;
   - regras alternativas;
-  - modo espectador placeholder;
+  - modo espectador;
   - tela cheia;
   - regras de personagens;
   - configuracoes.
-- Contadores de deck, mesa e objetos abaixo da barra superior direita.
+- Codigo da sala clicavel, contadores de deck, mesa e objetos acima da barra inferior.
+- Barras de HUD sem sombra externa, com icones SVG claros para melhor compatibilidade com navegadores mobile em alto contraste.
 - Barra inferior com botoes por icone para acoes rapidas:
-  - comprar;
   - ouro;
   - prata;
   - asilo;
   - religiao;
-  - limpar;
   - distribuir;
   - flip;
   - girar esquerda;
@@ -169,7 +174,14 @@ Coup-Master/
 |-- css/
 |   `-- three-board.css
 |-- js/
+|   |-- firebase/
+|   |   |-- auth-service.js
+|   |   |-- firebase-config.js
+|   |   |-- login-page.js
+|   |   |-- lobby-page.js
+|   |   `-- room-service.js
 |   `-- three/
+|       |-- boot.js
 |       `-- app.js
 |-- assets/
 |   |-- img/
@@ -226,10 +238,10 @@ Ao mexer em HUD, fisica, deck, pilhas ou controles, consulte tambem `docs/GDD.md
 
 - Modularizar `js/three/app.js` quando o comportamento estabilizar.
 - Refinar comandos para touchscreen.
-- Implementar modo espectador.
+- Expandir o modo espectador.
 - Melhorar testes manuais e automatizados de fisica.
-- Evoluir multiplayer casual em uma etapa futura.
-- Criar logs de mesa e sincronizacao de eventos.
+- Expandir sincronizacao casual sem transmitir drag frame a frame.
+- Criar logs de mesa.
 - Melhorar UX de inspecao de cartas.
 
 ## Licenca
