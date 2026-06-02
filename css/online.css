@@ -24,7 +24,7 @@
 body {
   min-height: 100vh;
   margin: 0;
-    background-color: #171d26;
+  background-color: #171d26;
   color: var(--text);
   font-family: "Cinzel", Georgia, "Times New Roman", serif;
 }
@@ -47,7 +47,6 @@ input {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
   backdrop-filter: blur(16px);
 }
 
@@ -59,7 +58,9 @@ input {
 
 #loginTitle {
   font-family: "Tilda Script", "Cinzel", Georgia, serif;
+  font-size: clamp(48px, 12vw, 68px);
   font-weight: 800;
+  line-height: 0.92;
   text-align: center;
 }
 
@@ -70,8 +71,8 @@ input {
 }
 
 .login-title-spacer {
-  height: 24px;
-  margin-bottom: 18px;
+  height: 12px;
+  margin-bottom: 12px;
 }
 
 .online-actions,
@@ -218,5 +219,14 @@ input {
 
   .online-panel {
     padding: 18px;
+  }
+
+  #loginTitle {
+    font-size: clamp(50px, 15vw, 62px);
+  }
+
+  .login-title-spacer {
+    height: 6px;
+    margin-bottom: 10px;
   }
 }

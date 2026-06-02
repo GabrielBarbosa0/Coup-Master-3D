@@ -1,252 +1,625 @@
-# Coup Master 3D
+# Coup Master 3D - MVP 0.1 em Desenvolvimento
 
-![Status](https://img.shields.io/badge/Status-MVP_local_em_desenvolvimento-blue)
+![Status](https://img.shields.io/badge/Status-MVP_0.1_em_desenvolvimento-blue)
 ![Three.js](https://img.shields.io/badge/Three.js-WebGL-black)
 ![Rapier](https://img.shields.io/badge/Physics-Rapier_3D-purple)
+![Firebase](https://img.shields.io/badge/Firebase-Auth_%26_Realtime_Database-orange)
+![GitHub Pages](https://img.shields.io/badge/Deploy-GitHub_Pages-222222)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-Coup Master 3D e uma mesa virtual sandbox para jogar Coup Master no navegador, inspirada na liberdade do Tabletop Simulator. O foco atual do repositorio e o modo 3D local: uma mesa fisica, manipulavel e legivel, onde os jogadores conduzem manualmente regras, blefes, trocas, desafios e combinados de mesa.
+<p align="center">
+  <img src="./marketing/banners/banner-coup-master.png" alt="Banner do Coup Master 3D" width="100%">
+</p>
 
-O objetivo nao e automatizar tudo. A ideia e dar uma mesa digital confortavel para comprar cartas, arrastar componentes, virar pilhas, devolver cartas ao deck, organizar moedas e jogar do jeito que o grupo decidir.
+## 📖 Sobre o Projeto
 
-## Status Atual
+**Coup Master 3D** é uma mesa virtual sandbox para jogar Coup Master diretamente no navegador. O projeto usa **HTML**, **CSS**, **JavaScript**, **Three.js/WebGL**, **Rapier 3D** e **Firebase** para criar uma experiência 3D inspirada na liberdade do **Tabletop Simulator**.
 
-O projeto esta em MVP 3D online casual, em desenvolvimento ativo.
+A proposta não é automatizar todas as regras do Coup. O foco do modo casual é oferecer uma mesa digital confortável, física e manipulável, onde os próprios jogadores conduzem blefes, desafios, acordos, trocas, eliminações e combinados de mesa.
 
-Estado atual:
+O projeto nasceu a partir da evolução experimental do Coup Master 2D, mas agora segue como um repositório separado, focado na experiência 3D.
 
-- Modo principal: `index.html`.
-- Renderizacao: Three.js/WebGL.
-- Fisica: Rapier 3D.
-- Multiplayer casual: parcial, com sala, assentos, snapshots finais e algumas animacoes discretas sincronizadas.
-- Modo 2D antigo: legado do projeto, nao e mais o foco desta branch.
+🔗 **Jogue agora:** [https://gabrielbarbosa0.github.io/Coup-Master-3D](https://gabrielbarbosa0.github.io/Coup-Master-3D)
 
-## Funcionalidades
+---
 
-### Base Online
+## 🖼️ Preview
 
-- Login em `login.html` com Google Authentication ou visitante anonimo via Firebase.
-- Lobby em `lobby.html` para criar sala com codigo curto ou entrar em uma sala existente.
-- Realtime Database registra jogadores em `rooms/{roomCode}/players/{uid}`.
-- Lista de jogadores da sala sincronizada com assentos reservados.
-- Fechar ou minimizar a aba nao libera o slot; o jogador volta para o mesmo assento ao reabrir a sala.
-- A mesa casual sincroniza snapshots finais de cartas, pilhas, deck, moedas e extras via Realtime Database.
-- Acoes discretas publicadas em `rooms/{roomCode}/tableActions` sincronizam animacoes previsiveis de comprar carta, distribuir cartas e devolver carta ao deck.
-- O modo espectador permite pedir permissao para ver a mao de outro jogador.
-- Chat em tempo real por sala com texto livre e mensagens rapidas de blefe/acao.
-- A mesa `index.html` exige login e sala valida antes de iniciar o modo Three.js.
-- No modo casual, criar ou entrar em sala redireciona direto para a mesa.
-- Movimentos durante drag nao sao transmitidos em tempo real nesta etapa; outros jogadores recebem o estado quando a acao termina.
+O repositório já possui banner em:
 
-### Mesa 3D
+```txt
+marketing/banners/banner-coup-master.png
+marketing/banners/coup-master-capa.png
+```
 
-- Mesa octogonal com area central e ate 8 zonas de jogador.
-- Slots P1 a P8 alinhados as faces internas da mesa.
-- Assento local definido pela sala online, sem seletor manual P1-P8 para ver maos de outros jogadores.
-- Em salas online, os primeiros assentos reservados priorizam lados opostos da mesa, mantendo cada conta no mesmo slot.
-- Interacao fisica com cartas e objetos em qualquer slot continua permitida.
-- Nome e avatar flutuante por jogador sincronizados a partir do perfil da sala.
-- Camera orbitavel com zoom, pan e foco animado no jogador ativo.
-- Resgate automatico de objetos que caem fora da mesa.
+Um GIF curto de gameplay ainda deve ser adicionado futuramente para deixar o README mais visual:
 
-### Cartas E Deck
+```txt
+marketing/screenshots/game-preview.gif
+```
 
-- Cartas 3D finas, texturizadas, com cantos arredondados reais.
-- Frente, verso e lateral visiveis.
-- Deck fisico no centro da mesa.
-- Deck movel por drag.
-- Clique no deck compra carta para o jogador ativo.
-- Duplo clique em carta devolve ao deck com animacao.
-- Cartas fechadas e pilhas fechadas podem voltar ao deck.
-- Cartas abertas nao entram no deck.
-- Deck tem limite visual de 8 cartas empilhadas, mesmo com mais cartas internamente.
-- Quando o deck fica vazio, ainda existe um slot de retorno para receber cartas fechadas.
+> Placeholder: gravar uma demonstração curta mostrando login, lobby, entrada em sala, mesa octogonal, compra de cartas, moedas, chat e modo espectador.
 
-### Pilhas
+---
 
-- Cartas fechadas agrupam com cartas fechadas.
-- Cartas abertas agrupam com cartas abertas.
-- Pilhas compativeis podem se unir quando soltas perto ou sobre outra pilha.
-- Pilhas podem ser arrastadas como conjunto.
-- Pilhas podem ser viradas em grupo.
-- Pilhas podem ser giradas.
-- Pilhas abertas mostram tooltip com contagem por personagem.
+## 🚧 Status Atual do MVP
 
-### Objetos E Extras
+O Coup Master 3D está em **MVP 0.1 online casual**, em desenvolvimento ativo.
 
-- Moeda de ouro com textura.
-- Moeda de prata com textura e proporcao menor.
-- Moedas nascem proximas ao slot do jogador que pediu.
-- Duplo clique em moeda de ouro ou prata remove a moeda da mesa.
-- Carta especial de Asilo, horizontal.
-- Carta especial de Religiao, com frente catolica e verso protestante.
-- Cartas especiais nascem proximas ao slot do jogador que pediu.
-- Extras podem ser arrastados, virados, girados e deletados.
-- O codigo ainda preserva dado e rolagem, mas os botoes estao ocultos no HUD atual.
-
-### HUD
-
-- Botao de sair da sala no topo esquerdo.
-- Botao de reset no topo esquerdo apenas para o administrador da sala.
-- Barra superior direita com:
-  - musica;
-  - feedback;
-  - regras alternativas;
-  - modo espectador;
-  - tela cheia;
-  - regras de personagens;
-  - configuracoes.
-- Codigo da sala clicavel, contadores de deck, mesa e objetos acima da barra inferior.
-- Barra lateral esquerda com atalhos de chat e historico.
-- Barras de HUD sem sombra externa, com icones SVG claros para melhor compatibilidade com navegadores mobile em alto contraste.
-- Barra inferior com botoes por icone para acoes rapidas:
-  - ouro;
-  - prata;
-  - asilo;
-  - religiao;
-  - distribuir;
-  - flip;
-  - girar esquerda;
-  - girar direita;
-  - deletar;
-  - focar camera.
-
-### Audio
-
-- Musica de fundo em volume inicial baixo.
-- Botao para mutar/desmutar musica.
-- Configuracoes com volume de musica e efeitos.
-- Efeitos sonoros para cartas, moedas e reset.
-
-## Controles
-
-### Mouse E Touch
-
-| Acao | Controle |
+| Área | Estado atual |
 | --- | --- |
-| Rotacionar camera | Botao esquerdo em area vazia / um dedo no touchscreen |
-| Pan da camera | Botao do meio / clique no scroll / dois dedos no touchscreen |
-| Zoom | Scroll |
+| Modo principal | `index.html` |
+| Login | Google ou visitante anônimo |
+| Lobby | Criar sala ou entrar por código curto |
+| Mesa | 3D octogonal com até 8 jogadores |
+| Física | Rapier 3D |
+| Renderização | Three.js/WebGL |
+| Online | Firebase Authentication + Realtime Database |
+| Sincronização | Parcial, por snapshots finais e ações discretas |
+| Hospedagem | GitHub Pages |
+
+### Importante
+
+Movimentos de drag livre ainda **não são sincronizados frame a frame**. Nesta etapa, a mesa sincroniza o estado final de ações manuais e algumas animações discretas, como comprar carta, distribuir cartas e devolver carta ao deck.
+
+Isso mantém o MVP mais leve, reduz escritas no Firebase e evita travamentos visuais enquanto a base multiplayer casual amadurece.
+
+---
+
+## 🚀 Funcionalidades Principais
+
+### 🎲 Mesa 3D Sandbox
+
+- Mesa octogonal em Three.js.
+- Até 8 slots de jogador.
+- Câmera orbitável com zoom, pan e foco no jogador.
+- Manipulação manual de cartas, deck, pilhas, moedas e extras.
+- Resgate automático de objetos que caem fora da mesa.
+- Experiência inspirada em mesa física e Tabletop Simulator.
+
+### 🔐 Login, Lobby e Salas
+
+- Login com Google Authentication via Firebase.
+- Login como visitante anônimo.
+- Lobby em `lobby.html`.
+- Criação de salas com código curto de 4 caracteres.
+- Entrada direta em sala existente.
+- Jogadores salvos em `rooms/{roomCode}/players/{uid}`.
+- Assentos reservados por conta.
+- Fechar ou minimizar a aba não libera automaticamente o slot.
+- Criador da sala é o administrador permanente da sala casual.
+
+### 🃏 Cartas, Deck e Pilhas
+
+- Cartas 3D finas com frente, verso e lateral.
+- Cantos arredondados reais.
+- Deck físico central com limite visual de cartas empilhadas.
+- Clique no deck para comprar carta para o jogador ativo.
+- Clique e arraste para puxar carta.
+- Duplo clique em carta fechada devolve ao deck.
+- Cartas abertas não voltam ao deck automaticamente.
+- Pilhas compatíveis podem se agrupar.
+- Pilhas podem ser movidas, viradas e giradas.
+
+### 🪙 Objetos e Cartas Especiais
+
+- Moeda de ouro.
+- Moeda de prata.
+- Duplo clique em moedas remove o objeto.
+- Carta especial de Asilo.
+- Carta especial de Religião.
+- Extras podem ser arrastados, virados, girados e deletados.
+- Moedas e extras nascem próximos ao slot do jogador que solicitou.
+
+### 💬 Chat e Comunicação
+
+- Chat em tempo real por sala.
+- Mensagens livres.
+- Mensagens rápidas de blefe/ação, como declarar personagem, contestar ou bloquear.
+- Atalho `C` para abrir o chat.
+- Ícone lateral de chat.
+- Base preparada para histórico/logs de mesa no futuro.
+
+### 👻 Modo Espectador
+
+- Jogador pode pedir permissão para espectar a mão de outro jogador.
+- O alvo recebe modal para aceitar ou recusar.
+- Quando aceito, o espectador passa a ver a mão daquele slot.
+- Útil para partidas casuais com jogadores eliminados assistindo blefes.
+
+### 🔊 Áudio e HUD
+
+- Música de fundo em `assets/sounds/soundtrack/bgm.mp3`.
+- Botão para mutar/desmutar música.
+- Volume de música e efeitos no modal de configurações.
+- Efeitos sonoros para cartas, moedas e reset.
+- HUD por ícones com barras compactas.
+- Código da sala clicável no HUD.
+- Botão de reset visível apenas para administrador.
+
+---
+
+## 🎮 Controles
+
+### Mouse e Touch
+
+| Ação | Controle |
+| --- | --- |
+| Rotacionar câmera | Botão esquerdo em área vazia / um dedo no touchscreen |
+| Pan da câmera | Botão do meio / clique no scroll / dois dedos no touchscreen |
+| Zoom | Scroll do mouse |
 | Comprar carta | Clique no deck |
-| Puxar carta do deck | Clique e arraste rapido no deck |
+| Puxar carta do deck | Clique e arraste rapidamente no deck |
 | Mover deck | Clique, segure e arraste o deck |
 | Arrastar carta, pilha, moeda ou extra | Clique, segure e arraste |
 | Devolver carta ao deck | Duplo clique na carta |
-| Selecionar para atalho | Hover do mouse |
+| Remover moeda | Duplo clique em moeda de ouro ou prata |
+| Selecionar objeto para atalho | Hover do mouse |
 
 ### Teclado
 
-| Tecla | Acao |
+| Tecla | Ação |
 | --- | --- |
-| `F` | Vira carta, pilha ou extra sob hover/selecao |
+| `F` | Vira carta, pilha ou extra sob hover/seleção |
 | `C` | Abre o chat da sala |
 | `Q` | Gira objeto selecionado para a esquerda |
 | `E` | Gira objeto selecionado para a direita |
 | `R` | Embaralha deck ou pilha sob hover |
 | `Delete` / `Backspace` | Remove objeto selecionado |
-| `Space` | Foca a camera no jogador ativo |
+| `Space` | Foca a câmera no jogador ativo |
+| `Escape` | Fecha modais abertos |
 
-## Como Rodar Localmente
+---
 
-Este modo roda como site estatico.
+## 🛠️ Tecnologias
+
+| Área | Tecnologia |
+| --- | --- |
+| Frontend | HTML5, CSS3, JavaScript |
+| Módulos | ES Modules |
+| Renderização 3D | Three.js / WebGL |
+| Física | Rapier 3D |
+| Câmera | OrbitControls |
+| Autenticação | Firebase Authentication |
+| Banco em tempo real | Firebase Realtime Database |
+| Hospedagem | GitHub Pages |
+| Assets | PNG, SVG, fontes, áudio e canvas procedural |
+
+---
+
+## 🎲 Como Jogar
+
+1. Acesse o jogo pelo GitHub Pages ou rode localmente.
+2. Entre com Google ou como visitante.
+3. No lobby, crie uma sala ou informe um código existente.
+4. Compartilhe o código com os outros jogadores.
+5. Ao entrar na mesa, use a câmera para navegar pelo tabuleiro.
+6. Clique no deck para comprar cartas.
+7. Arraste cartas, pilhas, moedas e extras pela mesa.
+8. Use atalhos ou botões do HUD para virar, girar, deletar e focar a câmera.
+9. Use o chat para combinar ações, blefes e respostas.
+10. Conduza as regras manualmente com o grupo.
+
+> O modo casual é sandbox: os jogadores são responsáveis por declarar ações, contestar, bloquear e manter a partida honesta.
+
+---
+
+## 🏗️ Arquitetura
+
+O Coup Master 3D separa a camada de mesa 3D da camada online:
+
+```txt
+Navegador do jogador
+        |
+        v
+index.html + HUD DOM
+        |
+        v
+js/three/boot.js
+        |
+        +--> valida login e sala
+        +--> conecta serviços Firebase
+        +--> importa js/three/app.js
+        |
+        v
+js/three/app.js
+        |
+        +--> renderização Three.js
+        +--> física Rapier
+        +--> interação com cartas, deck, moedas e HUD
+        |
+        v
+Firebase Realtime Database
+        |
+        +--> players
+        +--> tableState
+        +--> tableActions
+        +--> chatMessages
+        +--> spectatorRequests
+```
+
+### Princípios atuais
+
+- Manter `js/three/app.js` focado na mesa 3D.
+- Manter Firebase isolado em `js/firebase/`.
+- Sincronizar ações discretas quando houver gatilho claro.
+- Evitar sincronização frame a frame do drag neste MVP.
+- Evoluir a modularização depois que a experiência da mesa estiver mais estável.
+
+---
+
+## 📁 Estrutura de Pastas
+
+Estrutura real verificada no repositório:
+
+```txt
+Coup-Master-3D/
+|-- index.html
+|-- login.html
+|-- lobby.html
+|-- README.md
+|-- AGENTS.md
+|-- LICENSE
+|-- robots.txt
+|-- sitemap.xml
+|-- limpeza.json
+|-- google9b3b720af3a4d43a.html
+|
+|-- css/
+|   |-- online.css
+|   `-- three-board.css
+|
+|-- js/
+|   |-- firebase/
+|   |   |-- auth-service.js
+|   |   |-- firebase-config.js
+|   |   |-- firebase-rules.json
+|   |   |-- login-page.js
+|   |   |-- lobby-page.js
+|   |   `-- room-service.js
+|   |
+|   `-- three/
+|       |-- app.js
+|       |-- boot.js
+|       |-- config.js
+|       `-- dom.js
+|
+|-- assets/
+|   |-- fonts/
+|   |-- img/
+|   |   |-- cards/
+|   |   |   |-- base/
+|   |   |   |-- dlc1/
+|   |   |   |-- dlc2/
+|   |   |   |-- promo/
+|   |   |   `-- religion/
+|   |   |-- coins/
+|   |   |-- guides/
+|   |   |-- icons/
+|   |   `-- logo/
+|   |-- sounds/
+|   |   |-- soundtrack/
+|   |   `-- vfx/
+|   `-- video/
+|
+|-- docs/
+|   |-- GDD.md
+|   `-- TDD.md
+|
+`-- marketing/
+    `-- banners/
+        |-- banner-coup-master.png
+        `-- coup-master-capa.png
+```
+
+### Observações sobre assets de marketing
+
+A seção de preview ainda pode ganhar uma pasta futura:
+
+```txt
+marketing/screenshots/
+```
+
+Essa pasta ainda não existe na estrutura atual e deve ser adicionada quando houver prints ou GIFs oficiais do MVP 3D.
+
+---
+
+## ⚙️ Instalação e Execução Local
+
+Este projeto roda como site estático.
+
+### 1. Clone o repositório
+
+```powershell
+git clone https://github.com/GabrielBarbosa0/Coup-Master-3D.git
+cd Coup-Master-3D
+```
+
+### 2. Inicie um servidor local
+
+Com Python:
 
 ```powershell
 python -m http.server 4173
 ```
 
-Depois abra:
+### 3. Abra no navegador
 
-```txt
-http://127.0.0.1:4173/index.html
-```
-
-Se voce ja usa outro servidor estatico, basta servir a raiz do repositorio e acessar `index.html`.
-
-Para o fluxo online, abra primeiro:
+Fluxo online completo:
 
 ```txt
 http://127.0.0.1:4173/login.html
 ```
 
-Depois do login, o lobby cria ou entra em uma sala e redireciona direto para `index.html?room=CODIGO`.
-
-## Estrutura Principal
-
-```txt
-Coup-Master/
-|-- index.html
-|-- css/
-|   `-- three-board.css
-|-- js/
-|   |-- firebase/
-|   |   |-- auth-service.js
-|   |   |-- firebase-config.js
-|   |   |-- login-page.js
-|   |   |-- lobby-page.js
-|   |   `-- room-service.js
-|   `-- three/
-|       |-- boot.js
-|       `-- app.js
-|-- assets/
-|   |-- img/
-|   |   |-- cards/
-|   |   |-- coins/
-|   |   |-- guides/
-|   |   |-- icons/
-|   |   `-- logo/
-|   `-- sounds/
-|       |-- soundtrack/
-|       `-- vfx/
-|-- docs/
-|   |-- GDD.md
-|   `-- TDD.md
-|-- AGENTS.md
-`-- README.md
-```
-
-## Documentacao
-
-- `docs/GDD.md`: visao de produto, regras de design, controles, HUD, roadmap e escopo.
-- `docs/TDD.md`: arquitetura tecnica, estado local, sistemas, assets, fisica e criterios de aceite.
-- `AGENTS.md`: instrucoes para agentes/colaboradores trabalharem no repositorio.
-
-## Stack
-
-| Area | Tecnologia |
-| --- | --- |
-| HTML/CSS | HTML5, CSS3 |
-| JavaScript | Vanilla JS com ES Modules |
-| Renderizacao 3D | Three.js |
-| Controles de camera | OrbitControls |
-| Fisica | Rapier 3D |
-| Online | Firebase Authentication e Realtime Database |
-| Assets | PNG, SVG, audio e canvas procedural |
-
-## Desenvolvimento
-
-Antes de finalizar mudancas em JavaScript:
-
-```powershell
-node --check js\three\app.js
-```
-
-Para mudancas visuais ou interativas, testar no navegador:
+Mesa direta, exigindo login e sala válida:
 
 ```txt
 http://127.0.0.1:4173/index.html
 ```
 
-Ao mexer em HUD, fisica, deck, pilhas ou controles, consulte tambem `docs/GDD.md`, `docs/TDD.md` e `AGENTS.md`.
+Exemplo com sala:
 
-## Roadmap
+```txt
+http://127.0.0.1:4173/index.html?room=ABCD
+```
 
-- Modularizar `js/three/app.js` quando o comportamento estabilizar.
-- Refinar comandos para touchscreen.
-- Expandir o modo espectador.
-- Melhorar testes manuais e automatizados de fisica.
-- Expandir sincronizacao casual sem transmitir drag frame a frame.
-- Criar logs de mesa.
-- Melhorar UX de inspecao de cartas.
+---
 
-## Licenca
+## 🔥 Configuração do Firebase
 
-Este projeto e de codigo aberto sob a licenca [MIT](LICENSE).
+O Firebase é usado para:
+
+- autenticação;
+- login Google;
+- login anônimo/visitante;
+- criação e entrada em salas;
+- reserva de assentos;
+- snapshots da mesa;
+- ações discretas;
+- chat em tempo real;
+- pedidos de espectador.
+
+### 1. Crie o projeto no Firebase
+
+1. Acesse o [Firebase Console](https://console.firebase.google.com/).
+2. Clique em **Criar projeto**.
+3. Adicione um app Web.
+4. Copie as credenciais do objeto `firebaseConfig`.
+
+### 2. Configure o app Web
+
+As credenciais ficam em:
+
+```txt
+js/firebase/firebase-config.js
+```
+
+Exemplo de formato:
+
+```js
+const firebaseConfig = {
+  apiKey: "SUA_API_KEY",
+  authDomain: "seu-projeto.firebaseapp.com",
+  databaseURL: "https://seu-projeto-default-rtdb.firebaseio.com",
+  projectId: "seu-projeto",
+  storageBucket: "seu-projeto.appspot.com",
+  messagingSenderId: "...",
+  appId: "..."
+};
+```
+
+> A chave `apiKey` de um app Web Firebase não deve ser tratada como senha secreta. A segurança real depende de autenticação, regras do banco, domínios autorizados e validações futuras.
+
+### 3. Ative os métodos de autenticação
+
+No Firebase Console:
+
+1. Vá em **Build > Authentication**.
+2. Abra **Sign-in method**.
+3. Ative **Google**.
+4. Ative **Anonymous** se quiser permitir login visitante.
+5. Em **Authorized domains**, adicione os domínios usados.
+
+Para desenvolvimento local:
+
+```txt
+localhost
+127.0.0.1
+```
+
+Para GitHub Pages:
+
+```txt
+gabrielbarbosa0.github.io
+```
+
+### 4. Configure o Realtime Database
+
+O repositório possui um arquivo de referência:
+
+```txt
+js/firebase/firebase-rules.json
+```
+
+Regras atuais do MVP:
+
+```json
+{
+  "rules": {
+    "rooms": {
+      "$roomId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    }
+  }
+}
+```
+
+Essas regras são simples para o MVP casual. Para ranking, loja, DLCs pagas, inventário, temporadas e validações autoritativas, será necessário endurecer as regras e provavelmente usar Cloud Functions.
+
+---
+
+## 🌐 Publicação no GitHub Pages
+
+Para publicar o projeto:
+
+1. Acesse o repositório no GitHub.
+2. Vá em **Settings > Pages**.
+3. Em **Build and deployment**, selecione:
+
+```txt
+Source: Deploy from a branch
+Branch: main
+Folder: /root
+```
+
+4. Salve e aguarde o GitHub gerar a URL pública.
+
+URL esperada:
+
+```txt
+https://gabrielbarbosa0.github.io/Coup-Master-3D/
+```
+
+---
+
+## 🛠️ Manutenção do Banco de Dados
+
+Este projeto usa Firebase Realtime Database. Durante testes, salas antigas, mensagens e snapshots podem acumular dados.
+
+### Limpeza manual
+
+Caso o banco fique pesado:
+
+1. Acesse o Firebase Console.
+2. Vá em **Realtime Database**.
+3. Selecione o nó desejado, por exemplo `rooms`.
+4. Remova salas antigas manualmente.
+
+O repositório também possui:
+
+```txt
+limpeza.json
+```
+
+Conteúdo atual:
+
+```json
+{}
+```
+
+> [!CAUTION]
+> Importar `{}` sobre um nó do Realtime Database apaga os dados daquele nó. Use apenas em ambiente de desenvolvimento ou quando tiver certeza de que deseja limpar salas antigas.
+
+### Limpeza automática
+
+Ainda não há rotina robusta de limpeza automática por servidor. No futuro, Cloud Functions podem ser usadas para expirar salas antigas, limpar mensagens e aplicar regras mais fortes de manutenção.
+
+---
+
+## 🧠 Desafios Técnicos
+
+- Criar uma mesa 3D manipulável e legível no navegador.
+- Integrar Three.js com física Rapier sem instabilidade excessiva.
+- Manter cartas, pilhas, deck e objetos sincronizados com estado local.
+- Evitar tremor físico ao arrastar objetos.
+- Sincronizar multiplayer casual sem transmitir drag frame a frame.
+- Controlar assentos reservados sem liberar slot quando a aba fecha.
+- Separar renderização 3D da lógica Firebase.
+- Proteger cartas privadas enquanto ainda permite interação física.
+- Dar suporte crescente a touchscreen.
+- Manter HUD compacto em desktop e mobile.
+
+---
+
+## 📚 Aprendizados
+
+Durante o desenvolvimento do Coup Master 3D, o projeto explora:
+
+- renderização 3D com Three.js;
+- física no navegador com Rapier 3D;
+- modelagem de mesa sandbox;
+- manipulação de objetos em WebGL;
+- arquitetura modular em JavaScript;
+- autenticação com Firebase;
+- Realtime Database;
+- sincronização parcial de estado;
+- design de HUD para jogo 3D;
+- responsividade para mobile/touch;
+- planejamento com GDD e TDD.
+
+---
+
+## 📄 Documentação
+
+Documentos auxiliares do repositório:
+
+| Arquivo | Função |
+| --- | --- |
+| `docs/GDD.md` | Game Design Document: visão de produto, experiência, controles, HUD, roadmap e escopo |
+| `docs/TDD.md` | Technical Design Document: arquitetura, estado local, sistemas, física, assets e critérios de aceite |
+| `AGENTS.md` | Instruções para agentes de IA, Codex e colaboradores |
+| `js/firebase/firebase-rules.json` | Regras atuais de referência para o Realtime Database |
+
+---
+
+## 🧭 Roadmap
+
+### MVP 0.1
+
+- [x] Separar o repositório do Coup Master 3D.
+- [x] Criar fluxo de login.
+- [x] Criar lobby simples.
+- [x] Criar salas com código curto.
+- [x] Criar mesa 3D octogonal.
+- [x] Adicionar deck central.
+- [x] Adicionar cartas, moedas e extras manipuláveis.
+- [x] Adicionar chat em tempo real.
+- [x] Adicionar modo espectador inicial.
+- [ ] Refinar experiência mobile/touch.
+- [ ] Melhorar estabilidade física em casos extremos.
+- [ ] Adicionar preview oficial no README.
+
+### MVP 0.2
+
+- [ ] Modularizar `js/three/app.js`.
+- [ ] Criar logs de mesa.
+- [ ] Melhorar histórico de ações.
+- [ ] Expandir ações discretas sincronizadas.
+- [ ] Melhorar UX de inspeção de cartas.
+- [ ] Criar tutorial inicial de controles.
+- [ ] Melhorar ferramentas de host.
+
+### Futuro
+
+- [ ] Ranking.
+- [ ] Matchmaking.
+- [ ] Conquistas.
+- [ ] Loja.
+- [ ] Inventário.
+- [ ] DLCs pagas ou desbloqueáveis.
+- [ ] Cloud Functions para validações críticas.
+- [ ] Backend autoritativo para modos competitivos.
+- [ ] Temporadas.
+- [ ] Replays ou logs avançados.
+
+---
+
+## ⚠️ Observação Legal
+
+Este é um projeto independente e em desenvolvimento, criado como estudo de mesa digital sandbox, multiplayer casual, Three.js, Firebase e design de interação.
+
+O projeto não tem como objetivo substituir uma implementação oficial de qualquer jogo comercial. A proposta é experimentar uma mesa virtual manual para grupos que já combinam suas próprias regras e variações.
+
+---
+
+## 📄 Licença
+
+Este projeto é de código aberto sob a licença [MIT](LICENSE).
