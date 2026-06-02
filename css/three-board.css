@@ -225,9 +225,12 @@ body,
   white-space: nowrap;
 }
 
-.remove-player-btn,
-.remove-player-confirm-btn {
+.remove-player-btn {
   margin-top: 10px;
+  background: #ff3b3b;
+}
+
+.remove-player-confirm-btn {
   background: #ff3b3b;
 }
 
@@ -249,6 +252,12 @@ body,
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+.player-remove-actions .settings-action-btn {
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
 }
 
 .cancel-remove-player-btn {
@@ -1054,6 +1063,38 @@ button:focus-visible {
   .chat-form .settings-action-btn {
     min-height: 32px;
     padding: 7px 10px;
+  }
+
+  .player-info-modal-content {
+    max-height: calc(100dvh - 28px);
+    overflow: visible;
+  }
+
+  .player-info-modal-content h2 {
+    font-size: 22px;
+  }
+
+  .player-info-list {
+    gap: 4px;
+    margin: 10px 0 8px;
+  }
+
+  .player-info-list p {
+    padding: 5px 0;
+  }
+
+  .player-remove-confirm {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+
+  .player-remove-confirm p {
+    margin-bottom: 8px;
+  }
+
+  .player-remove-actions .settings-action-btn {
+    min-height: 34px;
+    padding: 8px;
   }
 
   .rule-cards-modal {
