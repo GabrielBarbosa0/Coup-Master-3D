@@ -47,6 +47,56 @@ body,
   touch-action: none;
 }
 
+.boot-loading {
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #171d26;
+  color: var(--text);
+}
+
+.boot-loading-content {
+  width: min(420px, calc(100vw - 40px));
+  padding: 28px 24px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  text-align: center;
+}
+
+.boot-loading h1 {
+  margin: 0;
+  font-size: clamp(28px, 8vw, 44px);
+  line-height: 1;
+}
+
+.boot-loading p {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+body.is-booting #threeCanvas,
+body.is-booting .hud,
+body.is-booting .status-row,
+body.is-booting .hover-tooltip {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+body.is-booting .boot-loading {
+  display: flex;
+}
+
+body.is-ready .boot-loading {
+  display: none;
+}
+
 .hud {
   position: fixed;
   z-index: 10;

@@ -25,6 +25,12 @@ const params = new URLSearchParams(location.search);
 const requestedRoom = normalizeRoomCode(params.get('room') || localStorage.getItem('coupMaster3dRoom') || '');
 const user = await requireAuth('login.html');
 
+// Mostra a mesa apenas depois que autenticacao, sala e estado inicial estiverem prontos.
+function revealTable() {
+  document.body.classList.remove('is-booting');
+  document.body.classList.add('is-ready');
+}
+
 if (!user) {
   throw new Error('Login obrigatorio para abrir a mesa.');
 }
@@ -92,6 +98,7 @@ if (initialTableState) {
   await writeRoomTableState(requestedRoom, user, window.CoupMaster3D?.getTableState?.());
 }
 syncReady = true;
+revealTable();
 
 // Aplica estados finais publicados por outros jogadores.
 subscribeRoomTableState(requestedRoom, (tableState) => {

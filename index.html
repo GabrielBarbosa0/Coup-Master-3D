@@ -46,7 +46,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800;900&display=swap"
     rel="stylesheet">
 
-  <link rel="stylesheet" href="css/three-board.css?v=seo-head-update">
+  <link rel="stylesheet" href="css/three-board.css?v=boot-loading">
 
   <script type="importmap">
     {
@@ -59,9 +59,16 @@
   </script>
 </head>
 
-<body>
+<body class="is-booting">
   <main id="threeApp">
     <canvas id="threeCanvas"></canvas>
+
+    <div id="bootLoadingOverlay" class="boot-loading" role="status" aria-live="polite">
+      <div class="boot-loading-content">
+        <h1>Coup Master</h1>
+        <p>Carregando mesa...</p>
+      </div>
+    </div>
 
     <section class="hud reset-actions" aria-label="Reset">
       <button id="leaveRoomBtn3d" class="settings-btn leave-room-btn" type="button" title="Sair da sala"
@@ -443,7 +450,7 @@
     <audio id="resetVfxAudio" src="assets/sounds/vfx/reset-game.mp3" preload="auto"></audio>
   </main>
 
-  <script type="module" src="js/three/boot.js"></script>
+  <script type="module" src="js/three/boot.js?v=boot-loading"></script>
 </body>
 
 </html>
