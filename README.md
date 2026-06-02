@@ -1,4 +1,4 @@
-# Coup Master 3D - MVP 0.1 em Desenvolvimento
+# Coup Master 3D - Em Desenvolvimento
 
 ![Status](https://img.shields.io/badge/Status-MVP_0.1_em_desenvolvimento-blue)
 ![Three.js](https://img.shields.io/badge/Three.js-WebGL-black)
@@ -25,20 +25,7 @@ O projeto nasceu a partir da evolução experimental do Coup Master 2D, mas agor
 
 ## 🖼️ Preview
 
-O repositório já possui banner em:
-
-```txt
-marketing/banners/banner-coup-master.png
-marketing/banners/coup-master-capa.png
-```
-
-Um GIF curto de gameplay ainda deve ser adicionado futuramente para deixar o README mais visual:
-
-```txt
-marketing/screenshots/game-preview.gif
-```
-
-> Placeholder: gravar uma demonstração curta mostrando login, lobby, entrada em sala, mesa octogonal, compra de cartas, moedas, chat e modo espectador.
+  <img src="./assets/video/game-preview.gif" width="800">
 
 ---
 
@@ -248,7 +235,9 @@ Firebase Realtime Database
 
 ---
 
-## 📁 Estrutura de Pastas
+## 📁 Estrutura de Pastas do Projeto
+
+O projeto adota uma arquitetura modular baseada em responsabilidades bem definidas, separando os recursos estáticos (assets), as folhas de estilo (CSS) e o núcleo lógico do jogo (JS).
 
 Estrutura real verificada no repositório:
 
@@ -312,19 +301,9 @@ Coup-Master-3D/
         `-- coup-master-capa.png
 ```
 
-### Observações sobre assets de marketing
-
-A seção de preview ainda pode ganhar uma pasta futura:
-
-```txt
-marketing/screenshots/
-```
-
-Essa pasta ainda não existe na estrutura atual e deve ser adicionada quando houver prints ou GIFs oficiais do MVP 3D.
-
 ---
 
-## ⚙️ Instalação e Execução Local
+## ⚙️ Instalação, Configuração e Execução Local
 
 Este projeto roda como site estático.
 
@@ -494,7 +473,7 @@ https://gabrielbarbosa0.github.io/Coup-Master-3D/
 
 Este projeto usa Firebase Realtime Database. Durante testes, salas antigas, mensagens e snapshots podem acumular dados.
 
-### Limpeza manual
+### 🧹 Procedimento de Limpeza Manual
 
 Caso o banco fique pesado:
 
@@ -570,7 +549,7 @@ Documentos auxiliares do repositório:
 
 ---
 
-## 🧭 Roadmap
+## 🚀 Próximas Atualizações (Roadmap)
 
 ### MVP 0.1
 
