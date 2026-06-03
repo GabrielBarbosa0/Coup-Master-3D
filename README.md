@@ -73,6 +73,8 @@ Isso mantém o MVP mais leve, reduz escritas no Firebase e evita travamentos vis
 - Entrada direta em sala existente.
 - Jogadores salvos em `rooms/{roomCode}/players/{uid}`.
 - Assentos reservados por conta.
+- Lista de jogadores visível no HUD da mesa.
+- Host pode remover jogadores da sala e liberar assentos explicitamente.
 - Fechar ou minimizar a aba não libera automaticamente o slot.
 - Criador da sala é o administrador permanente da sala casual.
 
@@ -121,6 +123,8 @@ Isso mantém o MVP mais leve, reduz escritas no Firebase e evita travamentos vis
 - Volume de música e efeitos no modal de configurações.
 - Efeitos sonoros para cartas, moedas e reset.
 - HUD por ícones com barras compactas.
+- Tela de carregamento evita exibir HUD/mesa antes do login, sala e estado inicial estarem prontos.
+- Modal de regras alternativas com 5 páginas de referência.
 - Código da sala clicável no HUD.
 - Botão de reset visível apenas para administrador.
 
@@ -205,6 +209,7 @@ index.html + HUD DOM
 js/three/boot.js
         |
         +--> valida login e sala
+        +--> mantém a tela de carregamento durante o boot
         +--> conecta serviços Firebase
         +--> importa js/three/app.js
         |

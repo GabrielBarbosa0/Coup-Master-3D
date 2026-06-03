@@ -76,8 +76,8 @@ Arquivos:
 - `lobby.html`: cria sala curta ou entra em sala existente e redireciona direto para a mesa casual.
 - `js/firebase/firebase-config.js`: inicializa Firebase App, Auth e Realtime Database.
 - `js/firebase/auth-service.js`: login, logout, observacao de sessao e guard de autenticacao.
-- `js/firebase/room-service.js`: criacao de sala, entrada de jogador, assentos, assinatura de jogadores, snapshots de mesa, eventos discretos de mesa e pedidos de espectador.
-- `js/three/boot.js`: valida login e sala antes de importar `app.js`.
+- `js/firebase/room-service.js`: criacao de sala, entrada de jogador, remocao pelo host, assentos, assinatura de jogadores, snapshots de mesa, eventos discretos de mesa e pedidos de espectador.
+- `js/three/boot.js`: valida login e sala antes de importar `app.js`, mantendo `index.html` em estado de carregamento ate o estado inicial ficar pronto.
 
 Estrutura inicial no Realtime Database:
 
@@ -134,7 +134,7 @@ rooms/{roomCode}
     `-- respondedAt
 ```
 
-A lista de jogadores com assento reservado define os badges e o assento local. Fechar ou minimizar a aba nao libera o slot; apenas a acao explicita de sair da sala remove a reserva. A ordem de alocacao prioriza lados opostos da mesa, mas nao rebalanceia jogadores ja assentados para preservar o dono das cartas e o estado da partida.
+A lista de jogadores com assento reservado define os badges, a lista textual do HUD e o assento local. Fechar ou minimizar a aba nao libera o slot; apenas a remocao explicita feita pelo host libera o assento em `rooms/{roomCode}/seats/{seat}` e remove `rooms/{roomCode}/players/{uid}`. A ordem de alocacao prioriza lados opostos da mesa, mas nao rebalanceia jogadores ja assentados para preservar o dono das cartas e o estado da partida.
 
 O lobby casual nao segura jogadores em uma sala de espera; criar ou entrar em sala abre `index.html?room=CODIGO`. A mesa casual sincroniza snapshots finais via `tableState` e usa `tableActions` para animacoes deterministicas de compra simples, distribuicao inicial e devolucao animada ao deck. Drag livre ainda nao transmite posicoes intermediarias.
 
@@ -409,8 +409,10 @@ Decisao atual:
 
 `index.html` define:
 
+- tela de carregamento inicial (`bootLoadingOverlay`);
 - botao de reset no topo esquerdo;
-- status abaixo da barra superior direita;
+- lista textual de jogadores abaixo da barra superior direita;
+- status acima da barra inferior;
 - `topActions`/barra superior direita com utilidades;
 - `quick-actions` na parte inferior;
 - modais de configuracao, regras de personagens e regras alternativas;
@@ -423,7 +425,9 @@ Os botoes inferiores devem manter proporcao quadrada semelhante aos botoes super
 
 As barras de HUD nao devem usar sombra externa. Os icones do HUD devem evitar filtros de inversao quando o SVG ja possui cor clara, pois navegadores mobile com alto contraste podem inverter o resultado e deixar os icones escuros.
 
-Perfis de jogador podem ser atualizados por `window.CoupMaster3D.setPlayerProfile(playerId, { displayName, photoURL })`. O `boot.js` usa esse gancho para refletir a lista online nos badges locais sem acoplar Firebase ao render 3D.
+Perfis de jogador podem ser atualizados por `window.CoupMaster3D.setPlayerProfile(playerId, { displayName, photoURL })`. O `boot.js` usa esse gancho para refletir a lista online nos badges locais e na lista textual do HUD sem acoplar Firebase ao render 3D.
+
+O modal de jogador exibe nome, slot, status e perfil. Apenas o host recebe a acao de remover outro jogador da sala; jogadores comuns podem abrir o modal apenas para consulta.
 
 O assento ativo local vem de `window.CoupMaster3DOnline.playerSeat`. O seletor manual P1-P8 foi removido para impedir troca de visao entre maos, mas o drag/drop fisico em slots de outros jogadores continua permitido.
 
@@ -437,7 +441,7 @@ Pastas relevantes:
 - `assets/img/cards/religion`: cartas de asilo e religiao.
 - `assets/img/coins`: texturas de moedas.
 - `assets/img/icons`: icones da HUD.
-- `assets/img/guides`: imagens de regras/modais.
+- `assets/img/guides`: imagens de regras/modais, incluindo `alternative-rules1.png` a `alternative-rules5.png`.
 - `assets/sounds/soundtrack`: BGM.
 - `assets/sounds/vfx`: efeitos sonoros.
 

@@ -185,9 +185,13 @@ HUD atual:
 
 - sair da sala e reset no topo esquerdo;
 - sem seletor manual P1 a P8;
-- status de deck/mesa/objetos abaixo da barra superior direita;
+- lista textual de jogadores abaixo da barra superior direita;
+- status de sala/deck/mesa/objetos acima da barra inferior;
 - barra superior direita com musica, feedback, regras alternativas, espectador placeholder, tela cheia, info e configuracoes;
 - barra inferior com botoes quadrados por icone.
+- `index.html` deve manter a tela de carregamento ate `js/three/boot.js` validar login, sala e estado inicial.
+- O host pode remover jogadores pelo modal da lista; essa acao libera explicitamente o assento no Firebase.
+- Regras alternativas usam imagens em `assets/img/guides/alternative-rules1.png` ate `alternative-rules5.png`.
 
 Audio atual:
 

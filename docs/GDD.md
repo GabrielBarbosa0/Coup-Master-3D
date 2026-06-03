@@ -44,7 +44,9 @@ O projeto agora possui uma primeira camada online para autenticacao, lobby e pre
 - No modo casual, criar ou entrar em uma sala leva direto para a mesa 3D, sem sala de espera intermediaria.
 - O criador da sala e o administrador permanente da sala casual.
 - Jogadores comuns nao veem o botao de reset e nao podem aplicar configuracoes de baralho.
+- O host pode remover jogadores pelo modal da lista de jogadores, liberando o assento explicitamente.
 - O modo espectador permite pedir permissao para ver a mao de outro jogador; quando aceito, o espectador passa a enxergar as cartas daquele slot.
+- `index.html` usa uma tela de carregamento durante autenticacao, validacao de sala e carregamento do estado inicial para evitar exibir HUD ou mesa vazia antes da hora.
 
 Essa etapa nao sincroniza arrasto livre em tempo real. Movimentos manuais de cartas, deck, pilhas e objetos continuam sendo publicados como estado final; animacoes predefinidas podem ser reproduzidas por todos os jogadores quando houver um gatilho claro.
 
@@ -63,6 +65,7 @@ Elementos atuais:
 - Nome e avatar flutuante para cada jogador ao redor da mesa, preservados mesmo quando o jogador fica offline.
 - Botoes de sair da sala e reset no topo esquerdo; reset aparece apenas para administrador.
 - Barra superior direita com icones de utilidades.
+- Lista textual de jogadores abaixo da barra superior direita; cada nome abre um modal com informacoes do jogador.
 - Barra inferior com acoes rapidas por icone.
 - Deck central.
 - Objetos de mesa: cartas, pilhas, moedas de ouro, moedas de prata, carta de asilo e carta de religiao.
@@ -206,6 +209,7 @@ A HUD atual tem:
 - Codigo da sala clicavel, contador de deck, cartas na mesa e objetos acima da barra inferior.
 - Botoes de sair da sala e reset no topo esquerdo; reset aparece apenas para administrador.
 - Sem selecao manual P1-P8 na lateral esquerda.
+- Lista de jogadores abaixo da barra superior direita, alinhada com os controles de utilidades.
 - Barra superior direita com icones:
   - musica;
   - feedback;
@@ -237,7 +241,8 @@ Modais atuais:
 
 - Configuracoes, com controles funcionais de volume.
 - Regras de personagens.
-- Regras alternativas.
+- Regras alternativas, atualmente com 5 paginas.
+- Informacoes de jogador, com acao de remocao disponivel apenas para o host.
 
 Regras de modal:
 
