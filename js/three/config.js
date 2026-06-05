@@ -127,6 +127,7 @@ export const DEFAULT_DECK_CONFIG = Object.fromEntries(
 );
 
 export const RULE_CARD_GROUPS = {
+  base: ['duque', 'capitao', 'assassino', 'condessa', 'embaixador', 'inquisidor'],
   promo: ['bufao', 'benfeitor', 'burgues', 'burocrata'],
   revolution: ['marionetista', 'diplomata', 'mercenario', 'bispo', 'tesoureiro', 'vigilante'],
   shadows: ['pistoleiro', 'magnata', 'estrategista', 'ladrao', 'vigarista', 'xerife']

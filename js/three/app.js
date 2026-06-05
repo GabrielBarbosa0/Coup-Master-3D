@@ -1537,16 +1537,19 @@ function syncRuleCardImages() {
   }
 }
 
-// Escolhe as cartas de regra seguindo a mesma condicional do Coup Master 2D.
+// Escolhe as cartas de regra apenas para os grupos ativos no baralho.
 function calculateRuleImages() {
+  const hasBase = hasConfiguredCards(RULE_CARD_GROUPS.base);
   const hasPromo = hasConfiguredCards(RULE_CARD_GROUPS.promo);
   const hasRevolution = hasConfiguredCards(RULE_CARD_GROUPS.revolution);
   const hasShadows = hasConfiguredCards(RULE_CARD_GROUPS.shadows);
-  const images = [
-    hasRevolution
+
+  const images = [];
+  if (hasBase) {
+    images.push(hasRevolution
       ? 'assets/img/guides/front-actions-alternative.png'
-      : 'assets/img/guides/front-actions.png'
-  ];
+      : 'assets/img/guides/front-actions.png');
+  }
 
   if (hasPromo) images.push('assets/img/guides/dlc-actions.png');
   if (hasRevolution) images.push('assets/img/guides/dlc2-actions.png');
