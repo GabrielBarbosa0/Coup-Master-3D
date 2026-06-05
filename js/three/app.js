@@ -157,6 +157,7 @@ const state = {
     avatarUrl: null,
     isReserved: false,
     isOnline: false,
+    coinCount: 0,
     cards: []
   }))
 };
@@ -537,6 +538,7 @@ function setOnlinePlayerProfiles(profiles = []) {
     player.avatarUrl = null;
     player.isReserved = false;
     player.isOnline = false;
+    player.coinCount = 0;
   });
 
   state.players.forEach(player => refreshPlayerBadge(player.id));
@@ -940,15 +942,57 @@ function renderRoomPlayerList() {
   roomPlayerList.innerHTML = '';
 
   getReservedPlayers().forEach((player) => {
+    const row = document.createElement('div');
+    row.className = 'room-player-row';
+    if (!player.isOnline) row.classList.add('is-offline');
+
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'room-player-btn';
-    if (!player.isOnline) button.classList.add('is-offline');
     button.textContent = player.name || `Jogador ${player.id}`;
     button.title = `${player.name || `Jogador ${player.id}`} · P${player.id}`;
     button.addEventListener('click', () => openPlayerInfoModal(player.id));
-    roomPlayerList.append(button);
+
+    const coinControls = document.createElement('div');
+    coinControls.className = 'room-player-coins';
+    coinControls.setAttribute('aria-label', `Moedas de ${player.name || `Jogador ${player.id}`}`);
+
+    const removeBtn = createPlayerCoinButton(player.id, -1, '-', 'Remover moeda');
+    const count = document.createElement('span');
+    count.className = 'room-player-coin-count';
+    count.textContent = String(player.coinCount || 0);
+    const addBtn = createPlayerCoinButton(player.id, 1, '+', 'Adicionar moeda');
+
+    coinControls.append(removeBtn, count, addBtn);
+    row.append(button, coinControls);
+    roomPlayerList.append(row);
   });
+}
+
+// Cria um botao circular para ajustar o contador manual de moedas.
+function createPlayerCoinButton(playerId, delta, label, title) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'room-player-coin-btn';
+  button.textContent = label;
+  button.title = title;
+  button.setAttribute('aria-label', `${title} do P${playerId}`);
+  button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    adjustPlayerCoinCount(playerId, delta);
+  });
+  return button;
+}
+
+// Atualiza o contador manual de moedas do jogador e sincroniza a mesa.
+function adjustPlayerCoinCount(playerId, delta) {
+  const player = state.players[playerId - 1];
+  if (!player?.isReserved) return;
+
+  const current = Number(player.coinCount) || 0;
+  player.coinCount = Math.max(0, Math.min(99, current + delta));
+  renderRoomPlayerList();
+  scheduleTableSync();
 }
 
 // Retorna somente os assentos realmente reservados por jogadores da sala.
@@ -1665,10 +1709,12 @@ function resetMvp() {
   state.tableCards = [];
   state.players.forEach(player => {
     player.cards = [];
+    player.coinCount = 0;
   });
   resetDeckPosition();
 
   setLocalPlayerSeat(getLocalPlayerSeat(), { instant: true });
+  renderRoomPlayerList();
   updateHud();
 }
 
@@ -4268,6 +4314,7 @@ function getTableState() {
     stackId: app.stackId,
     players: state.players.map(player => ({
       id: player.id,
+      coinCount: Number(player.coinCount) || 0,
       cards: player.cards.map(cloneCardData)
     })),
     tableCards: state.tableCards.map(cloneCardData),
@@ -4316,6 +4363,12 @@ function applyTableState(snapshot) {
   state.tableCards = [];
   state.players.forEach(player => {
     player.cards = [];
+    player.coinCount = 0;
+  });
+  (snapshot.players || []).forEach((snapshotPlayer) => {
+    const player = state.players[(Number(snapshotPlayer?.id) || 0) - 1];
+    if (!player) return;
+    player.coinCount = Math.max(0, Math.min(99, Number(snapshotPlayer.coinCount) || 0));
   });
   app.tableStacks = [];
   app.objectId = Math.max(Number(snapshot.objectId) || 1, 1);
@@ -4372,6 +4425,7 @@ function applyTableState(snapshot) {
   });
 
   state.players.forEach(player => layoutPlayerHand(player.id, 0));
+  renderRoomPlayerList();
   setLocalPlayerSeat(getLocalPlayerSeat(), { focus: false, preserveView: true });
   updateHud();
   app.isApplyingRemoteState = false;

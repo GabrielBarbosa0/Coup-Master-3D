@@ -182,11 +182,9 @@ body.is-ready .boot-loading {
   max-width: min(170px, calc(50vw - 20px));
   color: var(--muted);
   font-size: 12px;
-  overflow-y: auto;
+  overflow: hidden;
   pointer-events: none;
   text-align: right;
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent) transparent;
 }
 
 .room-player-list {
@@ -200,21 +198,22 @@ body.is-ready .boot-loading {
   display: none;
 }
 
-.room-player-list-panel::-webkit-scrollbar {
-  width: 4px;
+.room-player-row {
+  display: flex;
+  max-width: 100%;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
 }
 
-.room-player-list-panel::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.room-player-list-panel::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: var(--accent);
+.room-player-row.is-offline {
+  opacity: 0.76;
 }
 
 .room-player-btn {
+  flex: 1 1 auto;
   min-height: 0;
+  min-width: 0;
   max-width: 100%;
   padding: 0;
   border: 0;
@@ -231,16 +230,53 @@ body.is-ready .boot-loading {
   white-space: nowrap;
 }
 
+.room-player-coins {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 3px;
+}
+
+.room-player-coin-btn {
+  display: inline-grid;
+  width: 15px;
+  height: 15px;
+  min-height: 15px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(246, 195, 91, 0.82);
+  border-radius: 999px;
+  background: rgba(246, 195, 91, 0.18);
+  color: #ffe8a8;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: auto;
+}
+
+.room-player-coin-btn:hover,
+.room-player-coin-btn:focus-visible {
+  border-color: var(--gold);
+  background: rgba(246, 195, 91, 0.28);
+  color: #fff4c8;
+  transform: none;
+}
+
+.room-player-coin-count {
+  min-width: 12px;
+  color: var(--muted);
+  font-size: inherit;
+  font-weight: 400;
+  line-height: 1;
+  text-align: center;
+}
+
 .room-player-btn:hover,
 .room-player-btn:focus-visible {
   background: transparent;
   color: var(--accent);
   text-decoration: underline;
   transform: none;
-}
-
-.room-player-btn.is-offline {
-  opacity: 0.76;
 }
 
 .player-info-modal-content {
