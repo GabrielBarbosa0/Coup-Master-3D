@@ -74,6 +74,7 @@ Isso mantém o MVP mais leve, reduz escritas no Firebase e evita travamentos vis
 - Jogadores salvos em `rooms/{roomCode}/players/{uid}`.
 - Assentos reservados por conta.
 - Lista de jogadores visível no HUD da mesa.
+- Contador manual de moedas por jogador direto na lista da sala.
 - Host pode remover jogadores da sala e liberar assentos explicitamente.
 - Fechar ou minimizar a aba não libera automaticamente o slot.
 - Criador da sala é o administrador permanente da sala casual.
@@ -99,6 +100,7 @@ Isso mantém o MVP mais leve, reduz escritas no Firebase e evita travamentos vis
 - Carta especial de Religião.
 - Extras podem ser arrastados, virados, girados e deletados.
 - Moedas e extras nascem próximos ao slot do jogador que solicitou.
+- Contador manual no HUD para anotar moedas por jogador sem depender apenas das moedas físicas.
 
 ### 💬 Chat e Comunicação
 
@@ -126,6 +128,7 @@ Isso mantém o MVP mais leve, reduz escritas no Firebase e evita travamentos vis
 - Tela de carregamento evita exibir HUD/mesa antes do login, sala e estado inicial estarem prontos.
 - Modal de regras alternativas com 5 páginas de referência.
 - Código da sala clicável no HUD.
+- Lista de jogadores com controles `- valor +` para ajustar manualmente moedas.
 - Botão de reset visível apenas para administrador.
 
 ---
@@ -145,6 +148,7 @@ Isso mantém o MVP mais leve, reduz escritas no Firebase e evita travamentos vis
 | Arrastar carta, pilha, moeda ou extra | Clique, segure e arraste |
 | Devolver carta ao deck | Duplo clique na carta |
 | Remover moeda | Duplo clique em moeda de ouro ou prata |
+| Ajustar contador de moedas | Botões `-` e `+` ao lado do nome do jogador |
 | Selecionar objeto para atalho | Hover do mouse |
 
 ### Teclado
@@ -516,6 +520,7 @@ Ainda não há rotina robusta de limpeza automática por servidor. No futuro, Cl
 - Evitar tremor físico ao arrastar objetos.
 - Sincronizar multiplayer casual sem transmitir drag frame a frame.
 - Controlar assentos reservados sem liberar slot quando a aba fecha.
+- Separar contadores manuais de moedas dos objetos físicos de moeda.
 - Separar renderização 3D da lógica Firebase.
 - Proteger cartas privadas enquanto ainda permite interação física.
 - Dar suporte crescente a touchscreen.
@@ -567,6 +572,7 @@ Documentos auxiliares do repositório:
 - [x] Adicionar cartas, moedas e extras manipuláveis.
 - [x] Adicionar chat em tempo real.
 - [x] Adicionar modo espectador inicial.
+- [x] Adicionar contador manual de moedas por jogador.
 - [ ] Refinar experiência mobile/touch.
 - [ ] Melhorar estabilidade física em casos extremos.
 - [ ] Adicionar preview oficial no README.

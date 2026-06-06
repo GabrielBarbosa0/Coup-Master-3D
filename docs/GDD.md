@@ -37,6 +37,7 @@ O projeto agora possui uma primeira camada online para autenticacao, lobby e pre
 - Lobby em `lobby.html` para criar uma sala curta ou entrar por codigo.
 - Jogadores salvos em `rooms/{roomCode}/players/{uid}` no Firebase Realtime Database.
 - Lista de jogadores da sala sincronizada na mesa, com assentos reservados por conta.
+- A lista de jogadores exibe um contador manual de moedas por jogador, no formato `Nome - valor +`, sincronizado com o estado da mesa.
 - Fechar ou minimizar a aba nao libera o assento; o jogador volta para o mesmo slot ao reabrir a sala.
 - A mesa casual sincroniza snapshots finais de cartas, pilhas, deck, moedas e extras via Realtime Database.
 - A mesa casual tambem publica eventos discretos em `rooms/{roomCode}/tableActions` para animacoes previsiveis, como comprar carta, distribuir cartas e devolver carta ao deck.
@@ -65,7 +66,7 @@ Elementos atuais:
 - Nome e avatar flutuante para cada jogador ao redor da mesa, preservados mesmo quando o jogador fica offline.
 - Botoes de sair da sala e reset no topo esquerdo; reset aparece apenas para administrador.
 - Barra superior direita com icones de utilidades.
-- Lista textual de jogadores abaixo da barra superior direita; cada nome abre um modal com informacoes do jogador.
+- Lista textual de jogadores abaixo da barra superior direita; cada nome abre um modal com informacoes do jogador e cada linha possui contador manual de moedas.
 - Barra inferior com acoes rapidas por icone.
 - Deck central.
 - Objetos de mesa: cartas, pilhas, moedas de ouro, moedas de prata, carta de asilo e carta de religiao.
@@ -160,6 +161,7 @@ Moedas atuais:
 - Moedas nascem proximas ao slot do jogador que pediu.
 - Duplo clique em moeda de ouro ou prata remove a moeda.
 - Criar moeda toca `falling-coin.mp3`.
+- O HUD tambem possui um contador manual de moedas por jogador, separado dos objetos fisicos, para facilitar partidas casuais sem depender de mover moedas reais o tempo todo.
 
 Cartas especiais:
 
@@ -210,6 +212,7 @@ A HUD atual tem:
 - Botoes de sair da sala e reset no topo esquerdo; reset aparece apenas para administrador.
 - Sem selecao manual P1-P8 na lateral esquerda.
 - Lista de jogadores abaixo da barra superior direita, alinhada com os controles de utilidades.
+- Cada jogador na lista aparece com contador manual de moedas no formato `Nome - valor +`; os botoes circulares amarelos diminuem ou aumentam a contagem sem permitir valor negativo.
 - Barra superior direita com icones:
   - musica;
   - feedback;

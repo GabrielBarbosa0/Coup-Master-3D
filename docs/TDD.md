@@ -102,6 +102,9 @@ rooms/{roomCode}
 |   |-- deck
 |   |-- deckTransform
 |   |-- players
+|   |   |-- id
+|   |   |-- coinCount
+|   |   `-- cards
 |   |-- tableCards
 |   |-- cards
 |   |-- objects
@@ -138,6 +141,8 @@ A lista de jogadores com assento reservado define os badges, a lista textual do 
 
 O lobby casual nao segura jogadores em uma sala de espera; criar ou entrar em sala abre `index.html?room=CODIGO`. A mesa casual sincroniza snapshots finais via `tableState` e usa `tableActions` para animacoes deterministicas de compra simples, distribuicao inicial e devolucao animada ao deck. Drag livre ainda nao transmite posicoes intermediarias.
 
+O contador manual de moedas exibido na lista de jogadores fica em `tableState.players[].coinCount`. Ele e separado dos objetos fisicos de moeda em `tableState.objects`, pois serve como anotacao rapida de mesa para partidas casuais.
+
 O chat casual usa `chatMessages` com limite de leitura das ultimas mensagens. O `boot.js` assina esse caminho e entrega os dados para o HUD; o envio tambem passa por `room-service.js` para manter Firebase fora da renderizacao 3D.
 
 ## 4. Estado Local
@@ -148,7 +153,7 @@ O estado principal vive no objeto `state`:
 - `viewPlayer`;
 - `deck`;
 - `tableCards`;
-- `players`.
+- `players`, incluindo cartas por assento e contador manual `coinCount`.
 
 O runtime visual/fisico vive no objeto `app`:
 
@@ -426,6 +431,8 @@ Os botoes inferiores devem manter proporcao quadrada semelhante aos botoes super
 As barras de HUD nao devem usar sombra externa. Os icones do HUD devem evitar filtros de inversao quando o SVG ja possui cor clara, pois navegadores mobile com alto contraste podem inverter o resultado e deixar os icones escuros.
 
 Perfis de jogador podem ser atualizados por `window.CoupMaster3D.setPlayerProfile(playerId, { displayName, photoURL })`. O `boot.js` usa esse gancho para refletir a lista online nos badges locais e na lista textual do HUD sem acoplar Firebase ao render 3D.
+
+A lista textual tambem mostra o contador manual de moedas de cada assento reservado no formato `Nome - valor +`. Os botoes `-` e `+` sao circulares, usam destaque amarelo, nao permitem valor negativo e chamam `scheduleTableSync()` para publicar o novo `coinCount`.
 
 O modal de jogador exibe nome, slot, status e perfil. Apenas o host recebe a acao de remover outro jogador da sala; jogadores comuns podem abrir o modal apenas para consulta.
 

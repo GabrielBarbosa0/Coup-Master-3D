@@ -185,7 +185,7 @@ HUD atual:
 
 - sair da sala e reset no topo esquerdo;
 - sem seletor manual P1 a P8;
-- lista textual de jogadores abaixo da barra superior direita;
+- lista textual de jogadores abaixo da barra superior direita, com contador manual de moedas no formato `Nome - valor +`;
 - status de sala/deck/mesa/objetos acima da barra inferior;
 - barra superior direita com musica, feedback, regras alternativas, espectador placeholder, tela cheia, info e configuracoes;
 - barra inferior com botoes quadrados por icone.
