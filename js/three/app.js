@@ -183,6 +183,13 @@ const QUICK_CHAT_MESSAGES = [
 const app = {
   renderer: null,
   scene: null,
+  inspectScene: null,
+  inspectCamera: null,
+  inspectGroup: null,
+  inspectClone: null,
+  inspectedPiece: null,
+  inspectedPieceKey: null,
+  inspectAltDown: false,
   camera: null,
   controls: null,
   world: null,
@@ -268,6 +275,7 @@ function init() {
 
   app.camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 80);
   app.camera.position.copy(getPlayerCameraPosition(state.viewPlayer));
+  createInspectOverlay();
 
   app.controls = new OrbitControls(app.camera, canvas);
   app.controls.target.copy(DEFAULT_CAMERA_TARGET);
@@ -337,6 +345,8 @@ function init() {
   window.addEventListener('pointerup', onPointerUp);
   window.addEventListener('pointercancel', onPointerUp);
   window.addEventListener('keydown', onKeyDown);
+  window.addEventListener('keyup', onKeyUp);
+  window.addEventListener('blur', hideInspectOverlay);
   canvas.addEventListener('dblclick', onDoubleClick);
 }
 
@@ -358,6 +368,37 @@ function createLights() {
   const rim = new THREE.PointLight(0x4aa6ff, 28, 12);
   rim.position.set(3.8, 2.2, -3.2);
   app.scene.add(rim);
+}
+
+// Cria a cena usada para inspecionar objetos de perto com Alt.
+function createInspectOverlay() {
+  app.inspectScene = new THREE.Scene();
+  app.inspectCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 20);
+  app.inspectCamera.position.set(0, 8, 0);
+  app.inspectCamera.up.set(0, 0, -1);
+  app.inspectCamera.lookAt(0, 0, 0);
+
+  app.inspectGroup = new THREE.Group();
+  app.inspectGroup.visible = false;
+  app.inspectScene.add(app.inspectGroup);
+
+  app.inspectScene.add(new THREE.AmbientLight(0xffffff, 2.6));
+  const key = new THREE.DirectionalLight(0xffffff, 2.1);
+  key.position.set(2.2, 5, 2.8);
+  app.inspectScene.add(key);
+  resizeInspectOverlay();
+}
+
+// Mantem o overlay ortografico proporcional ao viewport atual.
+function resizeInspectOverlay() {
+  if (!app.inspectCamera) return;
+  const aspect = window.innerWidth / Math.max(window.innerHeight, 1);
+  const view = 1.28;
+  app.inspectCamera.left = -view * aspect;
+  app.inspectCamera.right = view * aspect;
+  app.inspectCamera.top = view;
+  app.inspectCamera.bottom = -view;
+  app.inspectCamera.updateProjectionMatrix();
 }
 
 // Monta a mesa visual, o feltro, o chao do limbo e o collider do tampo.
@@ -2703,6 +2744,7 @@ function updatePointerHover(event) {
   app.hoveredPiece = piece;
   selectHoveredPiece(piece);
   showHoverTooltip(label, event.clientX, event.clientY);
+  updateInspectOverlay();
 }
 
 // Converte o mesh atingido pelo raycast no objeto logico correto.
@@ -2792,6 +2834,7 @@ function syncHoverOutline() {
 function clearPointerHover() {
   app.hoveredPiece = null;
   clearHoverOutline();
+  clearInspectClone();
   hideHoverTooltip();
 }
 
@@ -2831,9 +2874,94 @@ function hideHoverTooltip() {
   hoverTooltipEl.style.display = 'none';
 }
 
+// Atualiza a visualizacao ampliada quando Alt esta pressionado.
+function updateInspectOverlay() {
+  if (!app.inspectAltDown || app.dragged || !app.hoveredPiece) {
+    clearInspectClone();
+    return;
+  }
+
+  showInspectOverlay(app.hoveredPiece);
+}
+
+// Exibe uma copia ampliada do objeto sob hover, sem interferir na fisica.
+function showInspectOverlay(piece) {
+  const key = getInspectPieceKey(piece);
+  if (!piece?.mesh || !key || app.inspectedPieceKey === key) return;
+
+  clearInspectClone();
+  app.inspectedPiece = piece;
+  app.inspectedPieceKey = key;
+
+  const clone = piece.mesh.clone(true);
+  normalizeInspectCloneOrientation(clone, piece);
+  clone.position.set(0, 0, 0);
+  clone.updateMatrixWorld(true);
+  app.inspectGroup.add(clone);
+  app.inspectClone = clone;
+
+  const box = new THREE.Box3().setFromObject(clone);
+  const center = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+  clone.position.sub(center);
+
+  const fitSize = Math.max(size.x, size.z, size.y * 0.8, 0.1);
+  const scale = THREE.MathUtils.clamp(1.55 / fitSize, 1.1, 5.8);
+  app.inspectGroup.scale.setScalar(scale);
+  app.inspectGroup.position.set(0, 0, 0);
+  app.inspectGroup.visible = true;
+  hideHoverTooltip();
+}
+
+// Ajusta a copia inspecionada para leitura, ignorando a orientacao da mesa.
+function normalizeInspectCloneOrientation(clone, piece) {
+  clone.quaternion.identity();
+  clone.rotation.set(0, 0, 0);
+
+  if (piece.kind === 'deck' || piece.data?.id) {
+    clone.rotation.y = Math.PI;
+  }
+
+  if (piece.kind === 'gold-coin' || piece.kind === 'silver-coin') {
+    clone.rotation.y = Math.PI / 2;
+  }
+
+  if (piece.kind === 'die') {
+    clone.rotation.set(-0.42, 0.56, 0.18);
+  }
+
+  clone.updateMatrixWorld(true);
+}
+
+// Gera uma chave estavel para nao recriar o clone a cada frame.
+function getInspectPieceKey(piece) {
+  if (piece.kind === 'deck') return 'deck';
+  if (piece.data?.id) return `card:${piece.data.id}`;
+  if (piece.id) return `object:${piece.id}`;
+  return piece.mesh?.uuid || null;
+}
+
+// Oculta a visualizacao ampliada do Alt.
+function hideInspectOverlay({ resetAlt = true } = {}) {
+  if (resetAlt) app.inspectAltDown = false;
+  clearInspectClone();
+}
+
+// Remove o clone usado pela visualizacao ampliada sem descartar materiais compartilhados.
+function clearInspectClone() {
+  if (app.inspectClone) {
+    app.inspectGroup?.remove(app.inspectClone);
+  }
+  app.inspectClone = null;
+  app.inspectedPiece = null;
+  app.inspectedPieceKey = null;
+  if (app.inspectGroup) app.inspectGroup.visible = false;
+}
+
 // Prepara uma peca para arrasto cinematico sem empurrar outros objetos.
 function beginDrag(event, piece, mode) {
   event.preventDefault();
+  hideInspectOverlay();
   clearPointerHover();
   canvas.setPointerCapture(event.pointerId);
   app.controls.enabled = false;
@@ -3238,6 +3366,15 @@ function tryReturnCardToDeck(card, animated = false, options = {}) {
 
 // Centraliza camera, remove objetos ou vira carta via teclado.
 function onKeyDown(event) {
+  if (event.key === 'Alt') {
+    if (!isAnyModalOpen()) {
+      event.preventDefault();
+      app.inspectAltDown = true;
+      updateInspectOverlay();
+    }
+    return;
+  }
+
   if (isAnyModalOpen()) {
     if (event.key === 'Escape') {
       document.querySelectorAll('.modal-overlay').forEach(closeModal);
@@ -3279,6 +3416,13 @@ function onKeyDown(event) {
   if (event.key.toLowerCase() !== 'f') return;
   if (!flipSelectedCards()) return;
   event.preventDefault();
+}
+
+// Encerra atalhos temporarios acionados enquanto a tecla estava pressionada.
+function onKeyUp(event) {
+  if (event.key !== 'Alt') return;
+  event.preventDefault();
+  hideInspectOverlay();
 }
 
 // Remove o objeto ou carta especial selecionada, como o atalho Delete/Backspace.
@@ -4115,6 +4259,17 @@ function animate() {
   app.controls.update();
   updatePlayerBadges();
   app.renderer.render(app.scene, app.camera);
+  renderInspectOverlay();
+}
+
+// Renderiza a inspecao ampliada por cima da mesa atual.
+function renderInspectOverlay() {
+  if (!app.inspectGroup?.visible || !app.inspectCamera || !app.inspectScene) return;
+  const previousAutoClear = app.renderer.autoClear;
+  app.renderer.autoClear = false;
+  app.renderer.clearDepth();
+  app.renderer.render(app.inspectScene, app.inspectCamera);
+  app.renderer.autoClear = previousAutoClear;
 }
 
 // Atualiza animacoes de cartas em movimento.
@@ -4301,6 +4456,7 @@ function resize() {
   app.camera.aspect = window.innerWidth / window.innerHeight;
   app.camera.updateProjectionMatrix();
   app.renderer.setSize(window.innerWidth, window.innerHeight);
+  resizeInspectOverlay();
 }
 
 // Agenda sincronizacao do estado final da mesa sem transmitir animacoes.

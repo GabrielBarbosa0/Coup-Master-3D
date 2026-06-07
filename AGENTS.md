@@ -142,6 +142,7 @@ Atalhos atuais:
 | `Q` | Gira objeto selecionado para a esquerda |
 | `E` | Gira objeto selecionado para a direita |
 | `R` | Embaralha deck ou pilha sob hover |
+| `Alt` | Inspeciona de perto o objeto sob hover |
 | `Delete` / `Backspace` | Remove objeto selecionado |
 | `Space` | Foca camera no jogador ativo |
 

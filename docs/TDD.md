@@ -378,6 +378,7 @@ Touch:
 | `Q` / `arrow.svg` esquerda | Gira objeto selecionado para a esquerda |
 | `E` / `arrow.svg` direita | Gira objeto selecionado para a direita |
 | `R` | Embaralha deck ou pilha sob hover |
+| `Alt` | Renderiza inspecao ampliada do objeto sob hover |
 | `Delete` / `Backspace` / `delete.svg` | Remove objeto selecionado |
 | `Space` / `focus.svg` | Reposiciona camera para o jogador ativo com animacao |
 

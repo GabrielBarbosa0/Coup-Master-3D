@@ -201,6 +201,7 @@ Dado:
 | `Q` | Gira objeto selecionado para a esquerda |
 | `E` | Gira objeto selecionado para a direita |
 | `R` | Embaralha deck ou pilha sob o mouse |
+| `Alt` | Inspeciona de perto o objeto sob o mouse |
 | `Delete` / `Backspace` | Remove objeto selecionado |
 | `Space` | Anima a camera de volta para a visao do jogador ativo |
 

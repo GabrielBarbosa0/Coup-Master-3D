@@ -160,6 +160,7 @@ Isso mantém o MVP mais leve, reduz escritas no Firebase e evita travamentos vis
 | `Q` | Gira objeto selecionado para a esquerda |
 | `E` | Gira objeto selecionado para a direita |
 | `R` | Embaralha deck ou pilha sob hover |
+| `Alt` | Inspeciona de perto o objeto sob o mouse |
 | `Delete` / `Backspace` | Remove objeto selecionado |
 | `Space` | Foca a câmera no jogador ativo |
 | `Escape` | Fecha modais abertos |
