@@ -284,7 +284,7 @@ function init() {
   app.controls.enableDamping = true;
   app.controls.dampingFactor = 0.08;
   app.controls.minDistance = 5;
-  app.controls.maxDistance = 13;
+  app.controls.maxDistance = 24;
   app.controls.maxPolarAngle = Math.PI * 0.48;
   app.controls.minPolarAngle = Math.PI * 0.19;
   app.controls.screenSpacePanning = false;
