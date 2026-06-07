@@ -450,7 +450,6 @@ function makeRepeatingTexture(path, repeatX, repeatY) {
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.repeat.set(repeatX, repeatY);
-  texture.needsUpdate = true;
   return texture;
 }
 
@@ -2461,12 +2460,28 @@ function makeDeckLayerMaterials(showBack) {
 function loadTexture(path) {
   if (app.textures[path]) return app.textures[path];
 
-  const texture = new THREE.TextureLoader().load(path);
+  const texture = new THREE.TextureLoader().load(
+    path,
+    undefined,
+    undefined,
+    () => {
+      texture.image = makeFallbackTextureImage();
+      texture.needsUpdate = true;
+    }
+  );
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = Math.min(app.renderer.capabilities.getMaxAnisotropy(), 8);
   texture.userData.cached = true;
   app.textures[path] = texture;
   return texture;
+}
+
+// Cria uma imagem minima para texturas que falharem ao carregar.
+function makeFallbackTextureImage() {
+  const canvasEl = document.createElement('canvas');
+  canvasEl.width = 1;
+  canvasEl.height = 1;
+  return canvasEl;
 }
 
 // Atualiza jogador ativo, zonas de destaque e materiais visiveis das maos.
