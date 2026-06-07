@@ -1043,7 +1043,11 @@ function adjustPlayerCoinCount(playerId, delta) {
   if (!player?.isReserved) return;
 
   const current = Number(player.coinCount) || 0;
-  player.coinCount = Math.max(0, Math.min(99, current + delta));
+  const next = Math.max(0, Math.min(99, current + delta));
+  if (next === current) return;
+
+  player.coinCount = next;
+  playVfx('falling-coin');
   renderRoomPlayerList();
   scheduleTableSync();
 }
