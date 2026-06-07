@@ -7,6 +7,14 @@
   user-select: none;
 }
 
+@font-face {
+  font-family: "Tilda Script";
+  src: url("../assets/fonts/tilda-script-bold.woff2") format("woff2");
+  font-display: swap;
+  font-weight: 800;
+  font-style: normal;
+}
+
 :root {
   color-scheme: dark;
   --bg: #000000;
@@ -70,12 +78,14 @@ body,
 
 .boot-loading h1 {
   margin: 0;
-  font-size: clamp(28px, 8vw, 44px);
-  line-height: 1;
+  font-family: "Tilda Script", "Cinzel", Georgia, serif;
+  font-size: clamp(38px, 9.6vw, 45px);
+  font-weight: 800;
+  line-height: 0.92;
 }
 
 .boot-loading p {
-  margin: 14px 0 0;
+  margin: 24px 0 0;
   color: var(--muted);
   font-size: 13px;
   font-weight: 700;
