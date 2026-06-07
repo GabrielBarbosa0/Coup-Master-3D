@@ -15,6 +15,7 @@ const {
   applyDeckConfigBtn,
   asylumCardBtn,
   bgmAudio,
+  cameraDebugEl,
   canvas,
   chatBtn,
   chatForm,
@@ -190,6 +191,7 @@ const app = {
   inspectedPiece: null,
   inspectedPieceKey: null,
   inspectAltDown: false,
+  lastCameraDebugText: '',
   camera: null,
   controls: null,
   world: null,
@@ -3477,11 +3479,11 @@ function snapCameraToPlayer(playerId) {
 // Calcula a posicao padrao da camera para um jogador.
 function getPlayerCameraPosition(playerId) {
   const angle = getPlayerAngle(playerId);
-  return new THREE.Vector3(
+  return DEFAULT_CAMERA_TARGET.clone().add(new THREE.Vector3(
     Math.cos(angle) * DEFAULT_CAMERA_DISTANCE,
     DEFAULT_CAMERA_HEIGHT,
     Math.sin(angle) * DEFAULT_CAMERA_DISTANCE
-  );
+  ));
 }
 
 // Gira o objeto sob o mouse ou selecionado com os atalhos Q/E.
@@ -4261,6 +4263,7 @@ function animate() {
   app.world.step();
   syncPhysicsMeshes();
   app.controls.update();
+  updateCameraDebug();
   updatePlayerBadges();
   app.renderer.render(app.scene, app.camera);
   renderInspectOverlay();
@@ -4274,6 +4277,45 @@ function renderInspectOverlay() {
   app.renderer.clearDepth();
   app.renderer.render(app.inspectScene, app.inspectCamera);
   app.renderer.autoClear = previousAutoClear;
+}
+
+// Atualiza o painel de leitura dos parametros atuais da camera.
+function updateCameraDebug() {
+  if (!cameraDebugEl || !app.camera || !app.controls) return;
+
+  const position = app.camera.position;
+  const target = app.controls.target;
+  const offset = position.clone().sub(target);
+  const spherical = new THREE.Spherical().setFromVector3(offset);
+  const distance = offset.length();
+  const polar = THREE.MathUtils.radToDeg(spherical.phi);
+  const azimuth = normalizeDebugAngle(THREE.MathUtils.radToDeg(spherical.theta));
+  const text = [
+    'CAMERA',
+    `pos: ${formatDebugVector(position)}`,
+    `target: ${formatDebugVector(target)}`,
+    `dist: ${formatDebugNumber(distance)} | polar: ${formatDebugNumber(polar)}°`,
+    `azim: ${formatDebugNumber(azimuth)}° | fov: ${formatDebugNumber(app.camera.fov)}°`
+  ].join('\n');
+
+  if (text === app.lastCameraDebugText) return;
+  app.lastCameraDebugText = text;
+  cameraDebugEl.textContent = text;
+}
+
+// Normaliza angulos para ficarem mais faceis de copiar e comparar.
+function normalizeDebugAngle(value) {
+  return ((value + 180) % 360 + 360) % 360 - 180;
+}
+
+// Formata vetores de camera com precisao suficiente para reproduzir a vista.
+function formatDebugVector(vector) {
+  return `${formatDebugNumber(vector.x)}, ${formatDebugNumber(vector.y)}, ${formatDebugNumber(vector.z)}`;
+}
+
+// Padroniza numeros do painel de camera.
+function formatDebugNumber(value) {
+  return Number(value).toFixed(2);
 }
 
 // Atualiza animacoes de cartas em movimento.
