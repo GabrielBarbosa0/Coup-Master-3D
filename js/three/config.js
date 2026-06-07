@@ -23,6 +23,9 @@ export const COIN_TEXTURES = {
   gold: 'assets/img/coins/moeda-ouro.png',
   silver: 'assets/img/coins/moeda-prata.png'
 };
+export const TABLE_TEXTURES = {
+  wood: 'assets/img/table/wood.png'
+};
 export const SPECIAL_CARD_TEXTURES = {
   asilo: {
     front: 'assets/img/cards/religion/asilo-frente.png',

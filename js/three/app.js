@@ -141,7 +141,8 @@ const {
   TABLE_RADIUS,
   TABLE_STACK_GAP,
   TABLE_STACK_MERGE_RADIUS,
-  TABLE_STACK_RADIUS
+  TABLE_STACK_RADIUS,
+  TABLE_TEXTURES
 } = config;
 
 const state = {
@@ -363,9 +364,10 @@ function createLights() {
 function createTable() {
   const tableGeo = new THREE.CylinderGeometry(TABLE_RADIUS, TABLE_RADIUS, 0.34, 8, 1, false, Math.PI / 8);
   const tableMat = new THREE.MeshStandardMaterial({
-    color: 0x26130b,
-    roughness: 0.58,
-    metalness: 0.18
+    map: makeRepeatingTexture(TABLE_TEXTURES.wood, 4, 4),
+    color: 0xffffff,
+    roughness: 0.72,
+    metalness: 0.04
   });
   app.table = new THREE.Mesh(tableGeo, tableMat);
   app.table.position.y = -0.17;
@@ -397,6 +399,16 @@ function createTable() {
   groundCollider.setFriction(1.25);
   groundCollider.setRestitution(0.12);
   app.world.createCollider(groundCollider, groundBody);
+}
+
+// Carrega uma textura de mesa com repeticao para evitar esticamento visual.
+function makeRepeatingTexture(path, repeatX, repeatY) {
+  const texture = loadTexture(path);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(repeatX, repeatY);
+  texture.needsUpdate = true;
+  return texture;
 }
 
 // Adiciona paredes fisicas invisiveis ao redor da mesa octogonal.
