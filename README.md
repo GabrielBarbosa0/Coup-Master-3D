@@ -44,6 +44,7 @@ O Coup Master 3D está em **MVP 0.1 online casual**, em desenvolvimento ativo.
 | Online | Firebase Authentication + Realtime Database |
 | Sincronização | Parcial, por snapshots finais e ações discretas |
 | Hospedagem | GitHub Pages |
+| Instalação | PWA em modo `standalone` |
 
 ### Importante
 
@@ -69,6 +70,8 @@ Isso mantém o MVP mais leve, reduz escritas no Firebase e evita travamentos vis
 - Login com Google Authentication via Firebase.
 - Login como visitante anônimo.
 - Lobby em `lobby.html`.
+- Instalação opcional como PWA com o nome **Coup Master**.
+- Execução em janela própria no modo `standalone`, sem a barra comum do navegador.
 - Criação de salas com código curto de 4 caracteres.
 - Entrada direta em sala existente.
 - Jogadores salvos em `rooms/{roomCode}/players/{uid}`.
@@ -256,6 +259,8 @@ Coup-Master-3D/
 |-- index.html
 |-- login.html
 |-- lobby.html
+|-- manifest.webmanifest
+|-- service-worker.js
 |-- README.md
 |-- AGENTS.md
 |-- LICENSE
@@ -269,6 +274,7 @@ Coup-Master-3D/
 |   `-- three-board.css
 |
 |-- js/
+|   |-- pwa.js
 |   |-- firebase/
 |   |   |-- auth-service.js
 |   |   |-- firebase-config.js
@@ -351,6 +357,15 @@ Exemplo com sala:
 ```txt
 http://127.0.0.1:4173/index.html?room=ABCD
 ```
+
+### Testar a instalação PWA
+
+1. Abra `http://127.0.0.1:4173/login.html` no Chrome ou Edge.
+2. Aguarde o botão **Instalar Coup Master** aparecer.
+3. Confirme a instalação no prompt nativo do navegador.
+4. Abra o jogo pelo ícone criado no sistema.
+
+No iPhone/iPad, use **Compartilhar > Adicionar à Tela de Início**. A PWA abre em modo `standalone`, mas autenticação, lobby e partidas online continuam exigindo conexão com a internet.
 
 ---
 
@@ -476,6 +491,8 @@ URL esperada:
 ```txt
 https://gabrielbarbosa0.github.io/Coup-Master-3D/
 ```
+
+O manifesto e o service worker ficam na raiz do repositório para manter o escopo da PWA em login, lobby e mesa. Ao alterar arquivos precacheados, incremente `CACHE_VERSION` em `service-worker.js` para invalidar o cache anterior das instalações existentes.
 
 ---
 

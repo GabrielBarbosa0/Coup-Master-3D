@@ -44,6 +44,11 @@ Evoluir o modo 3D local ate ele ser uma mesa tabletop confortavel:
 Trabalhe principalmente em:
 
 - `index.html`
+- `login.html`
+- `lobby.html`
+- `manifest.webmanifest`
+- `service-worker.js`
+- `js/pwa.js`
 - `css/three-board.css`
 - `js/three/app.js`
 - `docs/GDD.md`
@@ -221,6 +226,13 @@ Se o servidor local nao estiver rodando:
 ```powershell
 python -m http.server 4173
 ```
+
+Para mudancas na PWA, validar tambem:
+
+- JSON de `manifest.webmanifest`;
+- sintaxe de `service-worker.js` e `js/pwa.js`;
+- registro do service worker em `localhost` ou HTTPS;
+- `CACHE_VERSION` atualizado quando o shell precacheado mudar.
 
 ## 11. Commits
 

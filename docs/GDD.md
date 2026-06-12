@@ -27,6 +27,7 @@ O modo 3D deve parecer um tabletop digital, nao uma tela 2D com enfeites. A refe
 | Clareza | A mesa precisa ser legivel com ate 8 jogadores, mesmo com cartas e objetos soltos. |
 | Acessibilidade de interacao | Hover, tooltip, outline, atalhos e botoes de acao rapida devem reduzir cliques desnecessarios. |
 | Touch em evolucao | Gestos nativos de toque ja funcionam em parte; botoes por icone devem cobrir acoes sem teclado. |
+| Experiencia instalavel | A PWA deve abrir login, lobby e mesa em uma janela standalone quando instalada. |
 | Evolucao incremental | Primeiro consolidar o nucleo local; multiplayer e ranqueado ficam para fases futuras. |
 
 ## 2.1 Base Online
@@ -35,6 +36,8 @@ O projeto agora possui uma primeira camada online para autenticacao, lobby e pre
 
 - Login Google ou visitante anonimo em `login.html`.
 - Lobby em `lobby.html` para criar uma sala curta ou entrar por codigo.
+- PWA opcional com nome `Coup Master`, icone proprio e exibicao `standalone`.
+- O fluxo instalado inicia no login e reutiliza a sessao Firebase para seguir ao lobby.
 - Jogadores salvos em `rooms/{roomCode}/players/{uid}` no Firebase Realtime Database.
 - Lista de jogadores da sala sincronizada na mesa, com assentos reservados por conta.
 - A lista de jogadores exibe um contador manual de moedas por jogador, no formato `Nome - valor +`, sincronizado com o estado da mesa.

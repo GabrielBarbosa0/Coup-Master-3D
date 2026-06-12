@@ -5,8 +5,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#171d26">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Coup Master">
   <title>Lobby | Coup Master 3D</title>
   <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/img/logo/coup-master-512x512.png">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://www.gstatic.com">
@@ -38,9 +45,17 @@
       </form>
 
       <div id="lobbyStatus" class="status-text" role="status" aria-live="polite"></div>
+
+      <div class="pwa-install-area" data-pwa-install-area hidden>
+        <button class="secondary-btn pwa-install-btn" type="button" data-pwa-install hidden>
+          Instalar Coup Master
+        </button>
+        <p class="pwa-install-status" data-pwa-status role="status" aria-live="polite"></p>
+      </div>
     </section>
   </main>
 
+  <script type="module" src="js/pwa.js"></script>
   <script type="module" src="js/firebase/lobby-page.js"></script>
 </body>
 

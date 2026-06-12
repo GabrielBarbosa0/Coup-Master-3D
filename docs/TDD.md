@@ -64,6 +64,7 @@ Pastas antigas do modo 2D ou materiais nao usados no 3D podem ser removidas quan
 | Controles | OrbitControls | Rotacao, zoom e pan |
 | Fisica | Rapier 3D | Corpos, colliders, moedas, cartas, pilhas, extras e deck |
 | Online | Firebase Auth + Realtime Database | Login Google/anonimo, lobby e presenca de jogadores |
+| PWA | Web App Manifest + Service Worker | Instalacao standalone e cache do shell local |
 | Assets | PNG/SVG/canvas/audio | Cartas, moedas, icones, guias, sons e dado procedural |
 
 ## 3.1 Base Online
@@ -144,6 +145,17 @@ O lobby casual nao segura jogadores em uma sala de espera; criar ou entrar em sa
 O contador manual de moedas exibido na lista de jogadores fica em `tableState.players[].coinCount`. Ele e separado dos objetos fisicos de moeda em `tableState.objects`, pois serve como anotacao rapida de mesa para partidas casuais.
 
 O chat casual usa `chatMessages` com limite de leitura das ultimas mensagens. O `boot.js` assina esse caminho e entrega os dados para o HUD; o envio tambem passa por `room-service.js` para manter Firebase fora da renderizacao 3D.
+
+## 3.2 PWA
+
+A distribuicao instalavel usa:
+
+- `manifest.webmanifest`: nome `Coup Master`, tema escuro, `start_url` no login e `display: standalone`;
+- `service-worker.js`: navegacao network-first e cache stale-while-revalidate para assets locais;
+- `js/pwa.js`: registro do service worker, prompt de instalacao e orientacao para iOS;
+- icones `192x192` e `512x512` em `assets/img/logo/`.
+
+O service worker nao transforma o multiplayer em modo offline. Firebase Authentication, Realtime Database e dependencias externas continuam exigindo rede. `CACHE_VERSION` deve mudar quando for necessario invalidar imediatamente arquivos precacheados.
 
 ## 4. Estado Local
 

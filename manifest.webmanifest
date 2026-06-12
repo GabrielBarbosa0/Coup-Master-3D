@@ -1,0 +1,27 @@
+{
+  "id": "./",
+  "name": "Coup Master",
+  "short_name": "Coup Master",
+  "description": "Mesa 3D sandbox online para jogar Coup com amigos.",
+  "lang": "pt-BR",
+  "start_url": "./login.html?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#171d26",
+  "theme_color": "#171d26",
+  "icons": [
+    {
+      "src": "assets/img/logo/coup-master-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/img/logo/coup-master-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
