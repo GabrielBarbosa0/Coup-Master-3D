@@ -448,7 +448,9 @@
       </div>
     </div>
 
-    <audio id="bgmAudio" src="assets/sounds/soundtrack/bgm.mp3" preload="auto" loop></audio>
+    <audio id="bgmAudio" src="assets/sounds/soundtrack/bgm.mp3" preload="auto" loop
+      disableremoteplayback controlslist="nodownload noplaybackrate noremoteplayback"
+      x-webkit-airplay="deny"></audio>
     <audio id="resetVfxAudio" src="assets/sounds/vfx/reset-game.mp3" preload="auto"></audio>
   </main>
 

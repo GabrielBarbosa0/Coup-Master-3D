@@ -239,6 +239,7 @@ const app = {
   isDealing: false,
   musicStarted: false,
   musicMuted: false,
+  resumeMusicWhenVisible: false,
   vfxVolume: DEFAULT_VFX_VOLUME,
   lastResetVfxAt: 0,
   vfx: new Map(),
@@ -1409,12 +1410,17 @@ function setupMusicControls() {
   bgmAudio.muted = app.musicMuted;
   app.vfxVolume = DEFAULT_VFX_VOLUME;
   preloadVfxAudio();
+  setupBackgroundMediaSession();
   syncMusicButton();
 
   musicBtn?.addEventListener('click', () => {
     app.musicMuted = !app.musicMuted;
     bgmAudio.muted = app.musicMuted;
-    if (!app.musicMuted) startBackgroundMusic();
+    if (app.musicMuted) {
+      pauseBackgroundMusic(false);
+    } else {
+      startBackgroundMusic();
+    }
     syncMusicButton();
   });
 
@@ -1423,6 +1429,7 @@ function setupMusicControls() {
     if (bgmAudio.volume > 0 && app.musicMuted) {
       app.musicMuted = false;
       bgmAudio.muted = false;
+      startBackgroundMusic();
       syncMusicButton();
     }
   });
@@ -1433,17 +1440,80 @@ function setupMusicControls() {
 
   window.addEventListener('pointerdown', startBackgroundMusic, { once: true });
   window.addEventListener('keydown', startBackgroundMusic, { once: true });
+  document.addEventListener('visibilitychange', handleMusicVisibilityChange);
+  window.addEventListener('pagehide', () => pauseBackgroundMusic(false));
 }
 
 // Tenta iniciar a música respeitando o bloqueio de autoplay dos navegadores.
 function startBackgroundMusic() {
-  if (!bgmAudio || app.musicMuted || app.musicStarted) return;
+  if (!bgmAudio || app.musicMuted || document.hidden || !bgmAudio.paused) return;
   bgmAudio.volume = clampAudioVolume(volumeSlider?.value, DEFAULT_MUSIC_VOLUME);
   bgmAudio.play()
     .then(() => {
       app.musicStarted = true;
+      setMediaSessionPlaybackState('playing');
     })
     .catch(() => {});
+}
+
+// Pausa a trilha quando o jogo deixa de estar visivel.
+function handleMusicVisibilityChange() {
+  if (document.hidden) {
+    pauseBackgroundMusic(true);
+    return;
+  }
+
+  if (!app.resumeMusicWhenVisible || app.musicMuted) return;
+  app.resumeMusicWhenVisible = false;
+  startBackgroundMusic();
+}
+
+// Pausa o BGM e registra se ele deve voltar quando a pagina ficar visivel.
+function pauseBackgroundMusic(resumeWhenVisible) {
+  if (!bgmAudio) return;
+  app.resumeMusicWhenVisible = Boolean(
+    resumeWhenVisible
+    && !app.musicMuted
+    && !bgmAudio.paused
+  );
+  bgmAudio.pause();
+  setMediaSessionPlaybackState('none');
+}
+
+// Restringe controles externos de faixa e impede retomada com o jogo oculto.
+function setupBackgroundMediaSession() {
+  if (!('mediaSession' in navigator)) return;
+
+  navigator.mediaSession.metadata = null;
+  const ignoredActions = [
+    'pause',
+    'stop',
+    'seekbackward',
+    'seekforward',
+    'seekto',
+    'previoustrack',
+    'nexttrack'
+  ];
+
+  ignoredActions.forEach((action) => {
+    try {
+      navigator.mediaSession.setActionHandler(action, () => {});
+    } catch {}
+  });
+
+  try {
+    navigator.mediaSession.setActionHandler('play', () => {
+      if (!document.hidden && !app.musicMuted) startBackgroundMusic();
+    });
+  } catch {}
+}
+
+// Atualiza o estado exposto ao sistema operacional quando suportado.
+function setMediaSessionPlaybackState(playbackState) {
+  if (!('mediaSession' in navigator)) return;
+  try {
+    navigator.mediaSession.playbackState = playbackState;
+  } catch {}
 }
 
 // Toca um efeito sonoro respeitando o volume global de VFX.
