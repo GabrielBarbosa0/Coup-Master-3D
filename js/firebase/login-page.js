@@ -6,7 +6,6 @@ const statusEl = document.getElementById('loginStatus');
 
 const params = new URLSearchParams(location.search);
 const nextPath = params.get('next') || 'lobby.html';
-const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(location.hostname);
 
 // Mostra mensagens curtas sem vazar detalhes tecnicos para o jogador.
 function setStatus(message) {
@@ -14,10 +13,6 @@ function setStatus(message) {
 }
 
 await resolveRedirectSignIn();
-
-if (guestLoginButton && isLocalHost) {
-  guestLoginButton.hidden = false;
-}
 
 observeAuth((user) => {
   if (user) {

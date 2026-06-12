@@ -173,19 +173,13 @@ input {
   font-size: 13px;
 }
 
-.pwa-install-area {
-  display: grid;
-  gap: 8px;
-  margin-top: 8px;
-}
-
 .pwa-install-btn {
   width: 100%;
 }
 
 .pwa-install-status {
   min-height: 0;
-  margin: 0;
+  margin: 8px 0 0;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.4;

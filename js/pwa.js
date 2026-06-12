@@ -1,11 +1,11 @@
 const installButton = document.querySelector('[data-pwa-install]');
-const installArea = document.querySelector('[data-pwa-install-area]');
 const installStatus = document.querySelector('[data-pwa-status]');
 const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches
   || window.navigator.standalone === true;
 
 let deferredInstallPrompt = null;
+let installStatusTimer = null;
 
 // Registra o service worker apenas em contextos seguros suportados pelo navegador.
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
@@ -53,18 +53,24 @@ installButton?.addEventListener('click', async () => {
 // Torna a acao de instalacao visivel sem ocupar espaco antes de ser necessaria.
 function showInstallButton() {
   if (!installButton || isStandalone) return;
-  if (installArea) installArea.hidden = false;
   installButton.hidden = false;
 }
 
 // Oculta o botao quando a instalacao nao esta mais disponivel.
 function hideInstallButton() {
   if (installButton) installButton.hidden = true;
-  if (installArea && !installStatus?.textContent) installArea.hidden = true;
 }
 
 // Mostra orientacao curta de instalacao sem reutilizar mensagens de login ou lobby.
 function setInstallStatus(message) {
-  if (installStatus) installStatus.textContent = message;
-  if (installArea) installArea.hidden = !message && installButton?.hidden;
+  if (!installStatus) return;
+
+  window.clearTimeout(installStatusTimer);
+  installStatus.textContent = message;
+
+  if (message) {
+    installStatusTimer = window.setTimeout(() => {
+      installStatus.textContent = '';
+    }, 4000);
+  }
 }
