@@ -26,8 +26,11 @@
 }
 
 body {
+  width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
+  overflow-x: clip;
   background-color: #171d26;
   color: var(--text);
   font-family: "Cinzel", Georgia, "Times New Roman", serif;
@@ -40,13 +43,17 @@ input {
 
 .online-shell {
   display: grid;
+  width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
   place-items: center;
   padding: 24px;
 }
 
 .online-panel {
   width: min(460px, 100%);
+  min-width: 0;
+  max-width: 100%;
   padding: 24px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -88,14 +95,25 @@ input {
 .primary-btn,
 .secondary-btn {
   display: grid;
+  min-width: 0;
   place-items: center;
   min-height: 44px;
+  padding: 6px 12px;
   border: 1px solid var(--line);
   border-radius: 7px;
   cursor: pointer;
   color: var(--text);
   font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  text-align: center;
   text-decoration: none;
+}
+
+.online-actions > .primary-btn,
+.online-actions > .secondary-btn,
+.room-form > button {
+  width: 100%;
 }
 
 .primary-btn {
@@ -171,6 +189,10 @@ input {
   margin-top: 14px;
   color: var(--muted);
   font-size: 13px;
+}
+
+.status-text:empty {
+  display: none;
 }
 
 .pwa-install-btn {
@@ -249,5 +271,79 @@ input {
   .login-title-spacer {
     height: 6px;
     margin-bottom: 10px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .online-shell {
+    min-height: 100dvh;
+    padding: 8px 14px;
+  }
+
+  .online-panel {
+    width: min(420px, 100%);
+    padding: 14px 16px;
+  }
+
+  .online-panel h1 {
+    margin-bottom: 6px;
+    font-size: 30px;
+  }
+
+  #loginTitle {
+    font-size: 38px;
+    line-height: 0.9;
+  }
+
+  .login-title-spacer {
+    height: 2px;
+    margin-bottom: 6px;
+  }
+
+  .online-actions,
+  .room-form {
+    gap: 6px;
+  }
+
+  .primary-btn,
+  .secondary-btn,
+  .room-form input {
+    min-height: 34px;
+    font-size: 12px;
+  }
+
+  .profile-row {
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+
+  .profile-row img {
+    width: 30px;
+    height: 30px;
+  }
+
+  .profile-row .secondary-btn {
+    width: auto;
+    min-width: 50px;
+    padding-inline: 10px;
+  }
+
+  .divider {
+    margin: 9px 0;
+  }
+
+  .room-form label {
+    font-size: 11px;
+  }
+
+  .status-text {
+    margin-top: 6px;
+    font-size: 11px;
+  }
+
+  .pwa-install-status {
+    margin-top: 4px;
+    font-size: 10px;
   }
 }
