@@ -249,6 +249,7 @@ const app = {
   pendingSyncCount: 0,
   syncQueued: false,
   syncRebaseState: null,
+  pendingDrawCount: 0,
   pendingRemoteState: null,
   lastAppliedTableState: null,
   tableSyncSuppressCount: 0,
@@ -1879,6 +1880,12 @@ function buildDeck() {
 // Compra uma carta do deck e anima ate a mao do jogador.
 function drawCardToPlayer(playerId, animateDraw = true, options = {}) {
   const targetPlayerId = normalizePlayerId(playerId);
+
+  if (options.publishAction !== false && window.CoupMaster3DOnline?.drawCard) {
+    requestAuthoritativeCardDraw(targetPlayerId);
+    return true;
+  }
+
   const data = takeDeckCard(options.cardData);
   if (!data) {
     updateHud();
@@ -1901,6 +1908,26 @@ function drawCardToPlayer(playerId, animateDraw = true, options = {}) {
   }
 
   return true;
+}
+
+// Reserva a carta no Firebase antes de atualizar qualquer cliente da sala.
+async function requestAuthoritativeCardDraw(playerId) {
+  const drawActionId = createTableActionId();
+  app.pendingDrawCount += 1;
+
+  try {
+    const result = await window.CoupMaster3DOnline.drawCard(playerId, drawActionId);
+    if (!result?.tableState) {
+      updateHud();
+      return;
+    }
+    receiveTableState(result.tableState);
+  } catch {
+    // O boot ja registra o erro de rede; a mesa local permanece intacta.
+  } finally {
+    app.pendingDrawCount = Math.max(0, app.pendingDrawCount - 1);
+    flushPendingRemoteState();
+  }
 }
 
 // Retira do deck a carta solicitada pelo evento ou a carta do topo local.
@@ -4722,6 +4749,7 @@ function isLocalTableInteractionPending() {
   return Boolean(
     app.syncTimer
     || app.pendingSyncCount > 0
+    || app.pendingDrawCount > 0
     || app.tableSyncSuppressCount > 0
     || app.dragged
     || app.pendingDeckDrag
@@ -4777,6 +4805,20 @@ function getTableState() {
 function applyTableState(snapshot) {
   if (!snapshot || snapshot.version !== 1) return;
 
+  const previousCardIds = new Set(
+    (app.lastAppliedTableState?.cards || [])
+      .map(entry => entry?.data?.id)
+      .filter(Boolean)
+  );
+  const animatedDrawIds = new Set(
+    app.lastAppliedTableState
+      ? (snapshot.cards || [])
+        .filter(entry => entry?.data?.owner && !previousCardIds.has(entry.data.id))
+        .map(entry => entry.data.id)
+      : []
+  );
+  const animatedDrawOwners = new Set();
+
   app.isApplyingRemoteState = true;
   window.clearTimeout(app.syncTimer);
   app.syncTimer = null;
@@ -4819,6 +4861,10 @@ function applyTableState(snapshot) {
 
     const card = createCardObject(data);
     placeCardFromSnapshot(card, entry);
+    if (animatedDrawIds.has(data.id)) {
+      placeCard(card, getDeckDrawPosition(1.0), getHandRotation(data.owner), false);
+      animatedDrawOwners.add(data.owner);
+    }
     bumpObjectIdFrom(data.id);
   });
 
@@ -4859,7 +4905,9 @@ function applyTableState(snapshot) {
     }
   });
 
-  state.players.forEach(player => layoutPlayerHand(player.id, 0));
+  state.players.forEach((player) => {
+    layoutPlayerHand(player.id, animatedDrawOwners.has(player.id) ? 0.34 : 0);
+  });
   renderRoomPlayerList();
   setLocalPlayerSeat(getLocalPlayerSeat(), { focus: false, preserveView: true });
   updateHud();

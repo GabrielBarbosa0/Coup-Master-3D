@@ -1,6 +1,7 @@
 import { requireAuth } from '../firebase/auth-service.js';
 import {
   clearSpectatorRequest,
+  drawRoomCard,
   getRoomInfo,
   getRoomTableState,
   leaveRoom,
@@ -89,6 +90,13 @@ window.CoupMaster3DOnline.publishTableAction = (action) => {
   return sendRoomTableAction(requestedRoom, user, action).catch((error) => {
     console.error('Falha ao sincronizar acao de mesa.', error);
     return null;
+  });
+};
+window.CoupMaster3DOnline.drawCard = (playerId, drawActionId) => {
+  if (!syncReady) return Promise.resolve(null);
+  return drawRoomCard(requestedRoom, user, playerId, drawActionId).catch((error) => {
+    console.error('Falha ao reservar carta do deck.', error);
+    throw error;
   });
 };
 

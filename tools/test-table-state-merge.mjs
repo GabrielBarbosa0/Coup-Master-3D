@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
-import { mergeTableStates } from '../js/firebase/table-state-merge.mjs';
+import {
+  drawCardFromTableState,
+  mergeTableStates
+} from '../js/firebase/table-state-merge.mjs';
 
 function card(id, owner = null, location = 'deck') {
   return {
@@ -129,5 +132,24 @@ assert.equal(mergedDraws.deck.length, 1);
 assert.equal(mergedDraws.cards.length, 2);
 assert.deepEqual(mergedDraws.cards.map(item => item.data.owner).sort(), [1, 5]);
 assert.equal(new Set(mergedDraws.cards.map(item => item.data.id)).size, 2);
+
+const firstAtomicDraw = drawCardFromTableState(state(), 1, 'draw-player-1');
+const secondAtomicDraw = drawCardFromTableState(firstAtomicDraw.state, 5, 'draw-player-5');
+assert.notEqual(firstAtomicDraw.card.id, secondAtomicDraw.card.id);
+assert.equal(firstAtomicDraw.card.owner, 1);
+assert.equal(secondAtomicDraw.card.owner, 5);
+assert.equal(secondAtomicDraw.state.deck.length, 1);
+assert.deepEqual(
+  secondAtomicDraw.state.cards.map(item => item.data.owner).sort(),
+  [1, 5]
+);
+
+const repeatedAtomicDraw = drawCardFromTableState(
+  secondAtomicDraw.state,
+  1,
+  'draw-player-1'
+);
+assert.equal(repeatedAtomicDraw.card.id, firstAtomicDraw.card.id);
+assert.equal(repeatedAtomicDraw.state.deck.length, 1);
 
 console.log('table-state-merge: ok');

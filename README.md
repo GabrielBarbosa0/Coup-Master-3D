@@ -48,7 +48,7 @@ O Coup Master 3D está em **MVP 0.1 online casual**, em desenvolvimento ativo.
 
 ### Importante
 
-Movimentos de drag livre ainda **não são sincronizados frame a frame**. Nesta etapa, a mesa sincroniza o estado final de ações manuais por transações que preservam ações simultâneas em objetos diferentes, além de algumas animações discretas, como comprar carta, distribuir cartas e devolver carta ao deck.
+Movimentos de drag livre ainda **não são sincronizados frame a frame**. Nesta etapa, a mesa sincroniza o estado final de ações manuais por transações que preservam ações simultâneas em objetos diferentes. Compras reservam a carta no Firebase antes da animação; distribuição e devolução ao deck usam eventos discretos.
 
 Isso mantém o MVP mais leve, reduz escritas no Firebase e evita travamentos visuais enquanto a base multiplayer casual amadurece.
 

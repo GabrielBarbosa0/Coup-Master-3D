@@ -13,7 +13,10 @@ import {
   update
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js';
 import { database } from './firebase-config.js';
-import { mergeTableStates } from './table-state-merge.mjs';
+import {
+  drawCardFromTableState,
+  mergeTableStates
+} from './table-state-merge.mjs';
 
 const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const ROOM_CODE_LENGTH = 4;
@@ -262,6 +265,31 @@ export async function writeRoomTableState(roomCode, user, tableState, baseTableS
     };
   });
   return result.snapshot.val();
+}
+
+// Reserva uma carta unica no deck compartilhado antes de animar a compra.
+export async function drawRoomCard(roomCode, user, playerId, drawActionId) {
+  const code = normalizeRoomCode(roomCode);
+  const tableStateRef = ref(database, `rooms/${code}/tableState`);
+  let drawnCard = null;
+
+  const result = await runTransaction(tableStateRef, (currentState) => {
+    const drawResult = drawCardFromTableState(currentState, playerId, drawActionId);
+    if (!drawResult) return;
+
+    drawnCard = drawResult.card;
+    return {
+      ...drawResult.state,
+      updatedAt: serverTimestamp(),
+      updatedBy: user.uid
+    };
+  });
+
+  if (!result.committed || !drawnCard) return null;
+  return {
+    card: drawnCard,
+    tableState: result.snapshot.val()
+  };
 }
 
 // Escuta snapshots de mesa publicados por outros jogadores.

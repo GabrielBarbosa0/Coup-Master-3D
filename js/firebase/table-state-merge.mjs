@@ -31,6 +31,50 @@ export function mergeTableStates(baseState, localState, remoteState) {
   return merged;
 }
 
+// Reserva atomicamente a proxima carta do deck para um assento especifico.
+export function drawCardFromTableState(tableState, playerId, drawActionId) {
+  const seat = Number(playerId);
+  if (!tableState || !Number.isInteger(seat) || seat < 1 || seat > 8) return null;
+
+  const state = cloneValue(tableState);
+  state.deck = Array.isArray(state.deck) ? state.deck : [];
+  state.cards = Array.isArray(state.cards) ? state.cards : [];
+  state.players = Array.isArray(state.players) ? state.players : [];
+
+  const existingEntry = state.cards.find(entry => entry?.drawActionId === drawActionId);
+  if (existingEntry?.data) {
+    return { state, card: cloneValue(existingEntry.data) };
+  }
+
+  const card = state.deck.pop();
+  if (!card) return null;
+
+  const drawnCard = {
+    ...cloneValue(card),
+    owner: seat,
+    location: `player-${seat}`,
+    faceUp: true,
+    stackId: null
+  };
+  state.cards = state.cards.filter(entry => entry?.data?.id !== drawnCard.id);
+  state.cards.push({
+    data: drawnCard,
+    position: { x: 0, y: 0.9, z: 0 },
+    quaternion: { x: 0, y: 0, z: 0, w: 1 },
+    drawActionId
+  });
+
+  const player = state.players.find(item => Number(item?.id) === seat);
+  if (player) {
+    player.cards = Array.isArray(player.cards) ? player.cards : [];
+    player.cards = player.cards.filter(item => item?.id !== drawnCard.id);
+    player.cards.push(cloneValue(drawnCard));
+  }
+
+  state.syncRevision = (Number(state.syncRevision) || 0) + 1;
+  return { state, card: cloneValue(drawnCard) };
+}
+
 // Preenche colecoes ausentes para simplificar a mesclagem.
 function normalizeState(state) {
   return {
