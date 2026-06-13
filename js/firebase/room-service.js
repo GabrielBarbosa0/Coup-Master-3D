@@ -13,6 +13,7 @@ import {
   update
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js';
 import { database } from './firebase-config.js';
+import { mergeTableStates } from './table-state-merge.mjs';
 
 const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const ROOM_CODE_LENGTH = 4;
@@ -248,14 +249,19 @@ export async function getRoomTableState(roomCode) {
   return snapshot.val();
 }
 
-// Publica o estado final de uma acao na mesa casual.
-export async function writeRoomTableState(roomCode, user, tableState) {
+// Mescla o estado final por transacao para preservar acoes simultaneas.
+export async function writeRoomTableState(roomCode, user, tableState, baseTableState = null) {
   const code = normalizeRoomCode(roomCode);
-  await set(ref(database, `rooms/${code}/tableState`), {
-    ...tableState,
-    updatedAt: serverTimestamp(),
-    updatedBy: user.uid
+  const tableStateRef = ref(database, `rooms/${code}/tableState`);
+  const result = await runTransaction(tableStateRef, (currentState) => {
+    const mergedState = mergeTableStates(baseTableState, tableState, currentState);
+    return {
+      ...mergedState,
+      updatedAt: serverTimestamp(),
+      updatedBy: user.uid
+    };
   });
+  return result.snapshot.val();
 }
 
 // Escuta snapshots de mesa publicados por outros jogadores.

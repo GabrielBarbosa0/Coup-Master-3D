@@ -42,13 +42,13 @@ O Coup Master 3D está em **MVP 0.1 online casual**, em desenvolvimento ativo.
 | Física | Rapier 3D |
 | Renderização | Three.js/WebGL |
 | Online | Firebase Authentication + Realtime Database |
-| Sincronização | Parcial, por snapshots finais e ações discretas |
+| Sincronização | Parcial, por snapshots finais transacionais e ações discretas |
 | Hospedagem | GitHub Pages |
 | Instalação | PWA em modo `standalone` |
 
 ### Importante
 
-Movimentos de drag livre ainda **não são sincronizados frame a frame**. Nesta etapa, a mesa sincroniza o estado final de ações manuais e algumas animações discretas, como comprar carta, distribuir cartas e devolver carta ao deck.
+Movimentos de drag livre ainda **não são sincronizados frame a frame**. Nesta etapa, a mesa sincroniza o estado final de ações manuais por transações que preservam ações simultâneas em objetos diferentes, além de algumas animações discretas, como comprar carta, distribuir cartas e devolver carta ao deck.
 
 Isso mantém o MVP mais leve, reduz escritas no Firebase e evita travamentos visuais enquanto a base multiplayer casual amadurece.
 

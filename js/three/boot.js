@@ -77,10 +77,11 @@ await import('./app.js');
 window.CoupMaster3D?.setAdminRole?.(isAdmin);
 
 let syncReady = false;
-window.CoupMaster3DOnline.publishTableState = (tableState) => {
-  if (!syncReady) return;
-  writeRoomTableState(requestedRoom, user, tableState).catch((error) => {
+window.CoupMaster3DOnline.publishTableState = (tableState, baseTableState = null) => {
+  if (!syncReady) return Promise.resolve(null);
+  return writeRoomTableState(requestedRoom, user, tableState, baseTableState).catch((error) => {
     console.error('Falha ao sincronizar mesa.', error);
+    throw error;
   });
 };
 window.CoupMaster3DOnline.publishTableAction = (action) => {
@@ -95,7 +96,12 @@ const initialTableState = await getRoomTableState(requestedRoom);
 if (initialTableState) {
   window.CoupMaster3D?.applyTableState?.(initialTableState);
 } else {
-  await writeRoomTableState(requestedRoom, user, window.CoupMaster3D?.getTableState?.());
+  const createdTableState = await writeRoomTableState(
+    requestedRoom,
+    user,
+    window.CoupMaster3D?.getTableState?.()
+  );
+  window.CoupMaster3D?.applyTableState?.(createdTableState);
 }
 syncReady = true;
 revealTable();
@@ -103,7 +109,7 @@ revealTable();
 // Aplica estados finais publicados por outros jogadores.
 subscribeRoomTableState(requestedRoom, (tableState) => {
   if (!tableState || tableState.updatedBy === user.uid) return;
-  window.CoupMaster3D?.applyTableState?.(tableState);
+  window.CoupMaster3D?.receiveTableState?.(tableState);
 });
 
 const tableActionSubscriptionStartedAt = Date.now();

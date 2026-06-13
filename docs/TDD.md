@@ -99,6 +99,7 @@ rooms/{roomCode}
 |-- seats/{seat}
 |-- tableState
 |   |-- version
+|   |-- syncRevision
 |   |-- deckConfig
 |   |-- deck
 |   |-- deckTransform
@@ -140,7 +141,9 @@ rooms/{roomCode}
 
 A lista de jogadores com assento reservado define os badges, a lista textual do HUD e o assento local. Fechar ou minimizar a aba nao libera o slot; apenas a remocao explicita feita pelo host libera o assento em `rooms/{roomCode}/seats/{seat}` e remove `rooms/{roomCode}/players/{uid}`. A ordem de alocacao prioriza lados opostos da mesa, mas nao rebalanceia jogadores ja assentados para preservar o dono das cartas e o estado da partida.
 
-O lobby casual nao segura jogadores em uma sala de espera; criar ou entrar em sala abre `index.html?room=CODIGO`. A mesa casual sincroniza snapshots finais via `tableState` e usa `tableActions` para animacoes deterministicas de compra simples, distribuicao inicial e devolucao animada ao deck. Drag livre ainda nao transmite posicoes intermediarias.
+O lobby casual nao segura jogadores em uma sala de espera; criar ou entrar em sala abre `index.html?room=CODIGO`. A mesa casual sincroniza snapshots finais via `tableState` usando transacoes do Realtime Database e usa `tableActions` para animacoes deterministicas de compra simples, distribuicao inicial e devolucao animada ao deck. Drag livre ainda nao transmite posicoes intermediarias.
+
+Cada publicacao informa o snapshot-base conhecido pelo cliente. `room-service.js` executa `runTransaction()` e usa `table-state-merge.mjs` para fazer uma mesclagem de tres vias entre base, alteracao local e estado remoto atual. Cartas, objetos e pilhas sao mesclados por ID, e os contadores manuais de moedas sao combinados por diferenca. Assim, duas acoes simultaneas sobre entidades diferentes nao se apagam por uma gravacao de snapshot atrasada.
 
 O contador manual de moedas exibido na lista de jogadores fica em `tableState.players[].coinCount`. Ele e separado dos objetos fisicos de moeda em `tableState.objects`, pois serve como anotacao rapida de mesa para partidas casuais.
 
@@ -520,6 +523,18 @@ O snapshot atual inclui:
 - `return-card-to-deck`: duplo clique em carta fechada executa devolucao animada ao deck.
 
 Enquanto uma acao discreta esta rodando, `tableSyncSuppressCount` adia a publicacao do `tableState`. Ao fim da animacao, o snapshot final e publicado como garantia para quem perdeu o evento, entrou depois ou ficou com estado divergente.
+
+As gravacoes de `tableState` usam transacoes e mesclagem de tres vias:
+
+- entidades independentes sao preservadas por ID quando dois clientes agem ao mesmo tempo;
+- IDs de objetos compartilhados incluem cliente, horario e aleatoriedade para evitar colisoes;
+- incrementos simultaneos do contador manual de moedas sao somados por delta;
+- duas compras simultaneas do mesmo topo reservam cartas distintas na ordem restante do deck;
+- cada cliente serializa suas gravacoes e recompoe a proxima carga sobre a ultima transacao confirmada;
+- snapshots remotos recebidos durante drag ou gravacao local ficam pendentes ate a interacao terminar;
+- `syncRevision` identifica a progressao dos estados confirmados.
+
+Conflitos sobre o mesmo objeto continuam seguindo a ultima transacao confirmada, pois uma carta ou moeda nao pode terminar em duas posicoes ao mesmo tempo.
 
 Nao sincronizar cada frame do drag nesta etapa. A intencao e que o outro jogador receba a posicao final quando a acao manual termina, mesmo que isso ainda pareca um teleporte visual.
 

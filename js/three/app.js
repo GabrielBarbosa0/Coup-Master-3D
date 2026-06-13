@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 import * as config from './config.js';
 import * as dom from './dom.js';
+import { mergeTableStates } from '../firebase/table-state-merge.mjs';
 
 const {
   acceptSpectatorBtn,
@@ -244,6 +245,12 @@ const app = {
   lastResetVfxAt: 0,
   vfx: new Map(),
   syncTimer: null,
+  syncGeneration: 0,
+  pendingSyncCount: 0,
+  syncQueued: false,
+  syncRebaseState: null,
+  pendingRemoteState: null,
+  lastAppliedTableState: null,
   tableSyncSuppressCount: 0,
   isApplyingRemoteState: false,
   isAdmin: Boolean(window.CoupMaster3DOnline?.isAdmin),
@@ -311,6 +318,7 @@ function init() {
   window.CoupMaster3D = {
     ...(window.CoupMaster3D || {}),
     applyTableState,
+    receiveTableState,
     getTableState,
     setAdminRole,
     setLocalPlayerSeat,
@@ -2021,6 +2029,7 @@ function shuffleDeck() {
 
   state.deck = shuffle(state.deck);
   updateHud();
+  scheduleTableSync();
 }
 
 // Embaralha o deck ou a pilha de cartas atualmente sob o mouse.
@@ -2272,7 +2281,8 @@ function createRoundedRectPoints(width, height, radius, cornerSegments) {
 
 // Cria uma moeda fisica de ouro ou prata na mesa.
 function spawnCoin(type = 'gold', options = {}) {
-  const id = options.id || `coin-${app.objectId++}`;
+  const id = options.id || createSharedEntityId('coin');
+  if (!options.id) app.objectId += 1;
   bumpObjectIdFrom(id);
   const isGold = type === 'gold';
   const radius = isGold ? GOLD_COIN_RADIUS : SILVER_COIN_RADIUS;
@@ -2310,12 +2320,13 @@ function spawnCoin(type = 'gold', options = {}) {
   app.objects.set(id, { id, kind: mesh.userData.kind, mesh, body, collider: bodyCollider });
   if (!options.silent) playVfx('falling-coin');
   updateHud();
+  scheduleTableSync();
 }
 
 // Cria uma carta especial da DLC de religião diretamente na mesa.
 function spawnSpecialCard(type, options = {}) {
   const data = {
-    id: options.id || `special-${type}-${app.objectId++}`,
+    id: options.id || createSharedEntityId(`special-${type}`),
     type,
     folder: 'religion',
     faceUp: options.faceUp ?? true,
@@ -2323,6 +2334,7 @@ function spawnSpecialCard(type, options = {}) {
     owner: null,
     specialCard: true
   };
+  if (!options.id) app.objectId += 1;
   bumpObjectIdFrom(data.id);
   state.tableCards.push(data);
 
@@ -2333,6 +2345,7 @@ function spawnSpecialCard(type, options = {}) {
   placeCard(card, position, rotationY, true);
   if (!options.silent) playVfx('card-whoosh');
   updateHud();
+  scheduleTableSync();
 }
 
 // Calcula uma posicao em um anel interno proximo ao slot de um jogador.
@@ -2379,7 +2392,8 @@ function makeCoinMaterials(type) {
 
 // Cria um dado fisico e inicia uma rolagem curta.
 function spawnDie(options = {}) {
-  const id = options.id || `die-${app.objectId++}`;
+  const id = options.id || createSharedEntityId('die');
+  if (!options.id) app.objectId += 1;
   bumpObjectIdFrom(id);
   const geo = new THREE.BoxGeometry(DIE_SIZE, DIE_SIZE, DIE_SIZE);
   const mesh = new THREE.Mesh(geo, makeDieMaterials());
@@ -2413,6 +2427,7 @@ function spawnDie(options = {}) {
   app.objects.set(id, { id, kind: 'die', mesh, body, collider: bodyCollider });
   if (!options.silent) rollSingleDie(app.objects.get(id), 0.75);
   updateHud();
+  scheduleTableSync();
 }
 
 // Cria os seis materiais texturizados das faces do dado.
@@ -2645,6 +2660,15 @@ function createTableActionId() {
   return `action-${Date.now()}-${randomPart}`;
 }
 
+// Cria IDs compartilhados que nao colidem entre dois jogadores simultaneos.
+function createSharedEntityId(prefix) {
+  const uid = String(window.CoupMaster3DOnline?.user?.uid || 'local')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .slice(0, 8);
+  const randomPart = Math.random().toString(36).slice(2, 8);
+  return `${prefix}-${Date.now().toString(36)}-${uid}-${randomPart}`;
+}
+
 // Bloqueia publicacao de tableState ate uma animacao discreta terminar.
 function runWithTableSyncSuppressed(durationMs, actionFn, onComplete = null) {
   app.tableSyncSuppressCount += 1;
@@ -2655,6 +2679,7 @@ function runWithTableSyncSuppressed(durationMs, actionFn, onComplete = null) {
     window.setTimeout(() => {
       app.tableSyncSuppressCount = Math.max(0, app.tableSyncSuppressCount - 1);
       onComplete?.();
+      flushPendingRemoteState();
     }, durationMs);
   }
 }
@@ -3711,6 +3736,7 @@ function moveCardToPlayer(card, playerId) {
   if (oldOwner && oldOwner !== playerId) layoutPlayerHand(oldOwner, 0.12);
   layoutPlayerHand(playerId, 0.22);
   updateHud();
+  scheduleTableSync();
 }
 
 // Solta a carta na mesa ou agrupa em pilha compativel.
@@ -3729,6 +3755,7 @@ function moveCardToTable(card) {
     addCardToTableStack(card, stack);
     if (oldOwner) layoutPlayerHand(oldOwner, 0.12);
     updateHud();
+    scheduleTableSync();
     return;
   }
 
@@ -3740,6 +3767,7 @@ function moveCardToTable(card) {
   card.target = null;
   if (oldOwner) layoutPlayerHand(oldOwner, 0.12);
   updateHud();
+  scheduleTableSync();
 }
 
 // Remove a carta da cena e devolve seus dados ao deck.
@@ -3887,12 +3915,13 @@ function findCompatibleTableStack(card, position) {
 // Cria uma nova pilha de mesa a partir de uma carta base.
 function createTableStack(baseCard) {
   const stack = {
-    id: `stack-${app.stackId++}`,
+    id: createSharedEntityId('stack'),
     faceUp: baseCard.data.faceUp,
     cards: [baseCard.id],
     position: baseCard.mesh.position.clone(),
     rotationY: baseCard.mesh.rotation.y
   };
+  app.stackId += 1;
 
   baseCard.data.stackId = stack.id;
   app.tableStacks.push(stack);
@@ -3963,6 +3992,7 @@ function mergeTableStacks(sourceStack, targetStack) {
   app.tableStacks = app.tableStacks.filter(stack => stack.id !== sourceStack.id);
   layoutTableStack(targetStack, true);
   updateHud();
+  scheduleTableSync();
 }
 
 // Embaralha a ordem de uma pilha de mesa com uma pequena animacao visual.
@@ -4001,6 +4031,7 @@ function shuffleTableStack(stack) {
     layoutTableStack(stack, true);
     app.stackShuffleTimers.delete(stack.id);
     updateHud();
+    scheduleTableSync();
   }, 190);
 
   app.stackShuffleTimers.set(stack.id, timer);
@@ -4127,7 +4158,10 @@ function clearTableObjects(update = true) {
   });
   app.objects.clear();
   app.selectedObject = null;
-  if (update) updateHud();
+  if (update) {
+    updateHud();
+    scheduleTableSync();
+  }
 }
 
 // Remove um objeto solto especifico da mesa.
@@ -4138,6 +4172,7 @@ function removeTableObject(object) {
   app.objects.delete(object.id);
   if (app.selectedObject?.id === object.id) app.selectedObject = null;
   updateHud();
+  scheduleTableSync();
 }
 
 // Remove cartas auxiliares da mesa, como Asilo e Religião.
@@ -4151,6 +4186,7 @@ function removeSpecialCard(card) {
   app.cards.delete(card.id);
   if (app.selectedCard?.id === card.id) app.selectedCard = null;
   updateHud();
+  scheduleTableSync();
 }
 
 // Anima uma carta em arco ate uma posicao alvo.
@@ -4590,16 +4626,115 @@ function resize() {
   resizeInspectOverlay();
 }
 
-// Agenda sincronizacao do estado final da mesa sem transmitir animacoes.
+// Agenda uma transacao de estado final sem transmitir animacoes intermediarias.
 function scheduleTableSync() {
   if (app.isApplyingRemoteState) return;
   if (app.tableSyncSuppressCount > 0) return;
   if (!window.CoupMaster3DOnline?.publishTableState) return;
 
+  app.syncGeneration += 1;
+  const generation = app.syncGeneration;
   window.clearTimeout(app.syncTimer);
-  app.syncTimer = window.setTimeout(() => {
-    window.CoupMaster3DOnline.publishTableState(getTableState());
-  }, 180);
+  app.syncTimer = window.setTimeout(() => publishScheduledTableState(generation), 180);
+}
+
+// Serializa gravacoes locais para que toda transacao use a ultima base confirmada.
+async function publishScheduledTableState(generation) {
+  app.syncTimer = null;
+  if (app.pendingSyncCount > 0) {
+    app.syncQueued = true;
+    return;
+  }
+
+  app.pendingSyncCount = 1;
+  let retryDelay = 0;
+  const localSceneState = getTableState();
+  let stateToPublish = localSceneState;
+  const rebaseState = app.syncRebaseState;
+
+  if (rebaseState) {
+    stateToPublish = mergeTableStates(
+      rebaseState.base,
+      localSceneState,
+      rebaseState.remote
+    );
+    stateToPublish.syncRevision = Number(rebaseState.remote?.syncRevision) || 0;
+    app.syncRebaseState = null;
+  }
+
+  try {
+    const mergedState = await window.CoupMaster3DOnline.publishTableState(
+      stateToPublish,
+      cloneTableState(app.lastAppliedTableState)
+    );
+    if (mergedState) {
+      app.lastAppliedTableState = cloneTableState(mergedState);
+      if (generation === app.syncGeneration && !app.syncQueued) {
+        applyTableState(mergedState);
+      } else {
+        app.syncRebaseState = {
+          base: cloneTableState(localSceneState),
+          remote: cloneTableState(mergedState)
+        };
+      }
+    }
+  } catch {
+    if (rebaseState) app.syncRebaseState = rebaseState;
+    if (generation === app.syncGeneration) {
+      app.syncQueued = true;
+      retryDelay = 500;
+    }
+  } finally {
+    app.pendingSyncCount = 0;
+
+    if (app.syncQueued) {
+      app.syncQueued = false;
+      const queuedGeneration = app.syncGeneration;
+      app.syncTimer = window.setTimeout(
+        () => publishScheduledTableState(queuedGeneration),
+        retryDelay
+      );
+      return;
+    }
+
+    flushPendingRemoteState();
+  }
+}
+
+// Adia snapshots remotos enquanto uma interacao local ainda precisa ser publicada.
+function receiveTableState(snapshot) {
+  if (!snapshot || snapshot.version !== 1) return;
+
+  if (isLocalTableInteractionPending()) {
+    const pendingRevision = Number(app.pendingRemoteState?.syncRevision) || 0;
+    const nextRevision = Number(snapshot.syncRevision) || 0;
+    if (!app.pendingRemoteState || nextRevision >= pendingRevision) {
+      app.pendingRemoteState = cloneTableState(snapshot);
+    }
+    return;
+  }
+
+  applyTableState(snapshot);
+}
+
+// Detecta qualquer operacao local que seria perdida por um snapshot remoto imediato.
+function isLocalTableInteractionPending() {
+  return Boolean(
+    app.syncTimer
+    || app.pendingSyncCount > 0
+    || app.tableSyncSuppressCount > 0
+    || app.dragged
+    || app.pendingDeckDrag
+    || app.pendingStackDrag
+  );
+}
+
+// Aplica o snapshot remoto mais recente assim que a fila local estiver livre.
+function flushPendingRemoteState() {
+  if (!app.pendingRemoteState || isLocalTableInteractionPending()) return;
+  const snapshot = app.pendingRemoteState;
+  app.pendingRemoteState = null;
+  applyTableState(snapshot);
 }
 
 // Serializa o estado atual da mesa para o Firebase.
@@ -4644,6 +4779,7 @@ function applyTableState(snapshot) {
 
   app.isApplyingRemoteState = true;
   window.clearTimeout(app.syncTimer);
+  app.syncTimer = null;
   clearPointerHover();
   clearDropHover();
   app.dragged = null;
@@ -4727,6 +4863,8 @@ function applyTableState(snapshot) {
   renderRoomPlayerList();
   setLocalPlayerSeat(getLocalPlayerSeat(), { focus: false, preserveView: true });
   updateHud();
+  app.lastAppliedTableState = cloneTableState(snapshot);
+  app.pendingRemoteState = null;
   app.isApplyingRemoteState = false;
 }
 
@@ -4841,6 +4979,11 @@ function quaternionFromSnapshot(value, fallback) {
 // Clona dados de carta para evitar referencias mutaveis.
 function cloneCardData(data) {
   return data ? JSON.parse(JSON.stringify(data)) : null;
+}
+
+// Clona snapshots serializaveis usados como base da mesclagem transacional.
+function cloneTableState(snapshot) {
+  return snapshot ? JSON.parse(JSON.stringify(snapshot)) : null;
 }
 
 // Mantem o contador de objetos acima dos IDs restaurados.

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'coup-master-pwa-v5';
+const CACHE_VERSION = 'coup-master-pwa-v6';
 const APP_SHELL = [
   './',
   './index.html',
@@ -13,6 +13,7 @@ const APP_SHELL = [
   './js/firebase/auth-service.js',
   './js/firebase/firebase-config.js',
   './js/firebase/room-service.js',
+  './js/firebase/table-state-merge.mjs',
   './js/three/boot.js',
   './js/three/app.js',
   './js/three/config.js',
