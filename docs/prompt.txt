@@ -1,83 +1,31 @@
-Este é o repositório Coup Master 3D.
+Este e o repositorio Coup Master.
 
-Antes de mexer em qualquer código, leia obrigatoriamente:
+Leia antes de mudancas grandes:
+
 - AGENTS.md
-- README.md
 - docs/GDD.md
 - docs/TDD.md
+- README.md
 
-Contexto geral:
-O projeto é uma mesa 3D sandbox para jogar Coup Master no navegador, inspirada no Tabletop Simulator. Usa HTML, CSS, JavaScript, Three.js/WebGL, Rapier 3D e Firebase Authentication + Realtime Database. O foco atual é o MVP online casual, não ranqueado.
+Direcao atual:
 
-Arquivos principais:
-- index.html
-- css/three-board.css
-- js/three/app.js
-- js/three/boot.js
-- js/three/config.js
-- js/three/dom.js
-- js/firebase/room-service.js
-- js/firebase/auth-service.js
-- js/firebase/login-page.js
-- js/firebase/lobby-page.js
+- jogo de cartas online em Three.js/WebGL;
+- camera ortografica fixa;
+- tabuleiro 2.5D com oito slots;
+- deck, asilo e cemiterio;
+- hover com tilt, selecao, flip, giro e arraste;
+- Pointer Events para mouse, toque e caneta;
+- layouts de paisagem e retrato;
+- Firebase isolado da renderizacao;
+- snapshots finais, sem sincronizacao frame a frame.
 
-Regras importantes:
-- Não misturar lógica Firebase dentro da renderização 3D.
-- Manter app.js focado na mesa, interação, física, HUD e estado visual.
-- Manter serviços online em js/firebase/.
-- Não implementar loja, ranking, DLC paga, matchmaking ou ranqueado por enquanto.
-- O modo casual é sandbox/manual, não deve automatizar todas as regras.
-- Preserve alterações existentes e não reverta nada sem pedir.
-- Sempre que alterar código JS, rode:
-  node --check js\three\app.js
-  node --check js\three\boot.js
-  node --check js\firebase\room-service.js
-  conforme os arquivos alterados.
+Nao reintroduzir:
 
-Estado atual importante:
-- index.html é a tela principal da mesa 3D.
-- login.html tem login Google e visitante.
-- lobby.html cria/entra em salas.
-- Salas usam código curto de 4 caracteres.
-- Jogadores ficam em rooms/{roomCode}/players/{uid}.
-- Fechar/minimizar aba não libera o slot.
-- Apenas o host/admin pode remover jogadores explicitamente.
-- Há lista de jogadores no HUD, abaixo da barra superior direita.
-- O modal de jogador mostra nome, slot, status e perfil; só host pode remover.
-- Há tela de carregamento no index.html para evitar mostrar HUD/mesa vazia antes do boot terminar.
-- O HUD tem barra superior esquerda com sair/reset, barra superior direita com utilidades, barra lateral esquerda com chat/histórico, status acima da barra inferior e barra inferior de ações rápidas.
-- Chat em tempo real já existe.
-- Modo espectador já existe e permite ver a mão de outro jogador se ele aceitar.
-- Regras alternativas usam assets/img/guides/alternative-rules1.png até alternative-rules5.png.
-- Sincronização multiplayer atual é por snapshots finais e eventos discretos, não por drag frame a frame.
+- mesa octogonal;
+- Tabletop Simulator;
+- OrbitControls;
+- Rapier;
+- fisica, colliders ou rigid bodies;
+- moedas e pilhas fisicas soltas.
 
-Antes de implementar qualquer coisa:
-1. Rode git status --short --branch.
-2. Leia os documentos citados.
-3. Inspecione os arquivos relevantes com rg/Get-Content.
-4. Me diga resumidamente o que você entendeu do estado atual.
-5. Só depois implemente o que eu pedir.
-
-Quando eu pedir commit, siga:
-1. git status --short --branch
-2. revisar diff
-3. rodar checagens relevantes
-4. git add
-5. git commit com mensagem semântica
-6. git push
-
-Também quero que, sempre que fizer uma alteração, você me dê uma sugestão de commit nesse formato:
-
-tipo(escopo): título curto
-
-- Descrição objetiva da mudança 1.
-- Descrição objetiva da mudança 2.
-- Descrição objetiva da mudança 3.
-
-
-
-E depois você pode completar com o pedido específico, por exemplo:
-
-Agora continue a partir do estado atual e me ajude a revisar os ajustes pendentes antes de eu subir commit.
-
-
+Identificadores novos usam ingles. Comentarios podem usar portugues.

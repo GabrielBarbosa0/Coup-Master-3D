@@ -21,23 +21,35 @@
   <link rel="stylesheet" href="css/online.css">
 </head>
 
-<body>
-  <main class="online-shell">
-    <section class="online-panel" aria-labelledby="loginTitle">
-      <h1 id="loginTitle">Coup Master</h1>
-      <!-- <p>Entre com sua conta Google para criar uma mesa online ou participar de uma sala.</p> -->
-      <div class="login-title-spacer" aria-hidden="true"></div>
+<body class="login-page">
+  <main class="game-menu login-menu" aria-labelledby="loginTitle">
+    <div class="menu-atmosphere" aria-hidden="true">
+      <span class="menu-suit menu-suit-spade">♠</span>
+      <span class="menu-suit menu-suit-diamond">♦</span>
+      <span class="menu-suit menu-suit-club">♣</span>
+    </div>
 
-      <div class="online-actions">
-        <button id="googleLoginBtn" class="primary-btn" type="button">Entrar com Google</button>
-        <button id="guestLoginBtn" class="secondary-btn" type="button">Entrar como visitante</button>
-        <button class="secondary-btn pwa-install-btn" type="button" data-pwa-install hidden>
+    <section class="menu-brand login-brand">
+      <h1 id="loginTitle">Coup Master</h1>
+    </section>
+
+    <section class="login-controls" aria-label="Entrar no Coup Master">
+      <div class="login-action-dock">
+        <button id="googleLoginBtn" class="login-menu-button login-google-button" type="button">
+          Entrar com Google
+        </button>
+        <button id="guestLoginBtn" class="login-menu-button login-guest-button" type="button">
+          Entrar como visitante
+        </button>
+        <button class="login-menu-button login-install-button pwa-install-btn" type="button" data-pwa-install hidden>
           Instalar Coup Master
         </button>
       </div>
 
-      <div id="loginStatus" class="status-text" role="status" aria-live="polite"></div>
-      <p class="pwa-install-status" data-pwa-status role="status" aria-live="polite"></p>
+      <div class="login-feedback">
+        <div id="loginStatus" class="login-status" role="status" aria-live="polite"></div>
+        <p class="pwa-install-status" data-pwa-status role="status" aria-live="polite"></p>
+      </div>
     </section>
   </main>
 

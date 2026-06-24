@@ -1,27 +1,11 @@
-// Centraliza referencias aos elementos DOM usados pelo modo 3D.
+// Centraliza referências DOM usadas pela mesa 2.5D e pelos modais.
 export const canvas = document.getElementById('threeCanvas');
 export const deckCountEl = document.getElementById('deckCount');
 export const tableCountEl = document.getElementById('tableCount');
 export const objectCountEl = document.getElementById('objectCount');
 export const roomCodeStatusBtn = document.getElementById('roomCodeStatus');
-export const roomPlayerList = document.getElementById('roomPlayerList');
-export const cameraDebugEl = document.getElementById('cameraDebug');
 export const hoverTooltipEl = document.getElementById('hoverTooltip');
-export const drawBtn = document.getElementById('drawBtn');
-export const goldCoinBtn = document.getElementById('goldCoinBtn');
-export const silverCoinBtn = document.getElementById('silverCoinBtn');
-export const asylumCardBtn = document.getElementById('asylumCardBtn');
-export const religionCardBtn = document.getElementById('religionCardBtn');
-export const diceBtn = document.getElementById('diceBtn');
-export const rollBtn = document.getElementById('rollBtn');
-export const clearObjectsBtn = document.getElementById('clearObjectsBtn');
-export const shuffleBtn = document.getElementById('shuffleBtn');
-export const dealBtn = document.getElementById('dealBtn');
 export const flipSelectionBtn = document.getElementById('flipSelectionBtn');
-export const rotateLeftBtn = document.getElementById('rotateLeftBtn');
-export const rotateRightBtn = document.getElementById('rotateRightBtn');
-export const deleteSelectionBtn = document.getElementById('deleteSelectionBtn');
-export const focusCameraBtn = document.getElementById('focusCameraBtn');
 export const resetBtn = document.getElementById('resetBtn3d');
 export const infoBtn = document.getElementById('infoBtn3d');
 export const altRulesBtn = document.getElementById('altRulesBtn3d');
@@ -38,7 +22,6 @@ export const chatQuickMessages = document.getElementById('chatQuickMessages');
 export const chatStatusText = document.getElementById('chatStatusText');
 export const chatForm = document.getElementById('chatForm');
 export const chatInput = document.getElementById('chatInput');
-export const sendChatBtn = document.getElementById('sendChatBtn');
 export const spectatorModal = document.getElementById('spectatorModal');
 export const closeSpectatorBtn = document.getElementById('closeSpectatorBtn');
 export const spectatorPlayerList = document.getElementById('spectatorPlayerList');

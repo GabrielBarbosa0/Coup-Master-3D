@@ -1,276 +1,244 @@
 # AGENTS.md - Instrucoes Para O Codex
 
-Este arquivo orienta como trabalhar no repositorio Coup Master.
+Este arquivo orienta o trabalho no repositorio Coup Master.
 
-O foco atual e o modo **Coup Master 3D**, uma mesa sandbox em Three.js/WebGL com fisica Rapier, inspirada no Tabletop Simulator.
+O foco atual e uma mesa de cartas **2.5D em Three.js/WebGL**, com apresentacao inspirada em jogos de cartas
+estilizados. A antiga direcao de sandbox fisico semelhante ao Tabletop Simulator foi encerrada.
 
-## 1. Documentos Que Devem Ser Lidos
+## 1. Documentos Obrigatorios
 
 Antes de mudancas grandes, leia:
 
-- `docs/GDD.md`
-- `docs/TDD.md`
-- `README.md`
-- este `AGENTS.md`
-
-O GDD define o produto e experiencia.
-
-O TDD define arquitetura e decisoes tecnicas.
-
-Este arquivo define regras de trabalho para agentes.
+- `docs/GDD.md`;
+- `docs/TDD.md`;
+- `README.md`;
+- este `AGENTS.md`.
 
 ## 2. Objetivo Atual
 
-Evoluir o modo 3D local ate ele ser uma mesa tabletop confortavel:
+Na branch `balatro-style`:
 
-- mesa octogonal;
-- ate 8 slots de jogador;
-- deck central fisico com limite visual de 8 cartas;
-- nomes e avatares flutuantes de jogadores preparados para Google Auth;
-- cartas finas, arredondadas e texturizadas;
-- pilhas de cartas que podem virar, girar, embaralhar e se agrupar;
-- moedas de ouro e prata com textura;
-- cartas especiais de asilo e religiao;
-- hover com outline e tooltip;
-- arraste de objetos;
-- atalhos de teclado e botoes equivalentes para touchscreen;
-- camera com foco por jogador;
-- HUD por icones;
-- musica e efeitos sonoros;
-- fisica suficientemente estavel para uso casual.
+- `login.html` e a entrada de autenticacao;
+- `lobby.html` e o menu principal;
+- Jogar abre criacao ou entrada em sala num modal;
+- `index.html` abre a partida autenticada;
+- o fundo base usa `#171d26`;
+- tipografia pixelada e botoes elevados formam a linguagem visual;
+- o titulo Coup Master e o unico uso normal da fonte Tilda Script.
+
+A partida deve preservar:
+
+- oito slots de jogador;
+- nome, avatar, assento, moedas e religiao por slot;
+- deck, asilo e cemiterio;
+- hover com tilt e outline;
+- clique, selecao, flip, giro e arraste;
+- Pointer Events para mouse, toque e caneta;
+- camera ortografica fixa;
+- layouts proprios para paisagem e retrato;
+- chat, audio, modais, espectador e ferramentas do host;
+- sincronizacao Firebase por snapshots finais e acoes discretas.
 
 ## 3. Arquivos Principais
 
-Trabalhe principalmente em:
+- `index.html`;
+- `login.html`;
+- `lobby.html`;
+- `manifest.webmanifest`;
+- `service-worker.js`;
+- `js/pwa.js`;
+- `css/online.css`;
+- `css/three-board.css`;
+- `js/three/app.js`;
+- `js/three/boot.js`;
+- `js/three/config.js`;
+- `js/three/dom.js`;
+- `docs/GDD.md`;
+- `docs/TDD.md`.
 
-- `index.html`
-- `login.html`
-- `lobby.html`
-- `manifest.webmanifest`
-- `service-worker.js`
-- `js/pwa.js`
-- `css/three-board.css`
-- `js/three/app.js`
-- `docs/GDD.md`
-- `docs/TDD.md`
-- `AGENTS.md`
-
-Nao recrie pastas antigas do modo 2D sem necessidade.
+Nao recrie a mesa octogonal, a fisica Rapier ou pastas antigas do modo 2D.
 
 ## 4. Escopo Do MVP
 
 Dentro do escopo:
 
-- melhorar interacao 3D;
-- melhorar visual e legibilidade da mesa;
-- corrigir fisica local;
-- melhorar HUD;
-- melhorar acessibilidade para touchscreen;
+- melhorar leitura e composicao do tabuleiro;
+- melhorar interacao de cartas;
+- melhorar responsividade;
+- melhorar HUD e modais;
+- preservar o fluxo online;
 - documentar decisoes;
-- manter o codigo facil de continuar.
+- manter estado logico separado da cena.
 
 Fora do escopo, salvo pedido explicito:
 
+- fisica de mesa;
+- camera orbitavel;
+- pilhas fisicas livres;
+- moedas fisicas soltas;
 - ranqueado;
 - matchmaking;
 - loja;
-- DLC paga;
 - backend autoritativo;
-- multiplayer completo;
 - bots inteligentes;
-- mobile completo;
-- automacao total das regras.
+- automacao completa das regras.
 
 ## 5. Convencoes De Codigo
 
-### Idioma Dos Identificadores
+### Identificadores
 
-Novas funcoes, variaveis e estruturas devem usar nomes em ingles.
-
-Use nomes simples e diretos:
+Novas funcoes, variaveis e estruturas usam ingles:
 
 ```js
 createDeck();
 drawCardToPlayer();
-flipCard();
-flipTableStack();
-shuffleDeck();
-returnCardToDeck();
+layoutPlayerCard();
+flipSelectedCard();
+scheduleTableSync();
 updateHud();
-syncPhysicsMeshes();
 ```
-
-Nao criar novas funcoes em portugues. O projeto pode ter comentarios em portugues, mas o codigo deve seguir nomes em ingles.
 
 ### Comentarios
 
-Cada funcao relevante deve ter um comentario curto acima explicando sua responsabilidade.
+Cada funcao relevante deve ter um comentario curto acima explicando responsabilidade ou intencao.
 
-Bom:
+### Mudancas
 
-```js
-// Vira todas as cartas de uma pilha como uma unica orientacao de grupo.
-function flipTableStack(stack) {
-  // ...
-}
-```
+- faca mudancas pequenas e focadas;
+- preserve alteracoes nao relacionadas do usuario;
+- use `apply_patch` para edicoes manuais;
+- use `rg` para procurar arquivos e texto;
+- nao reverta arquivos sujos sem pedido.
 
-Evite comentarios que apenas repetem a linha. Prefira explicar intencao, regra ou motivo.
+## 6. Padroes Three.js
 
-### Estilo De Mudanca
+- estado de jogo nao deve viver em meshes;
+- use `userData` apenas para ligar objetos visuais a IDs ou acoes;
+- limite raycast a `app.interactives`;
+- reutilize texturas em cache;
+- nao crie geometria ou material dentro de `animate()`;
+- use camera ortografica fixa;
+- menus e textos longos permanecem no DOM;
+- capture o ponteiro durante drag;
+- respeite `prefers-reduced-motion` no CSS;
+- trate resize e mudanca entre paisagem/retrato.
 
-- Faca mudancas pequenas e focadas.
-- Evite refatorar junto com bugfix.
-- Preserve alteracoes nao relacionadas feitas pelo usuario.
-- Use `apply_patch` para edicoes manuais.
-- Use `rg` para procurar arquivos/texto.
+Nao adicionar:
 
-## 6. Padroes Three.js E Rapier
+- OrbitControls;
+- Rapier;
+- rigid bodies;
+- colliders;
+- gravidade;
+- correcao de objetos por frame.
 
-- Nao criar geometrias ou materiais novos a cada frame.
-- Reutilizar texturas em cache.
-- Usar `userData` para ligar mesh ao objeto logico.
-- Manter raycast limitado a objetos interativos.
-- Ao arrastar, desabilitar controles de camera.
-- Se um collider virar sensor durante drag, religar ao soltar.
-- Evitar paredes invisiveis altas que criem apoio falso.
-- Evitar correcoes por frame que reposicionem objetos continuamente, pois isso causa tremor.
-
-## 7. Regras De Interacao Esperadas
-
-Atalhos atuais:
-
-| Tecla | Acao |
-| --- | --- |
-| `F` | Vira carta, pilha ou extra |
-| `C` | Abre o chat da sala |
-| `Q` | Gira objeto selecionado para a esquerda |
-| `E` | Gira objeto selecionado para a direita |
-| `R` | Embaralha deck ou pilha sob hover |
-| `Alt` | Inspeciona de perto o objeto sob hover |
-| `Delete` / `Backspace` | Remove objeto selecionado |
-| `Space` | Foca camera no jogador ativo |
-
-Controles atuais:
+## 7. Interacao Esperada
 
 | Acao | Controle |
 | --- | --- |
-| Zoom | Scroll |
-| Pan | Botao do meio |
-| Rotacao | OrbitControls / um dedo em touchscreen |
-| Comprar carta | Clique no deck |
-| Puxar carta do deck | Clique e arraste rapido |
-| Mover deck | Clique, segure e arraste |
-| Devolver carta | Duplo clique |
-| Selecionar para atalho | Hover do mouse |
+| Comprar | Clique no deck ou botao Comprar |
+| Arrastar | Pressionar e mover carta |
+| Selecionar | Clique na carta |
+| Virar | `F` ou botao de flip |
+| Girar | `Q` / `E` ou botoes |
+| Remover | `Delete` / `Backspace` ou botao |
+| Chat | `C` ou botao |
+| Moedas | `-` e `+` dentro do slot |
+| Religiao | Clique no emblema do slot |
 
-Botoes inferiores devem espelhar acoes importantes para touchscreen, incluindo flip, giro, deletar e foco de camera.
+Ao soltar uma carta:
 
-## 8. Regras De Jogo Ja Implementadas
+- sobre um slot, ela passa a pertencer ao assento;
+- no cemiterio, fica publica;
+- no deck, so retorna se estiver fechada;
+- fora de uma area valida, volta ao destino anterior.
 
-Ao mexer em cartas/deck/pilhas, preservar:
+## 8. Sincronizacao
 
-- carta solta vira so ela;
-- pilha vira todas as cartas com `F`;
-- pilha fechada pode voltar ao deck;
-- pilha aberta nao volta ao deck;
-- pilhas compativeis podem se agrupar entre si;
-- carta colocada na mesa nao revela automaticamente;
-- carta fechada pode entrar no deck;
-- carta aberta nao entra no deck;
-- hover seleciona objeto para atalhos;
-- deck tem limite visual de 8 cartas empilhadas;
-- deck pode ser movido e comprado;
-- cartas ou pilhas fechadas devolvidas ao deck embaralham internamente;
-- botao textual de embaralhar, dado e rolar podem permanecer ocultos quando nao forem necessarios;
-- `shuffle.mp3` nao deve ser reintroduzido no baralho sem pedido explicito.
+Preservar:
+
+- `window.CoupMaster3D` como contrato do `boot.js`;
+- `tableState.version` atual;
+- compra atomica por `drawRoomCard()`;
+- merge de tres vias por `table-state-merge.mjs`;
+- IDs unicos por entidade;
+- snapshots remotos pendentes durante drag/publicacao;
+- privacidade da mao local e do espectador autorizado;
+- ausencia de sincronizacao frame a frame.
 
 ## 9. HUD E Audio
 
-HUD atual:
+HUD:
 
-- sair da sala e reset no topo esquerdo;
-- sem seletor manual P1 a P8;
-- lista textual de jogadores abaixo da barra superior direita, com contador manual de moedas no formato `Nome - valor +`;
-- status de sala/deck/mesa/objetos acima da barra inferior;
-- barra superior direita com musica, feedback, regras alternativas, espectador placeholder, tela cheia, info e configuracoes;
-- barra inferior com botoes quadrados por icone.
-- `index.html` deve manter a tela de carregamento ate `js/three/boot.js` validar login, sala e estado inicial.
-- O host pode remover jogadores pelo modal da lista; essa acao libera explicitamente o assento no Firebase.
-- Regras alternativas usam imagens em `assets/img/guides/alternative-rules1.png` ate `alternative-rules5.png`.
+- sair, reset e status no topo esquerdo;
+- acoes de carta no topo central;
+- utilidades no topo direito;
+- chat e historico na lateral;
+- perfis, moedas e religiao dentro dos slots WebGL;
+- tela de carregamento ate validacao de login e sala.
 
-Audio atual:
+Audio:
 
-- BGM em `assets/sounds/soundtrack/bgm.mp3`;
-- `card-whoosh.mp3` para acoes de cartas e navegacao de regras;
-- `falling-coin.mp3` para moedas;
-- `reset-game.mp3` para reset;
-- sliders de volume de musica e SFX no modal de configuracoes.
+- `bgm.mp3`;
+- `card-whoosh.mp3`;
+- `falling-coin.mp3`;
+- `reset-game.mp3`;
+- sliders no modal de configuracoes.
 
 ## 10. Verificacao
 
-Antes de finalizar mudanca em JS:
+Antes de finalizar JS:
 
 ```powershell
 node --check js\three\app.js
+node --check js\three\boot.js
+node --check js\three\config.js
+node --check js\three\dom.js
+node --check service-worker.js
 ```
 
-Quando houver mudanca visual ou interativa, abrir ou recarregar:
+Para mudancas visuais:
 
 ```txt
 http://127.0.0.1:4173/index.html
 ```
 
-Se o servidor local nao estiver rodando:
+Validar:
 
-```powershell
-python -m http.server 4173
-```
+- desktop;
+- mobile horizontal;
+- mobile vertical;
+- compra;
+- hover/tilt;
+- arraste;
+- flip;
+- contador;
+- console;
+- ausencia de scroll.
 
-Para mudancas na PWA, validar tambem:
+Para PWA:
 
-- JSON de `manifest.webmanifest`;
-- sintaxe de `service-worker.js` e `js/pwa.js`;
-- registro do service worker em `localhost` ou HTTPS;
-- `CACHE_VERSION` atualizado quando o shell precacheado mudar.
+- validar `manifest.webmanifest`;
+- validar `service-worker.js` e `js/pwa.js`;
+- incrementar `CACHE_VERSION` quando o shell mudar;
+- confirmar todos os arquivos do `APP_SHELL`.
 
 ## 11. Commits
 
-Use commits pequenos e descritivos.
+Use commits pequenos e descritivos. Quando o usuario pedir para subir:
 
-Exemplos:
-
-```txt
-Fix tabletop edge physics
-Add stack-wide card flipping
-Refine 3D deck interactions and HUD layout
-Update 3D design and technical docs
-```
-
-Quando o usuario pedir para subir:
-
-1. `git status --short --branch`
+1. `git status --short --branch`;
 2. revisar diff;
-3. rodar checagens relevantes;
+3. rodar checagens;
 4. `git add`;
 5. `git commit`;
 6. `git push`.
 
-## 12. Como Responder Ao Usuario
+## 12. Resposta Ao Usuario
 
-Responder em portugues, de forma direta.
+Responder em portugues e de forma direta:
 
-Ao finalizar:
-
-- diga o que mudou;
-- cite arquivos principais;
-- diga se testes/checagens passaram;
-- avise se algo nao foi testado.
-
-Evite respostas longas demais quando o pedido for simples.
-
-## 13. Observacao Importante
-
-O projeto esta em desenvolvimento incremental. O objetivo agora e fazer o nucleo local 3D ficar bom: manipulacao, leitura visual, fisica, atalhos, audio, HUD e fluxo de mesa.
-
-Nao transformar o MVP em produto completo antes de a mesa 3D estar confortavel.
+- dizer o que mudou;
+- citar os arquivos principais;
+- informar checagens;
+- avisar o que nao foi testado.

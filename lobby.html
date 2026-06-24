@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Coup Master">
-  <title>Lobby | Coup Master 3D</title>
+  <title>Menu | Coup Master</title>
   <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
   <link rel="apple-touch-icon" href="assets/img/logo/coup-master-512x512.png">
   <link rel="manifest" href="manifest.webmanifest">
@@ -21,36 +21,132 @@
   <link rel="stylesheet" href="css/online.css">
 </head>
 
-<body>
-  <main class="online-shell">
-    <section class="online-panel" aria-labelledby="lobbyTitle">
-      <h1 id="lobbyTitle">Lobby</h1>
+<body class="menu-page">
+  <main class="game-menu" aria-labelledby="menuTitle">
+    <div class="menu-atmosphere" aria-hidden="true">
+      <span class="menu-suit menu-suit-spade">♠</span>
+      <span class="menu-suit menu-suit-diamond">♦</span>
+      <span class="menu-suit menu-suit-club">♣</span>
+    </div>
 
-      <div class="profile-row">
-        <img id="userAvatar" src="assets/img/logo/favicon-coup-master.png" alt="">
-        <span id="userName">Jogador</span>
-        <button id="signOutBtn" class="secondary-btn" type="button">Sair</button>
-      </div>
+    <section class="menu-brand">
+      <h1 id="menuTitle">Coup Master</h1>
+    </section>
 
-      <div class="online-actions">
-        <button id="createRoomBtn" class="primary-btn" type="button">Criar sala</button>
-        <button class="secondary-btn pwa-install-btn" type="button" data-pwa-install hidden>
-          Instalar Coup Master
+    <section class="menu-controls" aria-label="Menu principal">
+      <div class="menu-utility-row">
+        <nav class="social-links" aria-label="Redes sociais">
+          <a class="social-link" href="https://github.com/GabrielBarbosa0/Coup-Master-3D" target="_blank"
+            rel="noopener noreferrer" aria-label="Projeto Coup Master no GitHub" title="GitHub">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .8a11.4 11.4 0 0 0-3.6 22.2c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.4-4-1.4-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.6.1-3.2 0 0 1-.3 3.3 1.2a11.3 11.3 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.6.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.4 11.4 0 0 0 12 .8Z" />
+            </svg>
+          </a>
+        </nav>
+
+        <button class="language-button" type="button" data-dialog-open="languageDialog">
+          <span class="language-icon" aria-hidden="true">A文</span>
+          <span>Português</span>
         </button>
       </div>
 
-      <div class="divider"></div>
-
-      <form id="joinRoomForm" class="room-form">
-        <label for="roomCodeInput">Entrar em sala existente</label>
-        <input id="roomCodeInput" name="roomCode" type="text" maxlength="4" autocomplete="off" placeholder="CODIGO">
-        <button class="secondary-btn" type="submit">Entrar na sala</button>
-      </form>
-
-      <div id="lobbyStatus" class="status-text" role="status" aria-live="polite"></div>
-      <p class="pwa-install-status" data-pwa-status role="status" aria-live="polite"></p>
+      <div class="menu-action-dock">
+        <button class="menu-button menu-button-play" type="button" data-dialog-open="roomDialog">
+          <span>Jogar</span>
+        </button>
+        <button class="menu-button menu-button-options" type="button" data-dialog-open="optionsDialog">
+          <span>Opções</span>
+        </button>
+        <button id="signOutBtn" class="menu-button menu-button-back" type="button">
+          <span>Voltar</span>
+        </button>
+        <button class="menu-button menu-button-collection" type="button" data-dialog-open="collectionDialog">
+          <span>Coleções</span>
+        </button>
+      </div>
     </section>
+
+    <p id="menuStatus" class="menu-status" role="status" aria-live="polite"></p>
   </main>
+
+  <dialog id="roomDialog" class="menu-dialog" aria-labelledby="roomDialogTitle">
+    <div class="dialog-header">
+      <div>
+        <p class="dialog-eyebrow">Partida online</p>
+        <h2 id="roomDialogTitle">Jogar</h2>
+      </div>
+      <button class="dialog-close" type="button" data-dialog-close aria-label="Fechar">×</button>
+    </div>
+
+    <div class="dialog-profile">
+      <img id="userAvatar" src="assets/img/logo/favicon-coup-master.png" alt="">
+      <div>
+        <span>Jogando como</span>
+        <strong id="dialogUserName">Jogador</strong>
+      </div>
+    </div>
+
+    <button id="createRoomBtn" class="dialog-primary-btn" type="button">Criar nova sala</button>
+
+    <div class="dialog-divider"><span>ou</span></div>
+
+    <form id="joinRoomForm" class="room-form">
+      <label for="roomCodeInput">Entrar com código</label>
+      <input id="roomCodeInput" name="roomCode" type="text" maxlength="4" inputmode="text" autocomplete="off"
+        spellcheck="false" placeholder="ABCD">
+      <button class="dialog-secondary-btn" type="submit">Entrar na sala</button>
+    </form>
+
+    <div id="lobbyStatus" class="status-text" role="status" aria-live="polite"></div>
+  </dialog>
+
+  <dialog id="optionsDialog" class="menu-dialog options-dialog" aria-label="Opções">
+    <div class="options-menu">
+      <button class="options-menu-button" type="button" data-options-action="settings">Configurações</button>
+      <button class="options-menu-button" type="button" data-options-action="statistics">Estatísticas</button>
+      <button class="options-menu-button" type="button" data-options-action="credits">Créditos</button>
+    </div>
+
+    <button class="options-install-button pwa-install-btn" type="button" data-pwa-install hidden>
+      Instalar Coup Master
+    </button>
+
+    <p id="optionsMenuStatus" class="options-menu-status" role="status" aria-live="polite"></p>
+    <p class="pwa-install-status" data-pwa-status role="status" aria-live="polite"></p>
+
+    <button class="options-back-button" type="button" data-dialog-close>Voltar</button>
+  </dialog>
+
+  <dialog id="collectionDialog" class="menu-dialog compact-dialog" aria-labelledby="collectionDialogTitle">
+    <div class="dialog-header">
+      <div>
+        <p class="dialog-eyebrow">Seu acervo</p>
+        <h2 id="collectionDialogTitle">Coleções</h2>
+      </div>
+      <button class="dialog-close" type="button" data-dialog-close aria-label="Fechar">×</button>
+    </div>
+    <div class="collection-preview" aria-hidden="true">
+      <span>Base</span>
+      <span>Expansões</span>
+      <span>Especiais</span>
+    </div>
+    <p class="dialog-note">A área de coleções está preparada para uma próxima etapa do Coup Master.</p>
+  </dialog>
+
+  <dialog id="languageDialog" class="menu-dialog compact-dialog" aria-labelledby="languageDialogTitle">
+    <div class="dialog-header">
+      <div>
+        <p class="dialog-eyebrow">Linguagem</p>
+        <h2 id="languageDialogTitle">Idioma</h2>
+      </div>
+      <button class="dialog-close" type="button" data-dialog-close aria-label="Fechar">×</button>
+    </div>
+    <button class="language-choice is-selected" type="button" aria-pressed="true">
+      <span>Português</span>
+      <strong>Selecionado</strong>
+    </button>
+  </dialog>
 
   <script type="module" src="js/pwa.js"></script>
   <script type="module" src="js/firebase/lobby-page.js"></script>

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'coup-master-pwa-v7';
+const CACHE_VERSION = 'coup-master-pwa-v20';
 const APP_SHELL = [
   './',
   './index.html',
@@ -18,6 +18,7 @@ const APP_SHELL = [
   './js/three/app.js',
   './js/three/config.js',
   './js/three/dom.js',
+  './assets/fonts/PressStart2P-Regular.ttf',
   './assets/fonts/tilda-script-bold.woff2',
   './assets/img/logo/favicon-coup-master.png',
   './assets/img/logo/coup-master-192x192.png',

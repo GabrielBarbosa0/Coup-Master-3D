@@ -11,13 +11,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Coup Master">
 
-  <title>Coup Master 3D | Jogue Coup Online com os Amigos</title>
+  <title>Coup Master | Jogue Coup Online com os Amigos</title>
 
   <meta name="description"
-    content="Coup Master 3D é uma mesa virtual sandbox online para jogar Coup no navegador">
+    content="Coup Master é um jogo de cartas online com salas privadas e uma mesa 2.5D em WebGL.">
 
   <meta name="keywords"
-    content="coup online, jogar coup, coup 3d, coup master 3d, jogo de blefe online, jogo de cartas online, tabletop simulator browser, mesa 3d online, three.js game, webgl game, coup multiplayer, jogo sandbox online, firebase multiplayer">
+    content="coup online, jogar coup, coup master, jogo de blefe online, jogo de cartas online, three.js game, webgl game, coup multiplayer, firebase multiplayer">
 
   <meta name="author" content="Gabriel Barbosa">
   <meta name="robots" content="index, follow">
@@ -31,36 +31,29 @@
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://gabrielbarbosa0.github.io/Coup-Master-3D/">
-  <meta property="og:title" content=">Coup Master 3D | Jogue Coup Online com os Amigos">
+  <meta property="og:title" content="Coup Master | Jogue Coup Online com os Amigos">
   <meta property="og:description"
-    content="Jogue Coup Master em uma mesa 3D sandbox no navegador, com Three.js, física Rapier, Firebase, salas online, cartas, moedas e chat em tempo real.">
+    content="Jogue Coup Master em uma mesa de cartas 2.5D com Three.js, salas online e chat em tempo real.">
   <meta property="og:image"
     content="https://gabrielbarbosa0.github.io/Coup-Master-3D/marketing/banners/banner-coup-master.png">
-  <meta property="og:image:alt" content="Banner do Coup Master 3D">
+  <meta property="og:image:alt" content="Banner do Coup Master">
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content=">Coup Master 3D | Jogue Coup Online com os Amigos">
+  <meta name="twitter:title" content="Coup Master | Jogue Coup Online com os Amigos">
   <meta name="twitter:description"
-    content="Mesa virtual 3D para jogar Coup Online no navegador com cartas, moedas, salas privadas e experiência sandbox.">
+    content="Mesa de cartas 2.5D para jogar Coup Master online no navegador.">
   <meta name="twitter:image"
     content="https://gabrielbarbosa0.github.io/Coup-Master-3D/marketing/banners/banner-coup-master.png">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://www.gstatic.com">
 
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800;900&display=swap"
-    rel="stylesheet">
-
-  <link rel="stylesheet" href="css/three-board.css?v=boot-loading">
+  <link rel="stylesheet" href="css/three-board.css?v=balatro-board-v5">
 
   <script type="importmap">
     {
       "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/",
-        "@dimforge/rapier3d-compat": "https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.14.0/rapier.es.js"
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js"
       }
     }
   </script>
@@ -73,7 +66,7 @@
     <div id="bootLoadingOverlay" class="boot-loading" role="status" aria-live="polite">
       <div class="boot-loading-content">
         <h1>Coup Master</h1>
-        <p>Carregando mesa...</p>
+        <p>Preparando partida...</p>
       </div>
     </div>
 
@@ -87,12 +80,6 @@
         <img src="assets/img/icons/cached.svg" alt="">
       </button>
     </section>
-
-    <section id="roomPlayerListPanel" class="room-player-list-panel" aria-label="Jogadores da sala">
-      <div id="roomPlayerList" class="room-player-list"></div>
-    </section>
-
-    <!-- <pre id="cameraDebug" class="camera-debug" aria-label="Coordenadas da câmera"></pre> -->
 
     <section class="hud top-actions" aria-label="Menus rápidos">
       <div class="hud-actions" aria-label="Menus rápidos">
@@ -128,8 +115,8 @@
       <button id="roomCodeStatus" class="room-code-status" type="button" title="Copiar código da sala">Sala:
         ----</button>
       <span id="deckCount">Deck: 0</span>
-      <span id="tableCount">Mesa: 0</span>
-      <span id="objectCount">Objetos: 0</span>
+      <span id="tableCount">Cemitério: 0</span>
+      <span id="objectCount">Asilo: 0</span>
     </div>
 
     <section class="hud side-actions" aria-label="Chat e histórico">
@@ -142,42 +129,8 @@
     </section>
 
     <section class="hud quick-actions" aria-label="Controles">
-      <button id="drawBtn" type="button" title="Comprar" aria-label="Comprar" style="display: none;">
-        <img src="assets/img/icons/pen-paper.svg" alt="">
-      </button>
-      <button id="goldCoinBtn" type="button" title="Ouro" aria-label="Ouro">
-        <img src="assets/img/icons/v-romano.svg" alt="">
-      </button>
-      <button id="silverCoinBtn" type="button" title="Prata" aria-label="Prata">
-        <img src="assets/img/icons/i-romano.svg" alt="">
-      </button>
-      <button id="asylumCardBtn" type="button" title="Asilo" aria-label="Asilo">
-        <img src="assets/img/icons/church.svg" alt="">
-      </button>
-      <button id="religionCardBtn" type="button" title="Religião" aria-label="Religião">
-        <img src="assets/img/icons/shield-cross.svg" alt="">
-      </button>
-      <button id="diceBtn" type="button" style="display: none;">Dado</button>
-      <button id="rollBtn" type="button" style="display: none;">Rolar</button>
-
-      <button id="shuffleBtn" type="button" style="display: none;">Embaralhar</button>
-      <button id="dealBtn" type="button" title="Distribuir" aria-label="Distribuir">
-        <img src="assets/img/icons/distribute-cards.svg" alt="">
-      </button>
-      <button id="rotateLeftBtn" type="button" title="Girar esquerda" aria-label="Girar para esquerda">
-        <img src="assets/img/icons/arrow.svg" alt="">
-      </button>
-      <button id="rotateRightBtn" type="button" title="Girar direita" aria-label="Girar para direita">
-        <img class="mirror-x" src="assets/img/icons/arrow.svg" alt="">
-      </button>
-      <button id="deleteSelectionBtn" type="button" title="Deletar" aria-label="Deletar seleção">
-        <img src="assets/img/icons/delete.svg" alt="">
-      </button>
       <button id="flipSelectionBtn" type="button" title="Virar" aria-label="Virar carta">
         <img src="assets/img/icons/flip.svg" alt="">
-      </button>
-      <button id="focusCameraBtn" type="button" title="Focar câmera" aria-label="Focar câmera">
-        <img src="assets/img/icons/focus.svg" alt="">
       </button>
     </section>
 
@@ -462,7 +415,7 @@
   </main>
 
   <script type="module" src="js/pwa.js"></script>
-  <script type="module" src="js/three/boot.js?v=boot-loading"></script>
+  <script type="module" src="js/three/boot.js?v=balatro-board-v5"></script>
 </body>
 
 </html>

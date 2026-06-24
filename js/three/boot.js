@@ -74,7 +74,7 @@ leaveRoomBtn?.addEventListener('click', async () => {
   location.assign('lobby.html');
 });
 
-await import('./app.js');
+await import('./app.js?v=balatro-board-v5');
 window.CoupMaster3D?.setAdminRole?.(isAdmin);
 
 let syncReady = false;
