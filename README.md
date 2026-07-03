@@ -70,7 +70,7 @@ Isso mantém o MVP mais leve, reduz escritas no Firebase e evita travamentos vis
 - Login com Google Authentication via Firebase.
 - Login como visitante anônimo.
 - Lobby em `lobby.html`.
-- Instalação opcional como PWA com o nome **Coup Master**.
+- Instalação opcional como PWA com o nome **Coup Master 3D**.
 - Execução em janela própria no modo `standalone`, sem a barra comum do navegador.
 - Criação de salas com código curto de 4 caracteres.
 - Entrada direta em sala existente.
@@ -361,7 +361,7 @@ http://127.0.0.1:4173/index.html?room=ABCD
 ### Testar a instalação PWA
 
 1. Abra `http://127.0.0.1:4173/login.html` no Chrome ou Edge.
-2. Aguarde o botão **Instalar Coup Master** aparecer.
+2. Aguarde o botão **Instalar Coup Master 3D** aparecer.
 3. Confirme a instalação no prompt nativo do navegador.
 4. Abra o jogo pelo ícone criado no sistema.
 

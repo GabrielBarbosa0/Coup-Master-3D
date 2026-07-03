@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Coup Master",
-  "short_name": "Coup Master",
+  "name": "Coup Master 3D",
+  "short_name": "Coup Master 3D",
   "description": "Mesa 3D sandbox online para jogar Coup com amigos.",
   "lang": "pt-BR",
   "start_url": "./login.html?source=pwa",

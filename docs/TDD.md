@@ -153,7 +153,7 @@ O chat casual usa `chatMessages` com limite de leitura das ultimas mensagens. O 
 
 A distribuicao instalavel usa:
 
-- `manifest.webmanifest`: nome `Coup Master`, tema escuro, `start_url` no login e `display: standalone`;
+- `manifest.webmanifest`: nome `Coup Master 3D`, tema escuro, `start_url` no login e `display: standalone`;
 - `service-worker.js`: navegacao network-first e cache stale-while-revalidate para assets locais;
 - `js/pwa.js`: registro do service worker, prompt de instalacao e orientacao para iOS;
 - icones `192x192` e `512x512` em `assets/img/logo/`.

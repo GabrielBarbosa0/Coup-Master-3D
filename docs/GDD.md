@@ -36,7 +36,7 @@ O projeto agora possui uma primeira camada online para autenticacao, lobby e pre
 
 - Login Google ou visitante anonimo em `login.html`.
 - Lobby em `lobby.html` para criar uma sala curta ou entrar por codigo.
-- PWA opcional com nome `Coup Master`, icone proprio e exibicao `standalone`.
+- PWA opcional com nome `Coup Master 3D`, icone proprio e exibicao `standalone`.
 - O fluxo instalado inicia no login e reutiliza a sessao Firebase para seguir ao lobby.
 - Jogadores salvos em `rooms/{roomCode}/players/{uid}` no Firebase Realtime Database.
 - Lista de jogadores da sala sincronizada na mesa, com assentos reservados por conta.

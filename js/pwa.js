@@ -27,7 +27,7 @@ window.addEventListener('beforeinstallprompt', (event) => {
 window.addEventListener('appinstalled', () => {
   deferredInstallPrompt = null;
   hideInstallButton();
-  setInstallStatus('Coup Master instalado.');
+  setInstallStatus('Coup Master 3D instalado.');
 });
 
 if (!isStandalone && isIos) {
