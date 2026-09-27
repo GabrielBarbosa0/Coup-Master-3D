@@ -65,6 +65,25 @@
     "joinedRoom": "Você entrou na sala. Abrindo mesa...",
     "joinRoomError": "Não foi possível entrar na sala."
   },
+  "feedback": {
+    "title": "Feedback & Sugestões",
+    "introLine1": "Conte o que aconteceu ou mande",
+    "introLine2": "uma ideia para melhorar o jogo.",
+    "typeLabel": "Tipo de feedback",
+    "typeBug": "Bug",
+    "typeCardSuggestion": "Sugestão de carta",
+    "typeGeneralSuggestion": "Sugestão geral",
+    "typeVisualIssue": "Problema visual",
+    "typeConnectionIssue": "Problema de conexão",
+    "messageLabel": "O que aconteceu ou qual sua ideia?",
+    "messagePlaceholder": "Descreva aqui...",
+    "emailLabel": "Seu e-mail, se quiser retorno",
+    "emailPlaceholder": "voce@email.com",
+    "submitting": "Enviando feedback...",
+    "sending": "Enviando...",
+    "success": "Feedback enviado. Obrigado por ajudar o Coup Master!",
+    "error": "Não foi possível enviar agora. Tente novamente em instantes."
+  },
   "three": {
     "title": "Coup Master 3D | Jogue Coup Online com os Amigos",
     "description": "Coup Master 3D é uma mesa virtual sandbox online para jogar Coup no navegador",

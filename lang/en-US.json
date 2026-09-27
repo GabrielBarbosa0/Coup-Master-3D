@@ -65,6 +65,25 @@
     "joinedRoom": "You joined the room. Opening table...",
     "joinRoomError": "Could not join the room."
   },
+  "feedback": {
+    "title": "Feedback & Suggestions",
+    "introLine1": "Tell us what happened or send",
+    "introLine2": "an idea to improve the game.",
+    "typeLabel": "Feedback type",
+    "typeBug": "Bug",
+    "typeCardSuggestion": "Card suggestion",
+    "typeGeneralSuggestion": "General suggestion",
+    "typeVisualIssue": "Visual issue",
+    "typeConnectionIssue": "Connection issue",
+    "messageLabel": "What happened or what is your idea?",
+    "messagePlaceholder": "Describe it here...",
+    "emailLabel": "Your email, if you want a reply",
+    "emailPlaceholder": "you@email.com",
+    "submitting": "Sending feedback...",
+    "sending": "Sending...",
+    "success": "Feedback sent. Thank you for helping Coup Master!",
+    "error": "Could not send it right now. Try again in a moment."
+  },
   "three": {
     "title": "Coup Master 3D | Play Coup Online with Friends",
     "description": "Coup Master 3D is an online sandbox virtual table for playing Coup in the browser",

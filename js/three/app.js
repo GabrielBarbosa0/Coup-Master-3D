@@ -21,6 +21,7 @@ import {
   setChatMessages,
   setupChatPanel
 } from './chat-service.js';
+import { setupFeedbackService } from './feedback-service.js';
 import {
   refreshOpenPlayerInfoModal,
   renderRoomPlayerList,
@@ -653,8 +654,23 @@ function setupSettingsModal() {
   });
 
   closeSettingsBtn?.addEventListener('click', () => closeModal(settingsModal));
-  feedbackBtn?.addEventListener('click', () => openModal(feedbackModal));
-  closeFeedbackBtn?.addEventListener('click', () => closeModal(feedbackModal));
+  setupFeedbackService({
+    feedbackBtn,
+    feedbackModal,
+    closeFeedbackBtn,
+    cancelFeedbackBtn: dom.cancelFeedbackBtn,
+    feedbackForm: dom.feedbackForm,
+    feedbackStatus: dom.feedbackStatus,
+    feedbackPage: dom.feedbackPage,
+    feedbackRoom: dom.feedbackRoom,
+    feedbackPlayer: dom.feedbackPlayer,
+    feedbackDate: dom.feedbackDate,
+    openModal,
+    closeModal,
+    getRoomCode: () => window.CoupMaster3DOnline?.roomCode || new URLSearchParams(location.search).get('room') || '',
+    getPlayerName: () => window.CoupMaster3DOnline?.playerName || window.CoupMaster3DOnline?.user?.displayName || 'Visitante',
+    t
+  });
   spectatorBtn?.addEventListener('click', openSpectatorModal);
   setupFullscreenControl();
   setupRulesGuidesUi({

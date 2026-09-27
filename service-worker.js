@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'coup-master-pwa-v27';
+const CACHE_VERSION = 'coup-master-pwa-v28';
 const APP_SHELL = [
   './',
   './index.html',
@@ -30,6 +30,7 @@ const APP_SHELL = [
   './js/three/deck-config-service.js',
   './js/three/deck-system.js',
   './js/three/dom.js',
+  './js/three/feedback-service.js',
   './js/three/input-controller.js',
   './js/three/modal-service.js',
   './js/three/object-system.js',
