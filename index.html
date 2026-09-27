@@ -55,7 +55,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800;900&display=swap"
     rel="stylesheet">
 
-  <link rel="stylesheet" href="css/three-board.css?v=boot-loading">
+  <link rel="stylesheet" href="css/loading.css">
+  <link rel="stylesheet" href="css/three-board.css?v=original-loading-v1">
 
   <script type="importmap">
     {
@@ -72,10 +73,10 @@
   <main id="threeApp">
     <canvas id="threeCanvas"></canvas>
 
-    <div id="bootLoadingOverlay" class="boot-loading" role="status" aria-live="polite">
-      <div class="boot-loading-content">
-        <h1>Coup Master</h1>
-        <p data-i18n="three.loadingTable">Carregando mesa...</p>
+    <div id="bootLoadingOverlay" class="game-loading-overlay" role="status" aria-live="polite">
+      <div class="game-loading-content">
+        <p id="bootLoadingMessage" data-i18n="three.loadingTable"><span data-loading-lang="pt-BR">Carregando mesa...</span><span
+            data-loading-lang="en-US">Loading table...</span></p>
       </div>
     </div>
 
@@ -510,7 +511,7 @@
 
   <script src="js/i18n/language-service.js" defer></script>
   <script type="module" src="js/pwa.js"></script>
-  <script type="module" src="js/three/boot.js?v=boot-loading"></script>
+  <script type="module" src="js/three/boot.js?v=original-loading-v1"></script>
 </body>
 
 </html>

@@ -28,8 +28,17 @@ const user = await requireAuth('login.html');
 
 // Mostra a mesa apenas depois que autenticacao, sala e estado inicial estiverem prontos.
 function revealTable() {
+  const loadingOverlay = document.getElementById('bootLoadingOverlay');
   document.body.classList.remove('is-booting');
   document.body.classList.add('is-ready');
+
+  if (!loadingOverlay) return;
+  loadingOverlay.classList.add('hidden');
+  window.setTimeout(() => {
+    if (loadingOverlay.classList.contains('hidden')) {
+      loadingOverlay.style.display = 'none';
+    }
+  }, 520);
 }
 
 if (!user) {

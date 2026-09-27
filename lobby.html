@@ -9,8 +9,8 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="Coup Master 3D">
-  <title>Lobby | Coup Master 3D</title>
+  <meta name="apple-mobile-web-app-title" content="Coup Master">
+  <title>Lobby | Coup Master</title>
   <script src="js/i18n/initial-language.js"></script>
   <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
   <link rel="apple-touch-icon" href="assets/img/logo/coup-master-512x512.png">
@@ -19,48 +19,130 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://www.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/online.css">
+  <link rel="stylesheet" href="css/lobby.css">
+  <link rel="stylesheet" href="css/loading.css">
+  <link rel="stylesheet" href="css/compat.css">
 </head>
 
-<body>
-  <main class="online-shell">
-    <section class="online-panel" aria-labelledby="lobbyTitle">
-      <h1 id="lobbyTitle" data-i18n="lobby.heading">Lobby</h1>
+<body class="lobby-page">
+  <button id="logout-btn" class="logout-floating-btn" type="button" hidden aria-label="Sair da conta"
+    data-i18n-aria-label="lobby.signOut">
+    <img src="assets/img/icons/logout.svg" alt="" aria-hidden="true">
+  </button>
 
-      <div class="profile-row">
-        <img id="userAvatar" src="assets/img/logo/favicon-coup-master.png" alt="">
-        <span id="userName">Jogador</span>
-        <button id="signOutBtn" class="secondary-btn" type="button" data-i18n="lobby.signOut">Sair</button>
-      </div>
+  <a id="landingReturnBtn" class="landing-return-floating-btn" href="https://coupmaster.com.br/" aria-label="Voltar para a pagina inicial"
+    data-i18n-aria-label="lobby.backToLanding">
+    <img src="assets/img/icons/home.svg" alt="" aria-hidden="true">
+  </a>
 
-      <div class="online-actions">
-        <button id="createRoomBtn" class="primary-btn" type="button" data-i18n="lobby.createRoom">Criar sala</button>
-        <button class="secondary-btn pwa-install-btn" type="button" data-pwa-install data-i18n="pwa.install" hidden>
-          Instalar Coup Master 3D
-        </button>
-      </div>
-
-      <div class="room-form">
-        <label for="lobbyLanguageSelect" data-i18n="language.label">Idioma</label>
-        <select id="lobbyLanguageSelect" data-language-select aria-label="Idioma" data-i18n-aria-label="language.label">
-          <option value="pt-BR" data-i18n="language.portuguese">Português</option>
+  <nav class="lobby-floating-actions" aria-label="Atalhos do lobby">
+    <a id="discordBtn" class="discord-floating-btn is-disabled" href="#" aria-disabled="true" aria-label="Discord" data-i18n-aria-label="lobby.discord">
+      <img src="assets/img/icons/discord.svg" alt="" aria-hidden="true">
+    </a>
+    <button id="leaderboardBtn" class="leaderboard-floating-btn is-disabled" type="button" disabled aria-label="Classificacao mundial"
+      data-i18n-aria-label="lobby.leaderboard">
+      <img src="assets/img/icons/trophy.svg" alt="" aria-hidden="true">
+    </button>
+    <details class="language-floating">
+      <summary class="language-floating-toggle" aria-label="Idioma" data-i18n-aria-label="language.label">
+        <img src="assets/img/icons/translate.svg" alt="" aria-hidden="true">
+      </summary>
+      <div class="language-floating-panel">
+        <label class="language-switcher" for="languageSelectLobby" data-i18n="language.label">Idioma</label>
+        <select id="languageSelectLobby" data-language-select aria-label="Idioma" data-i18n-aria-label="language.label">
+          <option value="pt-BR" data-i18n="language.portuguese">Portugues</option>
           <option value="en-US" data-i18n="language.english">English</option>
         </select>
       </div>
+    </details>
+  </nav>
 
-      <div class="divider"></div>
+  <div class="lobby-box">
+    <h1>Coup Master</h1>
 
-      <form id="joinRoomForm" class="room-form">
-        <label for="roomCodeInput" data-i18n="lobby.joinExisting">Entrar em sala existente</label>
-        <input id="roomCodeInput" name="roomCode" type="text" maxlength="4" autocomplete="off" placeholder="CODIGO"
-          data-i18n-placeholder="lobby.roomPlaceholder">
-        <button class="secondary-btn" type="submit" data-i18n="lobby.joinRoom">Entrar na sala</button>
-      </form>
+    <div id="user-info">
+      <img id="user-photo" src="assets/img/logo/favicon-coup-master.png" alt="Foto" title="Ver estatísticas" tabindex="0"
+        data-i18n-alt="lobby.userPhotoAlt">
+
+      <div class="welcome-text">
+        <span data-i18n="lobby.welcome">BEM-VINDO,</span><br> <span id="user-name"></span>!
+      </div>
+    </div>
+
+    <div id="room-actions" class="room-actions">
+      <fieldset class="game-mode-selector">
+        <legend data-i18n="lobby.modeLegend">Modo da nova sala</legend>
+          <div class="game-mode-options-scroll">
+
+          <label class="game-mode-option">
+            <input type="radio" name="game-mode" value="casual" checked>
+            <span class="game-mode-option-content">
+              <strong data-i18n="lobby.casualMode">Casual</strong>
+              <small data-i18n="lobby.casualModeHint">Mesa livre</small>
+            </span>
+          </label>
+
+          <label class="game-mode-option">
+            <input id="ranked-mode-input" type="radio" name="game-mode" value="ranked" disabled>
+            <span class="game-mode-option-content">
+              <strong data-i18n="lobby.rankedMode">Ranqueado</strong>
+              <small data-i18n="lobby.rankedModeHint">Baralho padrão</small>
+            </span>
+          </label>
+
+          <label class="game-mode-option">
+            <input id="personalized-mode-input" type="radio" name="game-mode" value="personalized" disabled>
+            <span class="game-mode-option-content">
+              <strong data-i18n="lobby.customMode">Sala Personalizada</strong>
+              <small data-i18n="lobby.customModeHint">Amigos e bots IA</small>
+            </span>
+          </label>
+          </div>
+      </fieldset>
+
+      <p id="ranked-mode-note" class="ranked-mode-note">
+        Mesa livre para jogar com amigos e baralhos personalizados.
+      </p>
+
+      <input type="text" id="room-code-input" maxlength="4" autocomplete="off" placeholder="CÓDIGO (EX: XJ94)"
+        data-i18n-placeholder="lobby.roomPlaceholder">
+      <button id="join-room-btn" data-i18n="lobby.joinRoom">ENTRAR NA SALA</button>
+      <button id="create-room-btn" data-i18n="lobby.createRoom">CRIAR NOVA SALA</button>
 
       <div id="lobbyStatus" class="status-text" role="status" aria-live="polite"></div>
-      <p class="pwa-install-status" data-pwa-status role="status" aria-live="polite"></p>
-    </section>
-  </main>
+    </div>
+  </div>
+
+  <footer class="legal-footer lobby-legal-links" aria-label="Documentos legais" data-i18n-aria-label="common.legalDocuments">
+    <a href="#" class="legal-footer-link is-disabled" aria-disabled="true">
+      <img src="assets/img/icons/parchment.svg" alt="" aria-hidden="true">
+      <span data-i18n="common.privacy">Privacidade</span>
+    </a>
+    <a href="#" class="legal-footer-link is-disabled" aria-disabled="true">
+      <img src="assets/img/icons/gavel.svg" alt="" aria-hidden="true">
+      <span data-i18n="common.terms">Termos</span>
+    </a>
+  </footer>
+
+  <div id="logoutConfirmModal" class="modal-overlay logout-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="logoutConfirmTitle">
+    <div class="modal-content logout-confirm-content">
+      <button id="closeLogoutConfirmModalBtn" class="close-btn logout-confirm-close" type="button" aria-label="Fechar"
+        data-i18n-aria-label="common.close">×</button>
+      <h2 id="logoutConfirmTitle" data-i18n="lobby.logoutConfirmTitle">Sair da conta?</h2>
+      <p data-i18n="lobby.logoutConfirmText">Voce precisara entrar novamente para acessar suas salas.</p>
+      <div class="logout-confirm-actions">
+        <button id="cancelLogoutBtn" class="logout-confirm-cancel" type="button" data-i18n="common.cancel">Cancelar</button>
+        <button id="confirmLogoutBtn" class="logout-confirm-action" type="button" data-i18n="lobby.signOut">Sair</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="font-loader" class="loader-overlay" role="status" aria-live="polite">
+    <div class="loader-content">
+      <p id="loader-message" data-i18n="lobby.loading"><span data-loading-lang="pt-BR">Carregando lobby...</span><span
+          data-loading-lang="en-US">Loading lobby...</span></p>
+    </div>
+  </div>
 
   <script src="js/i18n/language-service.js" defer></script>
   <script type="module" src="js/pwa.js"></script>

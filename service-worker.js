@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'coup-master-pwa-v25';
+const CACHE_VERSION = 'coup-master-pwa-v27';
 const APP_SHELL = [
   './',
   './index.html',
@@ -6,6 +6,9 @@ const APP_SHELL = [
   './lobby.html',
   './manifest.webmanifest',
   './css/online.css',
+  './css/lobby.css',
+  './css/loading.css',
+  './css/compat.css',
   './css/three-board.css',
   './js/pwa.js',
   './js/i18n/initial-language.js',
@@ -39,9 +42,18 @@ const APP_SHELL = [
   './lang/pt-BR.json',
   './lang/en-US.json',
   './assets/fonts/tilda-script-bold.woff2',
+  './assets/fonts/tilda-script-bold.otf',
+  './assets/fonts/Cinzel-VariableFont_wght.ttf',
   './assets/img/logo/favicon-coup-master.png',
   './assets/img/logo/coup-master-192x192.png',
-  './assets/img/logo/coup-master-512x512.png'
+  './assets/img/logo/coup-master-512x512.png',
+  './assets/img/icons/discord.svg',
+  './assets/img/icons/gavel.svg',
+  './assets/img/icons/google.svg',
+  './assets/img/icons/home.svg',
+  './assets/img/icons/logout.svg',
+  './assets/img/icons/translate.svg',
+  './assets/img/icons/trophy.svg'
 ];
 
 // Prepara o shell minimo para abrir a PWA mesmo durante uma falha de rede.

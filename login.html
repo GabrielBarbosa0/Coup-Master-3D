@@ -9,8 +9,8 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="Coup Master 3D">
-  <title>Entrar | Coup Master 3D</title>
+  <meta name="apple-mobile-web-app-title" content="Coup Master">
+  <title>Login | Coup Master</title>
   <script src="js/i18n/initial-language.js"></script>
   <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
   <link rel="apple-touch-icon" href="assets/img/logo/coup-master-512x512.png">
@@ -19,36 +19,65 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://www.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/online.css">
+  <link rel="stylesheet" href="css/lobby.css">
+  <link rel="stylesheet" href="css/loading.css">
+  <link rel="stylesheet" href="css/compat.css">
 </head>
 
-<body>
-  <main class="online-shell">
-    <section class="online-panel" aria-labelledby="loginTitle">
-      <h1 id="loginTitle">Coup Master</h1>
-      <!-- <p>Entre com sua conta Google para criar uma mesa online ou participar de uma sala.</p> -->
-      <div class="login-title-spacer" aria-hidden="true"></div>
+<body class="login-page">
+  <details class="language-floating">
+    <summary class="language-floating-toggle" aria-label="Idioma" data-i18n-aria-label="language.label">
+      <img src="assets/img/icons/translate.svg" alt="" aria-hidden="true">
+    </summary>
+    <div class="language-floating-panel">
+      <label class="language-switcher" for="languageSelectLogin" data-i18n="language.label">Idioma</label>
+      <select id="languageSelectLogin" data-language-select aria-label="Idioma" data-i18n-aria-label="language.label">
+        <option value="pt-BR" data-i18n="language.portuguese">Portugues</option>
+        <option value="en-US" data-i18n="language.english">English</option>
+      </select>
+    </div>
+  </details>
 
-      <div class="online-actions">
-        <button id="googleLoginBtn" class="primary-btn" type="button" data-i18n="login.google">Entrar com Google</button>
-        <button id="guestLoginBtn" class="secondary-btn" type="button" data-i18n="login.guest">Entrar como visitante</button>
-        <button class="secondary-btn pwa-install-btn" type="button" data-pwa-install data-i18n="pwa.install" hidden>
-          Instalar Coup Master 3D
+  <main class="lobby-box auth-box">
+    <h1>Coup Master</h1>
+    <p class="auth-subtitle" data-i18n="login.subtitle">Entre para criar ou acessar uma sala.</p>
+
+    <div class="auth-actions">
+        <button id="google-login-btn" class="auth-btn google-auth-btn" type="button">
+          <img src="assets/img/icons/google.svg" alt="G" class="google-icon">
+          <span data-i18n="login.google">Entrar com Google</span>
         </button>
-      </div>
 
-      <div class="room-form">
-        <label for="loginLanguageSelect" data-i18n="language.label">Idioma</label>
-        <select id="loginLanguageSelect" data-language-select aria-label="Idioma" data-i18n-aria-label="language.label">
-          <option value="pt-BR" data-i18n="language.portuguese">Português</option>
-          <option value="en-US" data-i18n="language.english">English</option>
-        </select>
-      </div>
+        <button id="anonymous-login-btn" class="auth-btn anonymous-auth-btn" type="button">
+          <span data-i18n="login.guest">Entrar como visitante</span>
+        </button>
 
-      <div id="loginStatus" class="status-text" role="status" aria-live="polite"></div>
-      <p class="pwa-install-status" data-pwa-status role="status" aria-live="polite"></p>
-    </section>
+        <button id="installPwaBtn" class="auth-btn install-auth-btn" type="button" data-pwa-install hidden>
+          <span data-i18n="pwa.install">Instalar Coup Master</span>
+        </button>
+    </div>
+
+    <div id="loginStatus" class="status-text" role="status" aria-live="polite"></div>
+    <p class="pwa-install-status" data-pwa-status role="status" aria-live="polite"></p>
   </main>
+
+  <footer class="legal-footer" aria-label="Documentos legais" data-i18n-aria-label="common.legalDocuments">
+    <a href="#" class="legal-footer-link is-disabled" aria-disabled="true">
+      <img src="assets/img/icons/parchment.svg" alt="" aria-hidden="true">
+      <span data-i18n="common.privacy">Privacidade</span>
+    </a>
+    <a href="#" class="legal-footer-link is-disabled" aria-disabled="true">
+      <img src="assets/img/icons/gavel.svg" alt="" aria-hidden="true">
+      <span data-i18n="common.terms">Termos</span>
+    </a>
+  </footer>
+
+  <div id="font-loader" class="loader-overlay" role="status" aria-live="polite">
+    <div class="loader-content">
+      <p id="loader-message" data-i18n="login.sessionLoading"><span data-loading-lang="pt-BR">Verificando sessão...</span><span
+          data-loading-lang="en-US">Checking session...</span></p>
+    </div>
+  </div>
 
   <script src="js/i18n/language-service.js" defer></script>
   <script type="module" src="js/pwa.js"></script>
