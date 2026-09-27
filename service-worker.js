@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'coup-master-pwa-v24';
+const CACHE_VERSION = 'coup-master-pwa-v25';
 const APP_SHELL = [
   './',
   './index.html',
@@ -8,6 +8,8 @@ const APP_SHELL = [
   './css/online.css',
   './css/three-board.css',
   './js/pwa.js',
+  './js/i18n/initial-language.js',
+  './js/i18n/language-service.js',
   './js/firebase/login-page.js',
   './js/firebase/lobby-page.js',
   './js/firebase/auth-service.js',
@@ -34,6 +36,8 @@ const APP_SHELL = [
   './js/three/scene-table.js',
   './js/three/stack-system.js',
   './js/three/table-sync-service.js',
+  './lang/pt-BR.json',
+  './lang/en-US.json',
   './assets/fonts/tilda-script-bold.woff2',
   './assets/img/logo/favicon-coup-master.png',
   './assets/img/logo/coup-master-192x192.png',

@@ -7,6 +7,10 @@ const isStandalone = window.matchMedia('(display-mode: standalone)').matches
 let deferredInstallPrompt = null;
 let installStatusTimer = null;
 
+function t(key, params = {}, fallback = key) {
+  return window.CoupLanguage?.t?.(key, params, fallback) || fallback;
+}
+
 // Registra o service worker apenas em contextos seguros suportados pelo navegador.
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
   window.addEventListener('load', () => {
@@ -27,7 +31,7 @@ window.addEventListener('beforeinstallprompt', (event) => {
 window.addEventListener('appinstalled', () => {
   deferredInstallPrompt = null;
   hideInstallButton();
-  setInstallStatus('Coup Master 3D instalado.');
+  setInstallStatus(t('pwa.installed', {}, 'Coup Master 3D instalado.'));
 });
 
 if (!isStandalone && isIos) {
@@ -46,7 +50,7 @@ installButton?.addEventListener('click', async () => {
   }
 
   if (isIos) {
-    setInstallStatus('No Safari, toque em Compartilhar e depois em Adicionar a Tela de Inicio.');
+    setInstallStatus(t('pwa.iosInstall', {}, 'No Safari, toque em Compartilhar e depois em Adicionar a Tela de Inicio.'));
   }
 });
 

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-i18n-title="three.title">
 
 <head>
   <meta charset="utf-8">
@@ -12,9 +12,11 @@
   <meta name="apple-mobile-web-app-title" content="Coup Master 3D">
 
   <title>Coup Master 3D | Jogue Coup Online com os Amigos</title>
+  <script src="js/i18n/initial-language.js"></script>
 
   <meta name="description"
-    content="Coup Master 3D é uma mesa virtual sandbox online para jogar Coup no navegador">
+    content="Coup Master 3D é uma mesa virtual sandbox online para jogar Coup no navegador"
+    data-i18n-content="three.description">
 
   <meta name="keywords"
     content="coup online, jogar coup, coup 3d, coup master 3d, jogo de blefe online, jogo de cartas online, tabletop simulator browser, mesa 3d online, three.js game, webgl game, coup multiplayer, jogo sandbox online, firebase multiplayer">
@@ -73,110 +75,131 @@
     <div id="bootLoadingOverlay" class="boot-loading" role="status" aria-live="polite">
       <div class="boot-loading-content">
         <h1>Coup Master</h1>
-        <p>Carregando mesa...</p>
+        <p data-i18n="three.loadingTable">Carregando mesa...</p>
       </div>
     </div>
 
-    <section class="hud reset-actions" aria-label="Reset">
+    <section class="hud reset-actions" aria-label="Reset" data-i18n-aria-label="three.reset">
       <button id="leaveRoomBtn3d" class="settings-btn leave-room-btn" type="button" title="Sair da sala"
-        aria-label="Sair da sala">
+        aria-label="Sair da sala" data-i18n-title="three.leaveRoom" data-i18n-aria-label="three.leaveRoom">
         <img src="assets/img/icons/logout.svg" alt="">
       </button>
       <button id="resetBtn3d" class="settings-btn reset-icon-btn" type="button" title="Resetar mesa"
-        aria-label="Resetar mesa">
+        aria-label="Resetar mesa" data-i18n-title="three.resetTable" data-i18n-aria-label="three.resetTable">
         <img src="assets/img/icons/cached.svg" alt="">
       </button>
     </section>
 
-    <section id="roomPlayerListPanel" class="room-player-list-panel" aria-label="Jogadores da sala">
+    <section id="roomPlayerListPanel" class="room-player-list-panel" aria-label="Jogadores da sala"
+      data-i18n-aria-label="three.roomPlayers">
       <div id="roomPlayerList" class="room-player-list"></div>
     </section>
 
     <!-- <pre id="cameraDebug" class="camera-debug" aria-label="Coordenadas da câmera"></pre> -->
 
-    <section class="hud top-actions" aria-label="Menus rápidos">
-      <div class="hud-actions" aria-label="Menus rápidos">
+    <section class="hud top-actions" aria-label="Menus rápidos" data-i18n-aria-label="three.quickMenus">
+      <div class="hud-actions" aria-label="Menus rápidos" data-i18n-aria-label="three.quickMenus">
         <button id="musicBtn3d" class="settings-btn music-toggle-btn" type="button" title="Mutar música"
-          aria-label="Mutar música" aria-pressed="false">
+          aria-label="Mutar música" aria-pressed="false" data-i18n-title="three.musicMute"
+          data-i18n-aria-label="three.musicMute">
           <img src="assets/img/icons/music_note.svg" alt="">
         </button>
         <button id="feedbackBtn3d" class="settings-btn" type="button" title="Enviar feedback"
-          aria-label="Enviar feedback">
+          aria-label="Enviar feedback" data-i18n-title="three.feedback" data-i18n-aria-label="three.feedback">
           <img src="assets/img/icons/feedback.svg" alt="">
         </button>
         <button id="altRulesBtn3d" class="settings-btn" type="button" title="Regras alternativas"
-          aria-label="Regras alternativas">
+          aria-label="Regras alternativas" data-i18n-title="three.alternativeRules"
+          data-i18n-aria-label="three.alternativeRules">
           <img src="assets/img/icons/parchment.svg" alt="">
         </button>
         <button id="spectatorBtn3d" class="settings-btn spectator-btn" type="button" title="Modo espectador"
-          aria-label="Modo espectador">
+          aria-label="Modo espectador" data-i18n-title="three.spectatorMode"
+          data-i18n-aria-label="three.spectatorMode">
           <img src="assets/img/icons/ghost.svg" alt="">
         </button>
-        <button id="fullscreenBtn3d" class="settings-btn" type="button" title="Tela cheia" aria-label="Tela cheia">
+        <button id="fullscreenBtn3d" class="settings-btn" type="button" title="Tela cheia" aria-label="Tela cheia"
+          data-i18n-title="three.fullscreen" data-i18n-aria-label="three.fullscreen">
           <img src="assets/img/icons/fullscreen.svg" alt="">
         </button>
-        <button id="infoBtn3d" class="settings-btn" type="button" title="Variações" aria-label="Variações">
+        <button id="infoBtn3d" class="settings-btn" type="button" title="Variações" aria-label="Variações"
+          data-i18n-title="three.variations" data-i18n-aria-label="three.variations">
           <img src="assets/img/icons/info.svg" alt="">
         </button>
-        <button id="settingsBtn3d" class="settings-btn" type="button" title="Configurações" aria-label="Configurações">
+        <button id="settingsBtn3d" class="settings-btn" type="button" title="Configurações" aria-label="Configurações"
+          data-i18n-title="three.settings" data-i18n-aria-label="three.settings">
           <img src="assets/img/icons/settings.svg" alt="">
         </button>
       </div>
     </section>
 
     <div class="status-row table-status">
-      <button id="roomCodeStatus" class="room-code-status" type="button" title="Copiar código da sala">Sala:
+      <button id="roomCodeStatus" class="room-code-status" type="button" title="Copiar código da sala"
+        data-i18n-title="three.copyRoomCode">Sala:
         ----</button>
       <span id="deckCount">Deck: 0</span>
       <span id="tableCount">Mesa: 0</span>
       <span id="objectCount">Objetos: 0</span>
     </div>
 
-    <section class="hud side-actions" aria-label="Chat e histórico">
-      <button id="historyBtn3d" class="settings-btn" type="button" title="Histórico" aria-label="Histórico">
+    <section class="hud side-actions" aria-label="Chat e histórico" data-i18n-aria-label="three.chatAndHistory">
+      <button id="historyBtn3d" class="settings-btn" type="button" title="Histórico" aria-label="Histórico"
+        data-i18n-title="three.history" data-i18n-aria-label="three.history">
         <img src="assets/img/icons/history.svg" alt="">
       </button>
-      <button id="chatBtn3d" class="settings-btn" type="button" title="Chat" aria-label="Chat">
+      <button id="chatBtn3d" class="settings-btn" type="button" title="Chat" aria-label="Chat"
+        data-i18n-title="three.chat" data-i18n-aria-label="three.chat">
         <img src="assets/img/icons/chat.svg" alt="">
       </button>
     </section>
 
-    <section class="hud quick-actions" aria-label="Controles">
-      <button id="drawBtn" type="button" title="Comprar" aria-label="Comprar" style="display: none;">
+    <section class="hud quick-actions" aria-label="Controles" data-i18n-aria-label="three.controls">
+      <button id="drawBtn" type="button" title="Comprar" aria-label="Comprar" style="display: none;"
+        data-i18n-title="three.draw" data-i18n-aria-label="three.draw">
         <img src="assets/img/icons/pen-paper.svg" alt="">
       </button>
-      <button id="goldCoinBtn" type="button" title="Ouro" aria-label="Ouro">
+      <button id="goldCoinBtn" type="button" title="Ouro" aria-label="Ouro" data-i18n-title="three.gold"
+        data-i18n-aria-label="three.gold">
         <img src="assets/img/icons/v-romano.svg" alt="">
       </button>
-      <button id="silverCoinBtn" type="button" title="Prata" aria-label="Prata">
+      <button id="silverCoinBtn" type="button" title="Prata" aria-label="Prata" data-i18n-title="three.silver"
+        data-i18n-aria-label="three.silver">
         <img src="assets/img/icons/i-romano.svg" alt="">
       </button>
-      <button id="asylumCardBtn" type="button" title="Asilo" aria-label="Asilo">
+      <button id="asylumCardBtn" type="button" title="Asilo" aria-label="Asilo" data-i18n-title="three.asylum"
+        data-i18n-aria-label="three.asylum">
         <img src="assets/img/icons/church.svg" alt="">
       </button>
-      <button id="religionCardBtn" type="button" title="Religião" aria-label="Religião">
+      <button id="religionCardBtn" type="button" title="Religião" aria-label="Religião" data-i18n-title="three.religion"
+        data-i18n-aria-label="three.religion">
         <img src="assets/img/icons/shield-cross.svg" alt="">
       </button>
-      <button id="diceBtn" type="button" style="display: none;">Dado</button>
-      <button id="rollBtn" type="button" style="display: none;">Rolar</button>
+      <button id="diceBtn" type="button" style="display: none;" data-i18n="three.die">Dado</button>
+      <button id="rollBtn" type="button" style="display: none;" data-i18n="three.roll">Rolar</button>
 
-      <button id="shuffleBtn" type="button" style="display: none;">Embaralhar</button>
-      <button id="dealBtn" type="button" title="Distribuir" aria-label="Distribuir">
+      <button id="shuffleBtn" type="button" style="display: none;" data-i18n="three.shuffle">Embaralhar</button>
+      <button id="dealBtn" type="button" title="Distribuir" aria-label="Distribuir" data-i18n-title="three.deal"
+        data-i18n-aria-label="three.deal">
         <img src="assets/img/icons/distribute-cards.svg" alt="">
       </button>
-      <button id="rotateLeftBtn" type="button" title="Girar esquerda" aria-label="Girar para esquerda">
+      <button id="rotateLeftBtn" type="button" title="Girar esquerda" aria-label="Girar para esquerda"
+        data-i18n-title="three.rotateLeft" data-i18n-aria-label="three.rotateLeft">
         <img src="assets/img/icons/arrow.svg" alt="">
       </button>
-      <button id="rotateRightBtn" type="button" title="Girar direita" aria-label="Girar para direita">
+      <button id="rotateRightBtn" type="button" title="Girar direita" aria-label="Girar para direita"
+        data-i18n-title="three.rotateRight" data-i18n-aria-label="three.rotateRight">
         <img class="mirror-x" src="assets/img/icons/arrow.svg" alt="">
       </button>
-      <button id="deleteSelectionBtn" type="button" title="Deletar" aria-label="Deletar seleção">
+      <button id="deleteSelectionBtn" type="button" title="Deletar" aria-label="Deletar seleção"
+        data-i18n-title="three.delete" data-i18n-aria-label="three.deleteSelection">
         <img src="assets/img/icons/delete.svg" alt="">
       </button>
-      <button id="flipSelectionBtn" type="button" title="Virar" aria-label="Virar carta">
+      <button id="flipSelectionBtn" type="button" title="Virar" aria-label="Virar carta"
+        data-i18n-title="three.flipCard" data-i18n-aria-label="three.flipCard">
         <img src="assets/img/icons/flip.svg" alt="">
       </button>
-      <button id="focusCameraBtn" type="button" title="Focar câmera" aria-label="Focar câmera">
+      <button id="focusCameraBtn" type="button" title="Focar câmera" aria-label="Focar câmera"
+        data-i18n-title="three.focusCamera" data-i18n-aria-label="three.focusCamera">
         <img src="assets/img/icons/focus.svg" alt="">
       </button>
     </section>
@@ -186,23 +209,34 @@
 
     <div id="settingsModal" class="modal-overlay" style="display: none;">
       <div class="modal-content">
-        <button id="closeSettingsBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
-        <h2>Configurações</h2>
+        <button id="closeSettingsBtn" class="close-btn" type="button" aria-label="Fechar"
+          data-i18n-aria-label="common.close">&times;</button>
+        <h2 data-i18n="three.settings">Configurações</h2>
 
         <div class="settings-container">
           <div class="setting-row">
-            <label for="volumeSlider">Música:</label>
+            <label for="volumeSlider" data-i18n="three.musicLabel">Música:</label>
             <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.1" style="width: 100%;">
           </div>
 
           <div class="setting-row">
-            <label for="vfxVolumeSlider">Efeitos:</label>
+            <label for="vfxVolumeSlider" data-i18n="three.effectsLabel">Efeitos:</label>
             <input type="range" id="vfxVolumeSlider" min="0" max="1" step="0.01" value="0.5" style="width: 100%;">
+          </div>
+
+          <div class="setting-row">
+            <label for="languageSelect3d" data-i18n="language.label">Idioma</label>
+            <select id="languageSelect3d" class="settings-language-select" data-language-select aria-label="Idioma"
+              data-i18n-aria-label="language.label">
+              <option value="pt-BR" data-i18n="language.portuguese">Português</option>
+              <option value="en-US" data-i18n="language.english">English</option>
+            </select>
           </div>
 
           <div class="setting-row" style="justify-content: center; margin-top: 20px;">
             <button id="openDeckConfigBtn" type="button"
-              style="background: #1e90ff; color: white; padding: 10px; border: 0; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold;">
+              style="background: #1e90ff; color: white; padding: 10px; border: 0; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold;"
+              data-i18n="three.configureDeck">
               Configurar Baralho
             </button>
           </div>
@@ -213,124 +247,125 @@
 
     <div id="configModal" class="modal-overlay" style="display: none;">
       <div class="modal-content">
-        <button id="closeConfigModalBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
-        <h2 class="config-title">Configurar Baralho</h2>
-        <p class="muted config-p-title">(Use 0 para remover uma carta)</p>
+        <button id="closeConfigModalBtn" class="close-btn" type="button" aria-label="Fechar"
+          data-i18n-aria-label="common.close">&times;</button>
+        <h2 class="config-title" data-i18n="three.configureDeck">Configurar Baralho</h2>
+        <p class="muted config-p-title" data-i18n="three.zeroToRemove">(Use 0 para remover uma carta)</p>
 
         <ul class="card-config-list">
           <div class="deck-presets-container">
-            <button type="button" class="preset-btn" data-preset="standard">Base</button>
-            <button type="button" class="preset-btn" data-preset="base_promo">Base + Promo</button>
-            <button type="button" class="preset-btn" data-preset="base_dlc1">Base + DLC 1</button>
-            <button type="button" class="preset-btn" data-preset="base_dlc2">Base + DLC 2</button>
-            <button type="button" class="preset-btn" data-preset="test">Modo Teste</button>
-            <button type="button" class="preset-btn" data-preset="clear">Zerar Tudo</button>
+            <button type="button" class="preset-btn" data-preset="standard" data-i18n="three.presetBase">Base</button>
+            <button type="button" class="preset-btn" data-preset="base_promo" data-i18n="three.presetBasePromo">Base + Promo</button>
+            <button type="button" class="preset-btn" data-preset="base_dlc1" data-i18n="three.presetBaseDlc1">Base + DLC 1</button>
+            <button type="button" class="preset-btn" data-preset="base_dlc2" data-i18n="three.presetBaseDlc2">Base + DLC 2</button>
+            <button type="button" class="preset-btn" data-preset="test" data-i18n="three.presetTest">Modo Teste</button>
+            <button type="button" class="preset-btn" data-preset="clear" data-i18n="three.presetClear">Zerar Tudo</button>
           </div>
 
           <li class="card-config-item">
-            <label for="config-duque">Duque</label>
+            <label for="config-duque" data-i18n="three.cards.duque">Duque</label>
             <input type="number" id="config-duque" data-card="duque" min="0" max="10" value="5">
           </li>
           <li class="card-config-item">
-            <label for="config-capitao">Capitão</label>
+            <label for="config-capitao" data-i18n="three.cards.capitao">Capitão</label>
             <input type="number" id="config-capitao" data-card="capitao" min="0" max="10" value="5">
           </li>
           <li class="card-config-item">
-            <label for="config-assassino">Assassino</label>
+            <label for="config-assassino" data-i18n="three.cards.assassino">Assassino</label>
             <input type="number" id="config-assassino" data-card="assassino" min="0" max="10" value="5">
           </li>
           <li class="card-config-item">
-            <label for="config-condessa">Condessa</label>
+            <label for="config-condessa" data-i18n="three.cards.condessa">Condessa</label>
             <input type="number" id="config-condessa" data-card="condessa" min="0" max="10" value="5">
           </li>
           <li class="card-config-item">
-            <label for="config-embaixador">Embaixador</label>
+            <label for="config-embaixador" data-i18n="three.cards.embaixador">Embaixador</label>
             <input type="number" id="config-embaixador" data-card="embaixador" min="0" max="10" value="5">
           </li>
           <li class="card-config-item">
-            <label for="config-inquisidor">Inquisidor</label>
+            <label for="config-inquisidor" data-i18n="three.cards.inquisidor">Inquisidor</label>
             <input type="number" id="config-inquisidor" data-card="inquisidor" min="0" max="10" value="5">
           </li>
 
           <li class="title-dlc-card-config-item">
-            <p>"Sombras do Palácio"</p>
+            <p data-i18n="three.deckGroupPromo">"Sombras do Palácio"</p>
           </li>
           <li class="card-config-item">
-            <label for="config-bufao">Bufão</label>
+            <label for="config-bufao" data-i18n="three.cards.bufao">Bufão</label>
             <input type="number" id="config-bufao" data-card="bufao" min="0" max="10" value="0">
           </li>
           <li class="card-config-item">
-            <label for="config-burocrata">Burocrata</label>
+            <label for="config-burocrata" data-i18n="three.cards.burocrata">Burocrata</label>
             <input type="number" id="config-burocrata" data-card="burocrata" min="0" max="10" value="0">
           </li>
           <li class="card-config-item">
-            <label for="config-benfeitor">Benfeitor</label>
+            <label for="config-benfeitor" data-i18n="three.cards.benfeitor">Benfeitor</label>
             <input type="number" id="config-benfeitor" data-card="benfeitor" min="0" max="10" value="0">
           </li>
           <li class="card-config-item">
-            <label for="config-burgues">Burguês</label>
+            <label for="config-burgues" data-i18n="three.cards.burgues">Burguês</label>
             <input type="number" id="config-burgues" data-card="burgues" min="0" max="10" value="0">
           </li>
 
           <li class="title-dlc-card-config-item">
-            <p>"A Revolução"</p>
+            <p data-i18n="three.deckGroupRevolution">"A Revolução"</p>
           </li>
           <li class="card-config-item">
-            <label for="config-marionetista">Marionetista</label>
+            <label for="config-marionetista" data-i18n="three.cards.marionetista">Marionetista</label>
             <input type="number" id="config-marionetista" data-card="marionetista" min="0" max="10" value="0">
           </li>
           <li class="card-config-item">
-            <label for="config-diplomata">Diplomata</label>
+            <label for="config-diplomata" data-i18n="three.cards.diplomata">Diplomata</label>
             <input type="number" id="config-diplomata" data-card="diplomata" min="0" max="10" value="0">
           </li>
           <li class="card-config-item">
-            <label for="config-mercenario">Mercenário</label>
+            <label for="config-mercenario" data-i18n="three.cards.mercenario">Mercenário</label>
             <input type="number" id="config-mercenario" data-card="mercenario" min="0" max="10" value="0">
           </li>
           <li class="card-config-item">
-            <label for="config-bispo">Bispo</label>
+            <label for="config-bispo" data-i18n="three.cards.bispo">Bispo</label>
             <input type="number" id="config-bispo" data-card="bispo" min="0" max="10" value="0">
           </li>
           <li class="card-config-item">
-            <label for="config-tesoureiro">Tesoureiro</label>
+            <label for="config-tesoureiro" data-i18n="three.cards.tesoureiro">Tesoureiro</label>
             <input type="number" id="config-tesoureiro" data-card="tesoureiro" min="0" max="10" value="0">
           </li>
           <li class="card-config-item">
-            <label for="config-vigilante">Vigilante</label>
+            <label for="config-vigilante" data-i18n="three.cards.vigilante">Vigilante</label>
             <input type="number" id="config-vigilante" data-card="vigilante" min="0" max="10" value="0">
           </li>
 
           <li class="title-dlc-card-config-item">
-            <p>"Sombras do Asilo"</p>
+            <p data-i18n="three.deckGroupShadows">"Sombras do Asilo"</p>
           </li>
           <li class="card-config-item">
-            <label for="config-pistoleiro">Pistoleiro</label>
+            <label for="config-pistoleiro" data-i18n="three.cards.pistoleiro">Pistoleiro</label>
             <input type="number" id="config-pistoleiro" data-card="pistoleiro" min="0" max="10" value="0">
           </li>
           <li class="card-config-item">
-            <label for="config-magnata">Magnata</label>
+            <label for="config-magnata" data-i18n="three.cards.magnata">Magnata</label>
             <input type="number" id="config-magnata" data-card="magnata" min="0" max="10" value="0">
           </li>
           <li class="card-config-item">
-            <label for="config-estrategista">Estrategista</label>
+            <label for="config-estrategista" data-i18n="three.cards.estrategista">Estrategista</label>
             <input type="number" id="config-estrategista" data-card="estrategista" min="0" max="10" value="0">
           </li>
           <li class="card-config-item">
-            <label for="config-ladrao">Ladrão</label>
+            <label for="config-ladrao" data-i18n="three.cards.ladrao">Ladrão</label>
             <input type="number" id="config-ladrao" data-card="ladrao" min="0" max="10" value="0">
           </li>
           <li class="card-config-item">
-            <label for="config-vigarista">Vigarista</label>
+            <label for="config-vigarista" data-i18n="three.cards.vigarista">Vigarista</label>
             <input type="number" id="config-vigarista" data-card="vigarista" min="0" max="10" value="0">
           </li>
           <li class="card-config-item">
-            <label for="config-xerife">Xerife</label>
+            <label for="config-xerife" data-i18n="three.cards.xerife">Xerife</label>
             <input type="number" id="config-xerife" data-card="xerife" min="0" max="10" value="0">
           </li>
 
           <li class="card-config-apply-item">
-            <button id="applyDeckConfigBtn" type="button">Aplicar e Resetar Jogo</button>
-            <p id="deckConfigPermissionNote" class="permission-note" hidden>Apenas o host pode aplicar.</p>
+            <button id="applyDeckConfigBtn" type="button" data-i18n="three.applyResetGame">Aplicar e Resetar Jogo</button>
+            <p id="deckConfigPermissionNote" class="permission-note" data-i18n="three.hostOnlyApplyNote" hidden>Apenas o host pode aplicar.</p>
           </li>
         </ul>
       </div>
@@ -338,7 +373,8 @@
 
     <div id="feedbackModal" class="modal-overlay" style="display: none;">
       <div class="modal-actions-and-rules" style="width: 90%; max-width: 600px; height: 80vh;">
-        <button id="closeFeedbackBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+        <button id="closeFeedbackBtn" class="close-btn" type="button" aria-label="Fechar"
+          data-i18n-aria-label="common.close">&times;</button>
         <iframe src="https://tally.so/r/obV4Gb?transparentBackground=1" width="100%" height="100%" frameborder="0"
           marginheight="0" marginwidth="0" title="Coup Master Feedback"></iframe>
       </div>
@@ -346,67 +382,72 @@
 
     <div id="spectatorModal" class="modal-overlay" style="display: none;">
       <div class="modal-content">
-        <button id="closeSpectatorBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
-        <h2>Espectar</h2>
-        <p id="spectatorStatusText" class="muted spectator-status-text">Escolha um jogador.</p>
+        <button id="closeSpectatorBtn" class="close-btn" type="button" aria-label="Fechar"
+          data-i18n-aria-label="common.close">&times;</button>
+        <h2 data-i18n="three.spectate">Espectar</h2>
+        <p id="spectatorStatusText" class="muted spectator-status-text" data-i18n="three.choosePlayer">Escolha um jogador.</p>
         <div id="spectatorPlayerList" class="spectator-player-list"></div>
       </div>
     </div>
 
     <div id="playerInfoModal" class="modal-overlay" style="display: none;">
       <div class="modal-content player-info-modal-content">
-        <button id="closePlayerInfoBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
-        <h2>Jogador</h2>
+        <button id="closePlayerInfoBtn" class="close-btn" type="button" aria-label="Fechar"
+          data-i18n-aria-label="common.close">&times;</button>
+        <h2 data-i18n="common.player">Jogador</h2>
 
         <div class="player-info-list">
-          <p><span>Nome</span><strong id="playerInfoName">Jogador</strong></p>
-          <p><span>Slot</span><strong id="playerInfoSeat">P1</strong></p>
-          <p><span>Status</span><strong id="playerInfoStatus">Online</strong></p>
-          <p><span>Perfil</span><strong id="playerInfoRole">Jogador</strong></p>
+          <p><span data-i18n="three.playerName">Nome</span><strong id="playerInfoName">Jogador</strong></p>
+          <p><span data-i18n="three.playerSeat">Slot</span><strong id="playerInfoSeat">P1</strong></p>
+          <p><span data-i18n="three.playerStatus">Status</span><strong id="playerInfoStatus">Online</strong></p>
+          <p><span data-i18n="three.playerProfile">Perfil</span><strong id="playerInfoRole">Jogador</strong></p>
         </div>
 
         <p id="playerInfoNote" class="permission-note" hidden></p>
 
         <div id="playerRemoveConfirm" class="player-remove-confirm" hidden>
-          <p>Tem certeza que deseja remover este jogador da sala?</p>
+          <p data-i18n="three.removePlayerQuestion">Tem certeza que deseja remover este jogador da sala?</p>
           <div class="player-remove-actions">
             <button id="confirmRemovePlayerBtn" class="settings-action-btn remove-player-confirm-btn"
-              type="button">Remover</button>
+              type="button" data-i18n="three.remove">Remover</button>
             <button id="cancelRemovePlayerBtn" class="settings-action-btn cancel-remove-player-btn"
-              type="button">Cancelar</button>
+              type="button" data-i18n="common.cancel">Cancelar</button>
           </div>
         </div>
 
         <button id="removePlayerBtn" class="settings-action-btn remove-player-btn" type="button"
-          hidden>Remover da sala</button>
+          hidden data-i18n="three.removeFromRoom">Remover da sala</button>
       </div>
     </div>
 
     <div id="chatModal" class="modal-overlay" style="display: none;">
       <div class="modal-content chat-modal-content">
-        <button id="closeChatBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
-        <h2>Chat</h2>
-        <p id="chatStatusText" class="muted chat-status-text">Converse com a sala.</p>
+        <button id="closeChatBtn" class="close-btn" type="button" aria-label="Fechar"
+          data-i18n-aria-label="common.close">&times;</button>
+        <h2 data-i18n="three.chat">Chat</h2>
+        <p id="chatStatusText" class="muted chat-status-text" data-i18n="three.chatSubtitle">Converse com a sala.</p>
 
         <div id="chatMessagesList" class="chat-messages-list" aria-live="polite"></div>
-        <div id="chatQuickMessages" class="chat-quick-messages" aria-label="Mensagens rápidas"></div>
+        <div id="chatQuickMessages" class="chat-quick-messages" aria-label="Mensagens rápidas"
+          data-i18n-aria-label="three.quickMessages"></div>
 
         <form id="chatForm" class="chat-form">
-          <input id="chatInput" type="text" maxlength="240" autocomplete="off" placeholder="Mensagem">
-          <button id="sendChatBtn" class="settings-action-btn" type="submit">Enviar</button>
+          <input id="chatInput" type="text" maxlength="240" autocomplete="off" placeholder="Mensagem"
+            data-i18n-placeholder="three.messagePlaceholder">
+          <button id="sendChatBtn" class="settings-action-btn" type="submit" data-i18n="common.send">Enviar</button>
         </form>
       </div>
     </div>
 
     <div id="spectatorRequestModal" class="modal-overlay" style="display: none;">
       <div class="modal-content">
-        <h2>Pedido de Espectador</h2>
+        <h2 data-i18n="three.spectatorRequestTitle">Pedido de Espectador</h2>
         <p id="spectatorRequestText" class="muted spectator-status-text"></p>
         <div class="spectator-request-actions">
           <button id="acceptSpectatorBtn" class="settings-action-btn accept-spectator-btn"
-            type="button">Aceitar</button>
+            type="button" data-i18n="three.accept">Aceitar</button>
           <button id="declineSpectatorBtn" class="settings-action-btn decline-spectator-btn"
-            type="button">Recusar</button>
+            type="button" data-i18n="three.deny">Recusar</button>
         </div>
       </div>
     </div>
@@ -414,16 +455,19 @@
     <div id="ruleCardsModal" class="modal-overlay" style="display: none;">
       <div class="modal-actions-and-rules rule-cards-modal">
         <div class="rule-card-stage">
-          <button id="closeRuleCardsBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+          <button id="closeRuleCardsBtn" class="close-btn" type="button" aria-label="Fechar"
+            data-i18n-aria-label="common.close">&times;</button>
 
           <div id="ruleFlipCard" class="rule-flip-card" role="button" tabindex="0"
-            aria-label="Alternar carta de regras">
+            aria-label="Alternar carta de regras" data-i18n-aria-label="three.ruleCardToggle">
             <div class="rule-flip-card-inner">
               <div class="rule-flip-card-face rule-flip-card-front">
-                <img id="ruleFrontImg" src="assets/img/guides/front-actions.png" alt="Regras dos personagens">
+                <img id="ruleFrontImg" src="assets/img/guides/front-actions.png" alt="Regras dos personagens"
+                  data-i18n-alt="three.rulesCharacters">
               </div>
               <div class="rule-flip-card-face rule-flip-card-back">
-                <img id="ruleBackImg" src="assets/img/guides/back-actions.png" alt="Resumo de turno">
+                <img id="ruleBackImg" src="assets/img/guides/back-actions.png" alt="Resumo de turno"
+                  data-i18n-alt="three.turnSummary">
               </div>
             </div>
           </div>
@@ -436,16 +480,19 @@
     <div id="altRulesModal" class="modal-overlay" style="display: none;">
       <div class="modal-actions-and-rules rule-cards-modal">
         <div class="rule-card-stage">
-          <button id="closeAltRulesBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+          <button id="closeAltRulesBtn" class="close-btn" type="button" aria-label="Fechar"
+            data-i18n-aria-label="common.close">&times;</button>
 
           <div id="altRuleFlipCard" class="rule-flip-card" role="button" tabindex="0"
-            aria-label="Alternar regra alternativa">
+            aria-label="Alternar regra alternativa" data-i18n-aria-label="three.altRuleToggle">
             <div class="rule-flip-card-inner">
               <div class="rule-flip-card-face rule-flip-card-front">
-                <img id="altRuleFrontImg" src="assets/img/guides/alternative-rules1.png" alt="Regra alternativa">
+                <img id="altRuleFrontImg" src="assets/img/guides/alternative-rules1.png" alt="Regra alternativa"
+                  data-i18n-alt="three.altRule">
               </div>
               <div class="rule-flip-card-face rule-flip-card-back">
-                <img id="altRuleBackImg" src="assets/img/guides/alternative-rules2.png" alt="Regra alternativa">
+                <img id="altRuleBackImg" src="assets/img/guides/alternative-rules2.png" alt="Regra alternativa"
+                  data-i18n-alt="three.altRule">
               </div>
             </div>
           </div>
@@ -461,6 +508,7 @@
     <audio id="resetVfxAudio" src="assets/sounds/vfx/reset-game.mp3" preload="auto"></audio>
   </main>
 
+  <script src="js/i18n/language-service.js" defer></script>
   <script type="module" src="js/pwa.js"></script>
   <script type="module" src="js/three/boot.js?v=boot-loading"></script>
 </body>

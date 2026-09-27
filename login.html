@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-i18n-title="login.title">
 
 <head>
   <meta charset="utf-8">
@@ -11,6 +11,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Coup Master 3D">
   <title>Entrar | Coup Master 3D</title>
+  <script src="js/i18n/initial-language.js"></script>
   <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
   <link rel="apple-touch-icon" href="assets/img/logo/coup-master-512x512.png">
   <link rel="manifest" href="manifest.webmanifest">
@@ -29,11 +30,19 @@
       <div class="login-title-spacer" aria-hidden="true"></div>
 
       <div class="online-actions">
-        <button id="googleLoginBtn" class="primary-btn" type="button">Entrar com Google</button>
-        <button id="guestLoginBtn" class="secondary-btn" type="button">Entrar como visitante</button>
-        <button class="secondary-btn pwa-install-btn" type="button" data-pwa-install hidden>
+        <button id="googleLoginBtn" class="primary-btn" type="button" data-i18n="login.google">Entrar com Google</button>
+        <button id="guestLoginBtn" class="secondary-btn" type="button" data-i18n="login.guest">Entrar como visitante</button>
+        <button class="secondary-btn pwa-install-btn" type="button" data-pwa-install data-i18n="pwa.install" hidden>
           Instalar Coup Master 3D
         </button>
+      </div>
+
+      <div class="room-form">
+        <label for="loginLanguageSelect" data-i18n="language.label">Idioma</label>
+        <select id="loginLanguageSelect" data-language-select aria-label="Idioma" data-i18n-aria-label="language.label">
+          <option value="pt-BR" data-i18n="language.portuguese">Português</option>
+          <option value="en-US" data-i18n="language.english">English</option>
+        </select>
       </div>
 
       <div id="loginStatus" class="status-text" role="status" aria-live="polite"></div>
@@ -41,6 +50,7 @@
     </section>
   </main>
 
+  <script src="js/i18n/language-service.js" defer></script>
   <script type="module" src="js/pwa.js"></script>
   <script type="module" src="js/firebase/login-page.js"></script>
 </body>

@@ -10,8 +10,12 @@ const userNameEl = document.getElementById('userName');
 const userAvatarEl = document.getElementById('userAvatar');
 const lobbyStatusEl = document.getElementById('lobbyStatus');
 
+function t(key, params = {}, fallback = key) {
+  return window.CoupLanguage?.t?.(key, params, fallback) || fallback;
+}
+
 if (user) {
-  userNameEl.textContent = user.displayName || 'Jogador';
+  userNameEl.textContent = user.displayName || t('common.player', {}, 'Jogador');
   if (user.photoURL) userAvatarEl.src = user.photoURL;
 }
 
@@ -28,15 +32,15 @@ function openCasualRoom(roomCode) {
 
 createRoomBtn?.addEventListener('click', async () => {
   createRoomBtn.disabled = true;
-  setStatus('Criando sala...');
+  setStatus(t('lobby.creatingRoom', {}, 'Criando sala...'));
 
   try {
     const roomCode = await createRoom(user);
-    setStatus('Sala criada. Abrindo mesa...');
+    setStatus(t('lobby.roomCreated', {}, 'Sala criada. Abrindo mesa...'));
     openCasualRoom(roomCode);
   } catch (error) {
     console.error(error);
-    setStatus(error.message || 'Nao foi possivel criar a sala.');
+    setStatus(error.message || t('lobby.createRoomError', {}, 'Nao foi possivel criar a sala.'));
   } finally {
     createRoomBtn.disabled = false;
   }
@@ -45,15 +49,15 @@ createRoomBtn?.addEventListener('click', async () => {
 joinRoomForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const roomCode = normalizeRoomCode(roomCodeInput.value);
-  setStatus('Entrando na sala...');
+  setStatus(t('lobby.joiningRoom', {}, 'Entrando na sala...'));
 
   try {
     await joinRoom(roomCode, user);
-    setStatus('Voce entrou na sala. Abrindo mesa...');
+    setStatus(t('lobby.joinedRoom', {}, 'Voce entrou na sala. Abrindo mesa...'));
     openCasualRoom(roomCode);
   } catch (error) {
     console.error(error);
-    setStatus(error.message || 'Nao foi possivel entrar na sala.');
+    setStatus(error.message || t('lobby.joinRoomError', {}, 'Nao foi possivel entrar na sala.'));
   }
 });
 

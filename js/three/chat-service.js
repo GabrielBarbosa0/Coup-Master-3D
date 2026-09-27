@@ -13,22 +13,26 @@ import { closeModal, openModal } from './modal-service.js';
 
 const CHAT_MESSAGE_MAX_LENGTH = 240;
 const QUICK_CHAT_MESSAGES = [
-  'Sou o Duque',
-  'Sou o Capitão',
-  'Sou a Condessa',
-  'Taxar',
-  'Extorquir',
-  'Assassinar',
-  'Trocar',
-  'Investigar',
-  'Contesto',
-  'Bloqueio'
+  ['three.quickChat.duke', 'Sou o Duque'],
+  ['three.quickChat.captain', 'Sou o Capitão'],
+  ['three.quickChat.contessa', 'Sou a Condessa'],
+  ['three.quickChat.tax', 'Taxar'],
+  ['three.quickChat.extort', 'Extorquir'],
+  ['three.quickChat.assassinate', 'Assassinar'],
+  ['three.quickChat.exchange', 'Trocar'],
+  ['three.quickChat.investigate', 'Investigar'],
+  ['three.quickChat.challenge', 'Contesto'],
+  ['three.quickChat.block', 'Bloqueio']
 ];
 
 const chatState = {
   messages: [],
   initialized: false
 };
+
+function t(key, params = {}, fallback = key) {
+  return window.CoupLanguage?.t?.(key, params, fallback) || fallback;
+}
 
 // Configura o chat casual da sala e as mensagens rapidas.
 function setupChatPanel() {
@@ -42,6 +46,10 @@ function setupChatPanel() {
 
   renderQuickChatButtons();
   renderChatMessages();
+  window.addEventListener('coup:languagechange', () => {
+    renderQuickChatButtons();
+    renderChatMessages();
+  });
 }
 
 // Abre o painel de chat e remove o indicador de mensagens novas.
@@ -78,7 +86,8 @@ function renderQuickChatButtons() {
   if (!chatQuickMessages) return;
   chatQuickMessages.innerHTML = '';
 
-  QUICK_CHAT_MESSAGES.forEach((message) => {
+  QUICK_CHAT_MESSAGES.forEach(([key, fallback]) => {
+    const message = t(key, {}, fallback);
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'chat-quick-btn';
@@ -94,7 +103,7 @@ async function sendChatMessage(text, type = 'text') {
   if (!messageText) return;
 
   if (!window.CoupMaster3DOnline?.sendChatMessage) {
-    if (chatStatusText) chatStatusText.textContent = 'Chat online indisponivel.';
+    if (chatStatusText) chatStatusText.textContent = t('three.chatUnavailable', {}, 'Chat online indisponivel.');
     return;
   }
 
@@ -102,10 +111,10 @@ async function sendChatMessage(text, type = 'text') {
   try {
     await window.CoupMaster3DOnline.sendChatMessage({ text: messageText, type });
     if (chatInput && type === 'text') chatInput.value = '';
-    if (chatStatusText) chatStatusText.textContent = 'Converse com a sala.';
+    if (chatStatusText) chatStatusText.textContent = t('three.chatSubtitle', {}, 'Converse com a sala.');
   } catch (error) {
     console.error('Falha ao enviar mensagem.', error);
-    if (chatStatusText) chatStatusText.textContent = 'Nao foi possivel enviar a mensagem.';
+    if (chatStatusText) chatStatusText.textContent = t('three.chatSendError', {}, 'Nao foi possivel enviar a mensagem.');
   } finally {
     if (sendChatBtn) sendChatBtn.disabled = false;
     chatInput?.focus();
@@ -120,7 +129,7 @@ function renderChatMessages() {
   if (chatState.messages.length === 0) {
     const empty = document.createElement('p');
     empty.className = 'chat-empty-message';
-    empty.textContent = 'Nenhuma mensagem ainda.';
+    empty.textContent = t('three.emptyChat', {}, 'Nenhuma mensagem ainda.');
     chatMessagesList.append(empty);
     return;
   }
@@ -155,14 +164,14 @@ function renderChatMessages() {
 
 // Formata o nome do autor com assento quando houver esse dado.
 function getChatAuthor(message) {
-  const name = message.actorName || 'Jogador';
+  const name = message.actorName || t('common.player', {}, 'Jogador');
   return message.actorSeat ? `${name} · P${message.actorSeat}` : name;
 }
 
 // Mostra horario curto das mensagens no padrao local.
 function formatChatTime(timestamp) {
   if (!timestamp) return '';
-  return new Date(timestamp).toLocaleTimeString('pt-BR', {
+  return new Date(timestamp).toLocaleTimeString(window.CoupLanguage?.getLanguage?.() || 'pt-BR', {
     hour: '2-digit',
     minute: '2-digit'
   });

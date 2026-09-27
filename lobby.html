@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-i18n-title="lobby.title">
 
 <head>
   <meta charset="utf-8">
@@ -11,6 +11,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Coup Master 3D">
   <title>Lobby | Coup Master 3D</title>
+  <script src="js/i18n/initial-language.js"></script>
   <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
   <link rel="apple-touch-icon" href="assets/img/logo/coup-master-512x512.png">
   <link rel="manifest" href="manifest.webmanifest">
@@ -24,27 +25,36 @@
 <body>
   <main class="online-shell">
     <section class="online-panel" aria-labelledby="lobbyTitle">
-      <h1 id="lobbyTitle">Lobby</h1>
+      <h1 id="lobbyTitle" data-i18n="lobby.heading">Lobby</h1>
 
       <div class="profile-row">
         <img id="userAvatar" src="assets/img/logo/favicon-coup-master.png" alt="">
         <span id="userName">Jogador</span>
-        <button id="signOutBtn" class="secondary-btn" type="button">Sair</button>
+        <button id="signOutBtn" class="secondary-btn" type="button" data-i18n="lobby.signOut">Sair</button>
       </div>
 
       <div class="online-actions">
-        <button id="createRoomBtn" class="primary-btn" type="button">Criar sala</button>
-        <button class="secondary-btn pwa-install-btn" type="button" data-pwa-install hidden>
+        <button id="createRoomBtn" class="primary-btn" type="button" data-i18n="lobby.createRoom">Criar sala</button>
+        <button class="secondary-btn pwa-install-btn" type="button" data-pwa-install data-i18n="pwa.install" hidden>
           Instalar Coup Master 3D
         </button>
+      </div>
+
+      <div class="room-form">
+        <label for="lobbyLanguageSelect" data-i18n="language.label">Idioma</label>
+        <select id="lobbyLanguageSelect" data-language-select aria-label="Idioma" data-i18n-aria-label="language.label">
+          <option value="pt-BR" data-i18n="language.portuguese">Português</option>
+          <option value="en-US" data-i18n="language.english">English</option>
+        </select>
       </div>
 
       <div class="divider"></div>
 
       <form id="joinRoomForm" class="room-form">
-        <label for="roomCodeInput">Entrar em sala existente</label>
-        <input id="roomCodeInput" name="roomCode" type="text" maxlength="4" autocomplete="off" placeholder="CODIGO">
-        <button class="secondary-btn" type="submit">Entrar na sala</button>
+        <label for="roomCodeInput" data-i18n="lobby.joinExisting">Entrar em sala existente</label>
+        <input id="roomCodeInput" name="roomCode" type="text" maxlength="4" autocomplete="off" placeholder="CODIGO"
+          data-i18n-placeholder="lobby.roomPlaceholder">
+        <button class="secondary-btn" type="submit" data-i18n="lobby.joinRoom">Entrar na sala</button>
       </form>
 
       <div id="lobbyStatus" class="status-text" role="status" aria-live="polite"></div>
@@ -52,6 +62,7 @@
     </section>
   </main>
 
+  <script src="js/i18n/language-service.js" defer></script>
   <script type="module" src="js/pwa.js"></script>
   <script type="module" src="js/firebase/lobby-page.js"></script>
 </body>

@@ -22,6 +22,14 @@ const roomPlayersState = {
   selectedRoomPlayer: null
 };
 
+function t(key, params = {}, fallback = key) {
+  return window.CoupLanguage?.t?.(key, params, fallback) || fallback;
+}
+
+function getPlayerFallbackName(playerId = '') {
+  return `${t('common.player', {}, 'Jogador')} ${playerId}`.trim();
+}
+
 // Configura a lista lateral de jogadores e o modal de informacoes do perfil.
 function setupRoomPlayerList(options = {}) {
   roomPlayersState.getPlayers = options.getPlayers || roomPlayersState.getPlayers;
@@ -48,19 +56,20 @@ function renderRoomPlayerList() {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'room-player-btn';
-    button.textContent = player.name || `Jogador ${player.id}`;
-    button.title = `${player.name || `Jogador ${player.id}`} · P${player.id}`;
+    const playerName = player.name || getPlayerFallbackName(player.id);
+    button.textContent = playerName;
+    button.title = `${playerName} · P${player.id}`;
     button.addEventListener('click', () => openPlayerInfoModal(player.id));
 
     const coinControls = document.createElement('div');
     coinControls.className = 'room-player-coins';
-    coinControls.setAttribute('aria-label', `Moedas de ${player.name || `Jogador ${player.id}`}`);
+    coinControls.setAttribute('aria-label', t('three.coinsOf', { name: playerName }, `Moedas de ${playerName}`));
 
-    const removeBtn = createPlayerCoinButton(player.id, -1, '-', 'Remover moeda');
+    const removeBtn = createPlayerCoinButton(player.id, -1, '-', t('three.remove', {}, 'Remover'));
     const count = document.createElement('span');
     count.className = 'room-player-coin-count';
     count.textContent = String(player.coinCount || 0);
-    const addBtn = createPlayerCoinButton(player.id, 1, '+', 'Adicionar moeda');
+    const addBtn = createPlayerCoinButton(player.id, 1, '+', t('common.add', {}, 'Adicionar'));
 
     coinControls.append(removeBtn, count, addBtn);
     row.append(button, coinControls);
@@ -91,7 +100,7 @@ function createPlayerCoinButton(playerId, delta, label, title) {
   button.className = 'room-player-coin-btn';
   button.textContent = label;
   button.title = title;
-  button.setAttribute('aria-label', `${title} do P${playerId}`);
+  button.setAttribute('aria-label', `${title} P${playerId}`);
   button.addEventListener('click', (event) => {
     event.stopPropagation();
     adjustPlayerCoinCount(playerId, delta);
@@ -135,9 +144,11 @@ function renderPlayerInfoModal(player) {
   const canRemove = Boolean(roomPlayersState.isAdmin() && player.uid && player.uid !== localUid);
   const isConfirmingRemoval = Boolean(playerRemoveConfirm && !playerRemoveConfirm.hidden);
 
-  if (playerInfoName) playerInfoName.textContent = player.name || `Jogador ${player.id}`;
+  if (playerInfoName) playerInfoName.textContent = player.name || getPlayerFallbackName(player.id);
   if (playerInfoSeat) playerInfoSeat.textContent = `P${player.id}`;
-  if (playerInfoStatus) playerInfoStatus.textContent = player.isOnline ? 'Online' : 'Offline';
+  if (playerInfoStatus) playerInfoStatus.textContent = player.isOnline
+    ? t('common.online', {}, 'Online')
+    : t('common.offline', {}, 'Offline');
   if (playerInfoRole) playerInfoRole.textContent = getPlayerRoomRole(player);
 
   if (removePlayerBtn) {
@@ -147,10 +158,10 @@ function renderPlayerInfoModal(player) {
 
   if (playerInfoNote) {
     if (!roomPlayersState.isAdmin()) {
-      playerInfoNote.textContent = 'Apenas o host pode remover jogadores.';
+      playerInfoNote.textContent = t('three.hostOnlyRemove', {}, 'Apenas o host pode remover jogadores.');
       playerInfoNote.hidden = false;
     } else if (player.uid === localUid) {
-      playerInfoNote.textContent = 'Voce nao pode remover a si mesmo.';
+      playerInfoNote.textContent = t('three.cannotRemoveSelf', {}, 'Voce nao pode remover a si mesmo.');
       playerInfoNote.hidden = false;
     } else {
       playerInfoNote.textContent = '';
@@ -162,7 +173,9 @@ function renderPlayerInfoModal(player) {
 // Mostra se o perfil pertence ao host permanente da sala.
 function getPlayerRoomRole(player) {
   const adminUid = window.CoupMaster3DOnline?.adminUid;
-  return player.uid && adminUid && player.uid === adminUid ? 'Host' : 'Jogador';
+  return player.uid && adminUid && player.uid === adminUid
+    ? t('common.host', {}, 'Host')
+    : t('common.player', {}, 'Jogador');
 }
 
 // Fecha o modal e limpa estados temporarios de remocao.
@@ -196,7 +209,7 @@ async function removeSelectedRoomPlayer() {
   if (confirmRemovePlayerBtn) confirmRemovePlayerBtn.disabled = true;
   if (cancelRemovePlayerBtn) cancelRemovePlayerBtn.disabled = true;
   if (playerInfoNote) {
-    playerInfoNote.textContent = 'Removendo jogador...';
+    playerInfoNote.textContent = t('three.removingPlayer', {}, 'Removendo jogador...');
     playerInfoNote.hidden = false;
   }
 
@@ -210,7 +223,7 @@ async function removeSelectedRoomPlayer() {
   } catch (error) {
     console.error('Falha ao remover jogador.', error);
     if (playerInfoNote) {
-      playerInfoNote.textContent = error?.message || 'Nao foi possivel remover o jogador.';
+      playerInfoNote.textContent = error?.message || t('three.removePlayerError', {}, 'Nao foi possivel remover o jogador.');
       playerInfoNote.hidden = false;
     }
   } finally {

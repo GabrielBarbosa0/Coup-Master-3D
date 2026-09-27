@@ -1,5 +1,9 @@
 import { fullscreenBtn } from './dom.js';
 
+function t(key, params = {}, fallback = key) {
+  return window.CoupLanguage?.t?.(key, params, fallback) || fallback;
+}
+
 // Mostra um modal usando o layout flexivel do HUD 3D.
 export function openModal(modal) {
   if (!modal) return;
@@ -39,6 +43,7 @@ export function setupModalOverlayDismiss(options = {}) {
 export function setupFullscreenControl() {
   fullscreenBtn?.addEventListener('click', toggleFullscreen);
   document.addEventListener('fullscreenchange', syncFullscreenButton);
+  window.addEventListener('coup:languagechange', syncFullscreenButton);
   syncFullscreenButton();
 }
 
@@ -56,6 +61,9 @@ function syncFullscreenButton() {
   if (!fullscreenBtn) return;
   const isFullscreen = Boolean(document.fullscreenElement);
   fullscreenBtn.setAttribute('aria-pressed', String(isFullscreen));
-  fullscreenBtn.setAttribute('aria-label', isFullscreen ? 'Sair da tela cheia' : 'Tela cheia');
-  fullscreenBtn.title = isFullscreen ? 'Sair da tela cheia' : 'Tela cheia';
+  const label = isFullscreen
+    ? t('three.exitFullscreen', {}, 'Sair da tela cheia')
+    : t('three.fullscreen', {}, 'Tela cheia');
+  fullscreenBtn.setAttribute('aria-label', label);
+  fullscreenBtn.title = label;
 }

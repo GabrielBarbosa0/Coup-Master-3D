@@ -18,6 +18,10 @@ const audioState = {
   onReset: null
 };
 
+function t(key, params = {}, fallback = key) {
+  return window.CoupLanguage?.t?.(key, params, fallback) || fallback;
+}
+
 // Liga a trilha de fundo ao primeiro gesto do jogador e aos controles de volume.
 export function setupAudioControls(options = {}) {
   audioState.canReset = typeof options.canReset === 'function' ? options.canReset : audioState.canReset;
@@ -63,6 +67,7 @@ export function setupAudioControls(options = {}) {
   window.addEventListener('keydown', startBackgroundMusic, { once: true });
   document.addEventListener('visibilitychange', handleMusicVisibilityChange);
   window.addEventListener('pagehide', () => pauseBackgroundMusic(false));
+  window.addEventListener('coup:languagechange', syncMusicButton);
 }
 
 // Toca um efeito sonoro respeitando o volume global de VFX.
@@ -204,6 +209,9 @@ function syncMusicButton() {
   if (!musicBtn) return;
   musicBtn.classList.toggle('is-muted', audioState.musicMuted);
   musicBtn.setAttribute('aria-pressed', String(audioState.musicMuted));
-  musicBtn.setAttribute('aria-label', audioState.musicMuted ? 'Ativar música' : 'Mutar música');
-  musicBtn.title = audioState.musicMuted ? 'Ativar música' : 'Mutar música';
+  const label = audioState.musicMuted
+    ? t('three.musicEnable', {}, 'Ativar música')
+    : t('three.musicMute', {}, 'Mutar música');
+  musicBtn.setAttribute('aria-label', label);
+  musicBtn.title = label;
 }

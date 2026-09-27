@@ -18,6 +18,10 @@ const deckConfigState = {
   onApply: () => {}
 };
 
+function t(key, params = {}, fallback = key) {
+  return window.CoupLanguage?.t?.(key, params, fallback) || fallback;
+}
+
 // Configura o modal de baralho, leitura dos inputs e presets rapidos.
 function setupDeckConfigService(options = {}) {
   deckConfigState.getDeckConfig = options.getDeckConfig || deckConfigState.getDeckConfig;
@@ -72,18 +76,20 @@ function syncDeckConfigControls(canEdit = deckConfigState.canEdit()) {
 
   document.querySelectorAll('.preset-btn').forEach((button) => {
     button.disabled = !canEdit;
-    button.title = canEdit ? '' : 'Apenas o host pode alterar presets.';
+    button.title = canEdit ? '' : t('three.hostOnlyPresets', {}, 'Apenas o host pode alterar presets.');
   });
 
   document.querySelectorAll('.card-config-item input').forEach((input) => {
     input.disabled = !canEdit;
-    input.title = canEdit ? '' : 'Apenas o host pode editar.';
+    input.title = canEdit ? '' : t('three.hostOnlyEdit', {}, 'Apenas o host pode editar.');
   });
 
   if (applyDeckConfigBtn) {
     applyDeckConfigBtn.disabled = !canEdit;
-    applyDeckConfigBtn.textContent = canEdit ? 'Aplicar e Resetar Jogo' : 'Apenas o host pode aplicar';
-    applyDeckConfigBtn.title = canEdit ? '' : 'Apenas o host pode aplicar esta configuracao.';
+    applyDeckConfigBtn.textContent = canEdit
+      ? t('three.applyResetGame', {}, 'Aplicar e Resetar Jogo')
+      : t('three.hostOnlyApply', {}, 'Apenas o host pode aplicar');
+    applyDeckConfigBtn.title = canEdit ? '' : t('three.hostOnlyApplyTitle', {}, 'Apenas o host pode aplicar esta configuracao.');
   }
 
   const permissionNote = document.getElementById('deckConfigPermissionNote');

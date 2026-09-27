@@ -189,6 +189,14 @@ const {
   SPECIAL_CARD_LABELS
 } = config;
 
+function t(key, params = {}, fallback = key) {
+  return window.CoupLanguage?.t?.(key, params, fallback) || fallback;
+}
+
+function getPlayerFallbackName(playerId = '') {
+  return `${t('common.player', {}, 'Jogador')} ${playerId}`.trim();
+}
+
 const state = {
   activePlayer: 1,
   viewPlayer: 1,
@@ -198,7 +206,7 @@ const state = {
   players: Array.from({ length: PLAYER_COUNT }, (_, index) => ({
     id: index + 1,
     uid: null,
-    name: `Jogador ${index + 1}`,
+    name: getPlayerFallbackName(index + 1),
     avatarUrl: null,
     isReserved: false,
     isOnline: false,
@@ -447,6 +455,22 @@ function init() {
     },
     isAnyModalOpen
   });
+  window.addEventListener('coup:languagechange', refreshLanguageAwareUi);
+}
+
+// Reaplica textos dinamicos que nao vivem direto em data-i18n.
+function refreshLanguageAwareUi() {
+  state.players.forEach((player) => {
+    if (!player.uid && /^(Jogador|Player) \d+$/.test(player.name)) {
+      player.name = getPlayerFallbackName(player.id);
+    }
+  });
+  updateHud();
+  renderRoomPlayerList();
+  refreshOpenPlayerInfoModal();
+  syncDeckConfigControls(app.isAdmin);
+  if (spectatorModal?.style.display === 'flex') renderSpectatorTargets();
+  window.CoupLanguage?.applyTranslations?.();
 }
 
 // Cria a cena usada para inspecionar objetos de perto com Alt.
@@ -485,7 +509,7 @@ function setPlayerProfile(playerId, profile = {}) {
   const player = state.players[playerId - 1];
   if (!player) return;
 
-  player.name = profile.name || profile.displayName || player.name || `Jogador ${playerId}`;
+  player.name = profile.name || profile.displayName || player.name || getPlayerFallbackName(playerId);
   player.uid = profile.uid || player.uid || null;
   player.avatarUrl = profile.avatarUrl || profile.photoURL || player.avatarUrl || null;
   player.isReserved = true;
@@ -504,7 +528,7 @@ function setOnlinePlayerProfiles(profiles = []) {
 
   state.players.forEach((player) => {
     if (reservedSeats.has(player.id)) return;
-    player.name = `Jogador ${player.id}`;
+    player.name = getPlayerFallbackName(player.id);
     player.uid = null;
     player.avatarUrl = null;
     player.isReserved = false;
@@ -681,7 +705,7 @@ function openSpectatorModal() {
 }
 
 // Atualiza a lista de alvos disponiveis para espectar.
-function renderSpectatorTargets(statusText = 'Escolha um jogador.') {
+function renderSpectatorTargets(statusText = t('three.choosePlayer', {}, 'Escolha um jogador.')) {
   if (!spectatorPlayerList || !spectatorStatusText) return;
 
   const localUid = window.CoupMaster3DOnline?.user?.uid;
@@ -691,7 +715,7 @@ function renderSpectatorTargets(statusText = 'Escolha um jogador.') {
 
   spectatorPlayerList.innerHTML = '';
   if (targets.length === 0) {
-    spectatorStatusText.textContent = 'Nao ha nenhum jogador para espectar.';
+    spectatorStatusText.textContent = t('three.noPlayerToSpectate', {}, 'Nao ha nenhum jogador para espectar.');
     return;
   }
 
@@ -709,7 +733,7 @@ function renderSpectatorTargets(statusText = 'Escolha um jogador.') {
 // Envia o pedido ao jogador escolhido na sala.
 async function requestSpectatorTarget(player) {
   if (!window.CoupMaster3DOnline?.requestSpectate) return;
-  spectatorStatusText.textContent = `Pedido enviado para ${player.name}.`;
+  spectatorStatusText.textContent = t('three.requestSentTo', { name: player.name }, `Pedido enviado para ${player.name}.`);
   spectatorPlayerList.querySelectorAll('button').forEach((button) => {
     button.disabled = true;
   });
@@ -730,7 +754,11 @@ async function requestSpectatorTarget(player) {
 function showSpectatorRequest(request) {
   app.spectatorRequest = request;
   if (spectatorRequestText) {
-    spectatorRequestText.textContent = `${request.requesterName || 'Um jogador'} quer espectar sua mao.`;
+    spectatorRequestText.textContent = t(
+      'three.spectatorRequestText',
+      { name: request.requesterName || t('common.player', {}, 'Um jogador') },
+      `${request.requesterName || 'Um jogador'} quer espectar sua mao.`
+    );
   }
   openModal(spectatorRequestModal);
 }
@@ -749,7 +777,11 @@ function startSpectatingPlayer(request) {
   if (!request?.targetSeat) return;
   setObservedPlayerSeat(request.targetSeat, { focus: true });
   if (spectatorStatusText) {
-    spectatorStatusText.textContent = `Espectando ${request.targetName || 'jogador'}.`;
+    spectatorStatusText.textContent = t(
+      'three.spectating',
+      { name: request.targetName || t('common.player', {}, 'jogador') },
+      `Espectando ${request.targetName || 'jogador'}.`
+    );
     spectatorPlayerList.innerHTML = '';
     openModal(spectatorModal);
   }
@@ -773,7 +805,7 @@ async function copyRoomCodeFromHud(event) {
     await navigator.clipboard?.writeText(roomCode);
     showRoomCodeCopyFeedback('Copiado!');
   } catch {
-    showRoomCodeCopyFeedback(`Sala: ${roomCode}`);
+    showRoomCodeCopyFeedback(t('three.roomCopied', { code: roomCode }, `Sala: ${roomCode}`));
   }
 }
 
@@ -1414,10 +1446,10 @@ function getHoverPiece(mesh) {
 // Define o texto acessivel exibido no tooltip de hover.
 function getHoverLabel(piece) {
   if (!piece) return '';
-  if (piece.kind === 'deck') return 'Baralho';
-  if (piece.kind === 'gold-coin') return 'Moeda de ouro';
-  if (piece.kind === 'silver-coin') return 'Moeda de prata';
-  if (piece.kind === 'die') return 'Dado';
+  if (piece.kind === 'deck') return t('three.pieces.deck', {}, 'Baralho');
+  if (piece.kind === 'gold-coin') return t('three.pieces.goldCoin', {}, 'Moeda de ouro');
+  if (piece.kind === 'silver-coin') return t('three.pieces.silverCoin', {}, 'Moeda de prata');
+  if (piece.kind === 'die') return t('three.pieces.die', {}, 'Dado');
   if (piece.data) return getCardHoverLabel(piece);
   return '';
 }
@@ -1426,17 +1458,30 @@ function getHoverLabel(piece) {
 function getCardHoverLabel(card) {
   if (card.data.specialCard) {
     const labels = SPECIAL_CARD_LABELS[card.data.type];
-    return canRevealCardFace(card.data) ? labels?.front : labels?.back;
+    const fallback = canRevealCardFace(card.data) ? labels?.front : labels?.back;
+    const key = card.data.type === 'religiao' && canRevealCardFace(card.data)
+      ? 'three.cards.catolico'
+      : card.data.type === 'religiao'
+        ? 'three.cards.protestante'
+        : `three.cards.${card.data.type}`;
+    return t(key, {}, fallback);
   }
 
-  if (!canRevealCardFace(card.data)) return 'Carta fechada';
+  if (!canRevealCardFace(card.data)) return t('three.pieces.closedCard', {}, 'Carta fechada');
 
   const stack = getCardStack(card);
   if (!stack || stack.cards.length <= 1) {
-    return CARD_LABELS[card.data.type] || card.data.type;
+    return t(`three.cards.${card.data.type}`, {}, CARD_LABELS[card.data.type] || card.data.type);
   }
 
-  return getStackHoverSummary(stack, CARD_LABELS);
+  return getStackHoverSummary(stack, getTranslatedCardLabels());
+}
+
+// Retorna labels de cartas no idioma atual para tooltips e pilhas.
+function getTranslatedCardLabels() {
+  return Object.fromEntries(
+    Object.entries(CARD_LABELS).map(([key, value]) => [key, t(`three.cards.${key}`, {}, value)])
+  );
 }
 
 // Cria a malha de outline branca ao redor do objeto em hover.
@@ -3060,9 +3105,9 @@ function bumpStackIdFrom(id) {
 // Atualiza contadores e visibilidade do deck no HUD.
 function updateHud() {
   updateRoomCodeStatus();
-  deckCountEl.textContent = `Deck: ${state.deck.length}`;
-  tableCountEl.textContent = `Mesa: ${state.tableCards.length}`;
-  objectCountEl.textContent = `Objetos: ${getObjectCount()}`;
+  deckCountEl.textContent = t('three.deckCount', { count: state.deck.length }, `Deck: ${state.deck.length}`);
+  tableCountEl.textContent = t('three.tableCount', { count: state.tableCards.length }, `Mesa: ${state.tableCards.length}`);
+  objectCountEl.textContent = t('three.objectCount', { count: getObjectCount() }, `Objetos: ${getObjectCount()}`);
 
   if (app.deckMesh) {
     app.deckMesh.visible = true;
@@ -3080,8 +3125,10 @@ function updateHud() {
 function updateRoomCodeStatus() {
   if (!roomCodeStatusBtn) return;
   const roomCode = window.CoupMaster3DOnline?.roomCode || '----';
-  roomCodeStatusBtn.textContent = `Sala: ${roomCode}`;
-  roomCodeStatusBtn.title = roomCode === '----' ? 'Código da sala indisponível' : `Copiar sala ${roomCode}`;
+  roomCodeStatusBtn.textContent = t('three.roomCode', { code: roomCode }, `Sala: ${roomCode}`);
+  roomCodeStatusBtn.title = roomCode === '----'
+    ? t('three.roomCodeUnavailable', {}, 'Código da sala indisponível')
+    : t('three.copyRoomCode', { code: roomCode }, `Copiar sala ${roomCode}`);
 }
 
 // Retorna a altura visual/fisica atual do deck real.

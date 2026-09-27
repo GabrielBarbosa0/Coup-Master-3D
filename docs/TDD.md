@@ -160,6 +160,17 @@ A distribuicao instalavel usa:
 
 O service worker nao transforma o multiplayer em modo offline. Firebase Authentication, Realtime Database e dependencias externas continuam exigindo rede. `CACHE_VERSION` deve mudar quando for necessario invalidar imediatamente arquivos precacheados.
 
+## 3.3 Internacionalizacao
+
+O sistema de idioma segue o padrao do Coup Master original:
+
+- `js/i18n/initial-language.js`: define o idioma inicial antes da renderizacao principal, usando `localStorage`, navegador e fallback `pt-BR`;
+- `js/i18n/language-service.js`: carrega `lang/pt-BR.json` e `lang/en-US.json`, aplica atributos `data-i18n`, `data-i18n-title`, `data-i18n-aria-label`, `data-i18n-placeholder`, `data-i18n-alt` e expoe `window.CoupLanguage.t()`;
+- `data-language-select`: qualquer seletor com esse atributo troca o idioma global e persiste em `localStorage`;
+- `coup:languagechange`: evento disparado apos troca de idioma para modulos atualizarem textos dinamicos do HUD, chat, tooltips e controles.
+
+Textos novos de UI devem entrar nos arquivos `lang/*.json` e usar `data-i18n` quando estiverem no HTML. Textos criados via JavaScript devem usar `window.CoupLanguage.t(key, params, fallback)`.
+
 ## 4. Estado Local
 
 O estado principal vive no objeto `state`:
