@@ -82,7 +82,7 @@ function renderDeckConfigList(values = deckConfigState.getDeckConfig()) {
     { id: 'base', cards: RULE_CARD_GROUPS.base, title: '' },
     { id: 'promo', cards: RULE_CARD_GROUPS.promo, title: t('three.deckGroupPromo', {}, '"Sombras do Palácio"') },
     { id: 'revolution', cards: RULE_CARD_GROUPS.revolution, title: t('three.deckGroupRevolution', {}, '"A Revolução"') },
-    { id: 'shadows', cards: RULE_CARD_GROUPS.shadows, title: t('three.deckGroupShadows', {}, '"Sombras do Asilo"') }
+    { id: 'shadows', cards: RULE_CARD_GROUPS.shadows, title: t('three.deckGroupShadows', {}, '"Lei e Desordem"') }
   ];
 
   groupEntries.forEach((group) => {

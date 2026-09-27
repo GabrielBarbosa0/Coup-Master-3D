@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'coup-master-pwa-v48';
+const CACHE_VERSION = 'coup-master-pwa-v55';
 const APP_SHELL = [
   './',
   './index.html',

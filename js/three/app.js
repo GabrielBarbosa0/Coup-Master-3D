@@ -3113,7 +3113,7 @@ function bumpStackIdFrom(id) {
 
 // Atualiza contadores e visibilidade do deck no HUD.
 function updateHud() {
-  deckCountEl.textContent = t('three.deckCount', { count: state.deck.length }, `Deck: ${state.deck.length}`);
+  deckCountEl.textContent = t('three.deckCount', { count: state.deck.length }, `Baralho: ${state.deck.length}`);
   tableCountEl.textContent = t('three.tableCount', { count: state.tableCards.length }, `Mesa: ${state.tableCards.length}`);
   objectCountEl.textContent = t('three.objectCount', { count: getObjectCount() }, `Objetos: ${getObjectCount()}`);
   renderShareRoomModal({

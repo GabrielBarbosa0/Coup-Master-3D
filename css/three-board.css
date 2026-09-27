@@ -15,6 +15,46 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: "Harlean";
+  src: url("../assets/fonts/Harlean-Exfont908e.otf") format("opentype");
+  font-display: swap;
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "AGaramond";
+  src: url("../assets/fonts/AGaramond-Regular-Exfontab8d.otf") format("opentype");
+  font-display: swap;
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "AGaramondGuideRegular";
+  src: url("../assets/fonts/AGaramond-Regular-Exfontab8d.otf") format("opentype");
+  font-display: swap;
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "AGaramond";
+  src: url("../assets/fonts/AGaramond-Semibold-Exfonta037.otf") format("opentype");
+  font-display: swap;
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Fraunces";
+  src: url("../assets/fonts/Fraunces-opsz-wght-700.ttf") format("truetype");
+  font-display: swap;
+  font-weight: 700;
+  font-style: normal;
+}
+
 :root {
   color-scheme: dark;
   --bg: #000000;
@@ -1468,6 +1508,14 @@ button:focus-visible {
   font: inherit;
 }
 
+.settings-action-row {
+  justify-content: center;
+}
+
+.settings-action-row-first {
+  margin-top: 8px;
+}
+
 .settings-action-btn {
   width: 100%;
   padding: 10px;
@@ -1476,6 +1524,11 @@ button:focus-visible {
   color: white;
   font-size: 14px;
   cursor: pointer;
+}
+
+.settings-primary-action-btn {
+  background: #1e90ff;
+  font-weight: 700;
 }
 
 .settings-action-btn:hover {
@@ -1587,6 +1640,11 @@ button:focus-visible {
 .spectator-status-text {
   margin: 10px 0 16px;
   text-align: center;
+}
+
+#spectatorModal>.modal-content {
+  box-sizing: border-box;
+  padding: 20px;
 }
 
 .chat-btn-has-unread {

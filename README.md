@@ -93,6 +93,7 @@ Isso mantém o MVP mais leve, reduz escritas no Firebase e evita travamentos vis
 - Cartas abertas não voltam ao deck automaticamente.
 - Pilhas compatíveis podem se agrupar.
 - Pilhas podem ser movidas, viradas e giradas.
+- O configurador de baralho usa o nome atual da DLC/grupo de cartas: **Lei e Desordem**.
 
 ### 🪙 Objetos e Cartas Especiais
 

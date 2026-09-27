@@ -201,7 +201,7 @@
     </section>
 
     <div class="status-row table-status">
-      <span id="deckCount">Deck: 0</span>
+      <span id="deckCount">Baralho: 0</span>
       <span id="tableCount">Mesa: 0</span>
       <span id="objectCount">Objetos: 0</span>
     </div>
@@ -260,17 +260,16 @@
             </select>
           </div>
 
-          <div class="setting-row" style="justify-content: center; margin-top: 20px;">
-            <button id="openDeckConfigBtn" type="button"
-              style="background: #1e90ff; color: white; padding: 10px; border: 0; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold;"
-              data-i18n="three.configureDeck">
-              Configurar Baralho
+          <div class="setting-row settings-action-row settings-action-row-first">
+            <button id="ruleDrawBtn" class="settings-action-btn" type="button" data-i18n="three.drawAlternativeRules">
+              Sortear Regras Alternativas
             </button>
           </div>
 
-          <div class="setting-row" style="justify-content: center;">
-            <button id="ruleDrawBtn" class="settings-action-btn" type="button" data-i18n="three.drawAlternativeRules">
-              Sortear Regras Alternativas
+          <div class="setting-row settings-action-row">
+            <button id="openDeckConfigBtn" class="settings-action-btn settings-primary-action-btn" type="button"
+              data-i18n="three.configureDeck">
+              Configurar Baralho
             </button>
           </div>
 
@@ -369,7 +368,7 @@
           </li>
 
           <li class="title-dlc-card-config-item">
-            <p data-i18n="three.deckGroupShadows">"Sombras do Asilo"</p>
+            <p data-i18n="three.deckGroupShadows">"Lei e Desordem"</p>
           </li>
           <li class="card-config-item">
             <label for="config-pistoleiro" data-i18n="three.cards.pistoleiro">Pistoleiro</label>

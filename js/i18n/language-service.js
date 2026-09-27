@@ -134,6 +134,16 @@
   }
 
   function registerTranslationNodes(scope = document) {
+    const titleKey = document.documentElement.getAttribute('data-i18n-title');
+    if (titleKey && !documentTitleTranslation) {
+      documentTitleTranslation = {
+        key: titleKey,
+        fallback: document.title
+      };
+    }
+    document.documentElement.removeAttribute('data-i18n-title');
+    document.documentElement.removeAttribute('title');
+
     findTranslationNodes(scope, '[data-i18n]').forEach((node) => {
       rememberTranslation(node, 'text', 'data-i18n', node.textContent);
     });
@@ -152,18 +162,10 @@
       ['content', 'data-i18n-content', 'content']
     ].forEach(([slot, attributeName, targetAttribute]) => {
       findTranslationNodes(scope, `[${attributeName}]`).forEach((node) => {
+        if (attributeName === 'data-i18n-title' && node === document.documentElement) return;
         rememberTranslation(node, slot, attributeName, node.getAttribute(targetAttribute));
       });
     });
-
-    const titleKey = document.documentElement.getAttribute('data-i18n-title');
-    if (titleKey && !documentTitleTranslation) {
-      documentTitleTranslation = {
-        key: titleKey,
-        fallback: document.title
-      };
-    }
-    document.documentElement.removeAttribute('data-i18n-title');
   }
 
   function isNodeInScope(node, scope) {
@@ -196,6 +198,10 @@
       ['content', 'content']
     ].forEach(([slot, targetAttribute]) => {
       if (!refs[slot]) return;
+      if (targetAttribute === 'title' && node === document.documentElement) {
+        node.removeAttribute('title');
+        return;
+      }
       node.setAttribute(targetAttribute, translate(refs[slot].key, {}, refs[slot].fallback));
     });
   }

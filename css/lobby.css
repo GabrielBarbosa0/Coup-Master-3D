@@ -1964,7 +1964,7 @@ body.lobby-page {
 }
 
 .lobby-page .game-mode-selector {
-    margin-bottom: clamp(8px, 1.4dvh, 12px);
+    margin-bottom: 2px;
 }
 
 .lobby-page .game-mode-selector legend {
@@ -1977,7 +1977,7 @@ body.lobby-page {
 }
 
 .lobby-page .ranked-mode-note {
-    margin: -2px 0 clamp(8px, 1.4dvh, 12px);
+    margin: 0 0 clamp(8px, 1.4dvh, 12px);
 }
 
 .lobby-page input {

@@ -463,6 +463,8 @@ A lista textual tambem mostra o contador manual de moedas de cada assento reserv
 
 O modal de jogador exibe nome, slot, status e perfil. Apenas o host recebe a acao de remover outro jogador da sala; jogadores comuns podem abrir o modal apenas para consulta.
 
+O modal de configuracao de baralho renderiza os grupos de cartas dinamicamente. O grupo `shadows` deve aparecer como "Lei e Desordem" em portugues e "Law and Disorder" em ingles, mantendo paridade com o Coup Master original.
+
 O assento ativo local vem de `window.CoupMaster3DOnline.playerSeat`. O seletor manual P1-P8 foi removido para impedir troca de visao entre maos, mas o drag/drop fisico em slots de outros jogadores continua permitido.
 
 `viewPlayer` pode ser diferente de `activePlayer` quando o modo espectador e aceito. Essa diferenca controla quais cartas privadas podem revelar textura localmente.
