@@ -2,7 +2,7 @@
   const STORAGE_KEY = 'coupMasterLanguage';
   const DEFAULT_LANGUAGE = 'pt-BR';
   const SUPPORTED_LANGUAGES = ['pt-BR', 'en-US'];
-  const LANGUAGE_VERSION = 'i18n-3d-v1';
+  const LANGUAGE_VERSION = 'i18n-3d-v2';
   const scriptUrl = document.currentScript?.src || '';
   const languageBaseUrl = scriptUrl ? new URL('../../lang/', scriptUrl).href : 'lang/';
 
@@ -65,8 +65,19 @@
     return dictionaries[language] || dictionaries[DEFAULT_LANGUAGE] || {};
   }
 
+  function decodeTranslationPath(path) {
+    const rawPath = String(path || '');
+    if (!rawPath.startsWith('cm:')) return rawPath;
+
+    try {
+      return root.atob(rawPath.slice(3));
+    } catch {
+      return rawPath;
+    }
+  }
+
   function getNestedValue(dictionary, path) {
-    const keys = String(path || '').split('.');
+    const keys = decodeTranslationPath(path).split('.');
     let value = dictionary;
     for (const key of keys) {
       value = value?.[key];

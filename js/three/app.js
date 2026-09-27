@@ -55,6 +55,16 @@ import {
   setupCardSystem
 } from './card-system.js';
 import {
+  canReturnCardNow,
+  canReturnCardToDeck,
+  createDrawCardActionPayload,
+  createReturnCardActionPayload,
+  getRotationDelta,
+  getRotationTarget,
+  getSelectedFlipTarget,
+  resolveActionPlayerId
+} from './card-actions-service.js';
+import {
   easeInOutCubic,
   placeCard,
   random,
@@ -75,6 +85,17 @@ import {
   removeTableStack,
   setupStackSystem
 } from './stack-system.js';
+import {
+  canFlipStack,
+  clearStackTimer,
+  getNextShuffledStackOrder,
+  getNextStackFaceUp,
+  getStackCardIds,
+  getTopStackCardId,
+  hasStackGroup,
+  removeCardIdFromStack,
+  resolveStackDropAction
+} from './stack-actions-service.js';
 import { setupInputController } from './input-controller.js';
 import {
   publishTableAction,
@@ -126,6 +147,31 @@ import {
   spawnCoin,
   spawnDie
 } from './object-system.js';
+import {
+  beginAggregateDrag,
+  beginKinematicPieceDrag,
+  beginPendingDragGesture,
+  clampDragTargetToRadius,
+  consumeActiveDrag,
+  didPendingGestureMove,
+  endPendingDragGesture,
+  getKinematicDragQuaternion,
+  updateDragMovementFlag
+} from './interaction-drag-controller.js';
+import {
+  clearInspectClone as clearInspectCloneState,
+  createHoverOutline,
+  disposeHoverOutline,
+  getHoverLabelForPiece,
+  getHoverPieceFromMesh,
+  hideHoverTooltip as hideHoverTooltipElement,
+  hideInspectOverlayForState,
+  selectHoveredPiece as selectHoveredPieceForState,
+  shouldShowInspectOverlay,
+  showHoverTooltip as showHoverTooltipElement,
+  showInspectOverlayForPiece,
+  syncHoverOutlineToPiece
+} from './hover-inspect-service.js';
 import { setupRulesGuidesUi } from './rules-guides-ui.js';
 import { applyAlternativeDeckRules } from './alternative-rules-service.js';
 
@@ -175,7 +221,6 @@ const {
   CARD_LABELS,
   CARD_RADIUS,
   CARD_REST_Y,
-  CARD_RETURN_COOLDOWN_MS,
   CARD_W,
   DECK_BASE_HEIGHT,
   DECK_DRAG_HOLD_MS,
@@ -188,7 +233,6 @@ const {
   HAND_RADIUS,
   LIMBO_RADIUS,
   LIMBO_Y,
-  OBJECT_ROTATION_STEP,
   PLAYER_COUNT,
   PLAY_RADIUS,
   SPECIAL_CARD_LABELS
@@ -894,11 +938,12 @@ function drawCardToPlayer(playerId, animateDraw = true, options = {}) {
 
   const action = options.publishAction === false
     ? null
-    : publishTableAction('draw-card', {
-      playerId: targetPlayerId,
-      card: cloneCardData(data),
-      animateDraw: Boolean(animateDraw)
-    });
+    : publishTableAction('draw-card', createDrawCardActionPayload(
+      targetPlayerId,
+      data,
+      animateDraw,
+      cloneCardData
+    ));
   const runDraw = () => animateDrawnCardToPlayer(data, targetPlayerId, animateDraw);
 
   if (action) {
@@ -1050,7 +1095,7 @@ function shuffleHoveredCards() {
 
   if (!piece.data) return false;
   const stack = getCardStack(piece);
-  if (!stack || stack.cards.length <= 1) return false;
+  if (!hasStackGroup(stack)) return false;
 
   shuffleTableStack(stack);
   return true;
@@ -1259,9 +1304,7 @@ function getLocalPlayerSeat() {
 
 // Normaliza um assento para garantir que eventos remotos nao apontem fora da mesa.
 function normalizePlayerId(playerId) {
-  const id = Number(playerId);
-  if (Number.isInteger(id) && id >= 1 && id <= PLAYER_COUNT) return id;
-  return state.activePlayer;
+  return resolveActionPlayerId(playerId, state.activePlayer, PLAYER_COUNT);
 }
 
 // Troca apenas a visao local sem mudar o assento real do jogador.
@@ -1316,7 +1359,7 @@ function applyTableAction(action) {
 
   if (action.type === 'return-card-to-deck') {
     const card = app.cards.get(payload.cardId);
-    if (!card || card.data.specialCard || card.data.location === 'deck') return;
+    if (!canReturnCardToDeck(card)) return;
 
     runWithTableSyncSuppressed(RETURN_ACTION_SYNC_DELAY_MS, () => {
       animateCardReturnToDeck(card);
@@ -1356,18 +1399,14 @@ function onPointerDown(event) {
     }
 
     if (stack) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      canvas.setPointerCapture(event.pointerId);
-      app.controls.enabled = false;
       app.selectedCard = card;
-      app.pendingStackDrag = {
-        pointerId: event.pointerId,
-        stackId: stack.id,
-        x: event.clientX,
-        y: event.clientY,
-        startedAt: performance.now()
-      };
+      beginPendingDragGesture(event, {
+        canvas,
+        controls: app.controls,
+        state: app,
+        key: 'pendingStackDrag',
+        extra: { stackId: stack.id }
+      });
       return;
     }
 
@@ -1394,16 +1433,12 @@ function onPointerDown(event) {
 
 // Inicia clique/arrasto no deck quando o raycast acerta o baralho diretamente.
 function beginPendingDeckGesture(event) {
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  canvas.setPointerCapture(event.pointerId);
-  app.controls.enabled = false;
-  app.pendingDeckDrag = {
-    pointerId: event.pointerId,
-    x: event.clientX,
-    y: event.clientY,
-    startedAt: performance.now()
-  };
+  beginPendingDragGesture(event, {
+    canvas,
+    controls: app.controls,
+    state: app,
+    key: 'pendingDeckDrag'
+  });
 }
 
 // Detecta duplo clique proprio para devolver cartas ao deck.
@@ -1452,47 +1487,25 @@ function updatePointerHover(event) {
 
 // Converte o mesh atingido pelo raycast no objeto logico correto.
 function getHoverPiece(mesh) {
-  if (mesh.userData.deck) return { mesh: app.deckMesh, kind: 'deck' };
-
-  const card = app.cards.get(mesh.userData.cardId);
-  if (card) return getTopStackCard(card);
-
-  const object = getObjectById(mesh.userData.objectId);
-  return object || null;
+  return getHoverPieceFromMesh(mesh, {
+    deckMesh: app.deckMesh,
+    cards: app.cards,
+    getTopStackCard,
+    getObjectById
+  });
 }
 
 // Define o texto acessivel exibido no tooltip de hover.
 function getHoverLabel(piece) {
-  if (!piece) return '';
-  if (piece.kind === 'deck') return t('three.pieces.deck', {}, 'Baralho');
-  if (piece.kind === 'gold-coin') return t('three.pieces.goldCoin', {}, 'Moeda de ouro');
-  if (piece.kind === 'silver-coin') return t('three.pieces.silverCoin', {}, 'Moeda de prata');
-  if (piece.kind === 'die') return t('three.pieces.die', {}, 'Dado');
-  if (piece.data) return getCardHoverLabel(piece);
-  return '';
-}
-
-// Monta o texto de hover para carta solta ou pilha aberta.
-function getCardHoverLabel(card) {
-  if (card.data.specialCard) {
-    const labels = SPECIAL_CARD_LABELS[card.data.type];
-    const fallback = canRevealCardFace(card.data) ? labels?.front : labels?.back;
-    const key = card.data.type === 'religiao' && canRevealCardFace(card.data)
-      ? 'three.cards.catolico'
-      : card.data.type === 'religiao'
-        ? 'three.cards.protestante'
-        : `three.cards.${card.data.type}`;
-    return t(key, {}, fallback);
-  }
-
-  if (!canRevealCardFace(card.data)) return t('three.pieces.closedCard', {}, 'Carta fechada');
-
-  const stack = getCardStack(card);
-  if (!stack || stack.cards.length <= 1) {
-    return t(`three.cards.${card.data.type}`, {}, CARD_LABELS[card.data.type] || card.data.type);
-  }
-
-  return getStackHoverSummary(stack, getTranslatedCardLabels());
+  return getHoverLabelForPiece(piece, {
+    cardLabels: CARD_LABELS,
+    specialCardLabels: SPECIAL_CARD_LABELS,
+    canRevealCardFace,
+    getCardStack,
+    getStackHoverSummary,
+    getTranslatedCardLabels,
+    t
+  });
 }
 
 // Retorna labels de cartas no idioma atual para tooltips e pilhas.
@@ -1505,29 +1518,16 @@ function getTranslatedCardLabels() {
 // Cria a malha de outline branca ao redor do objeto em hover.
 function setHoverOutline(piece) {
   clearHoverOutline();
-  if (piece.kind === 'deck' && state.deck.length <= 0) return;
-
-  const outline = new THREE.LineSegments(
-    new THREE.EdgesGeometry(piece.mesh.geometry, 18),
-    new THREE.LineBasicMaterial({
-      color: 0xffffff,
-      transparent: true,
-      opacity: 0.95,
-      depthTest: false
-    })
-  );
-  outline.renderOrder = 20;
-  app.scene.add(outline);
-  app.hoverOutline = outline;
+  app.hoverOutline = createHoverOutline(piece, {
+    deckCount: state.deck.length,
+    scene: app.scene
+  });
   syncHoverOutline();
 }
 
 // Mantem a outline alinhada com o objeto em movimento.
 function syncHoverOutline() {
-  if (!app.hoverOutline || !app.hoveredPiece) return;
-  app.hoverOutline.position.copy(app.hoveredPiece.mesh.position);
-  app.hoverOutline.quaternion.copy(app.hoveredPiece.mesh.quaternion);
-  app.hoverOutline.scale.copy(app.hoveredPiece.mesh.scale).multiplyScalar(1.018);
+  syncHoverOutlineToPiece(app.hoverOutline, app.hoveredPiece);
 }
 
 // Remove estado visual de hover e tooltip.
@@ -1540,43 +1540,28 @@ function clearPointerHover() {
 
 // Seleciona automaticamente o objeto sob o mouse para atalhos de teclado.
 function selectHoveredPiece(piece) {
-  if (piece?.data) {
-    app.selectedCard = piece;
-    app.selectedObject = null;
-    return;
-  }
-
-  if (piece?.kind && piece.kind !== 'deck') {
-    app.selectedObject = piece;
-    app.selectedCard = null;
-  }
+  selectHoveredPieceForState(piece, app);
 }
 
 // Descarta a geometria e material da outline atual.
 function clearHoverOutline() {
-  if (!app.hoverOutline) return;
-  app.scene.remove(app.hoverOutline);
-  app.hoverOutline.geometry.dispose();
-  app.hoverOutline.material.dispose();
+  disposeHoverOutline(app.hoverOutline, app.scene);
   app.hoverOutline = null;
 }
 
 // Mostra o tooltip perto do cursor.
 function showHoverTooltip(label, x, y) {
-  hoverTooltipEl.textContent = label;
-  hoverTooltipEl.style.display = 'block';
-  hoverTooltipEl.style.left = `${x}px`;
-  hoverTooltipEl.style.top = `${y}px`;
+  showHoverTooltipElement(hoverTooltipEl, label, x, y);
 }
 
 // Oculta o tooltip de hover.
 function hideHoverTooltip() {
-  hoverTooltipEl.style.display = 'none';
+  hideHoverTooltipElement(hoverTooltipEl);
 }
 
 // Atualiza a visualizacao ampliada quando Alt esta pressionado.
 function updateInspectOverlay() {
-  if (!app.inspectAltDown || app.dragged || !app.hoveredPiece) {
+  if (!shouldShowInspectOverlay(app)) {
     clearInspectClone();
     return;
   }
@@ -1586,111 +1571,36 @@ function updateInspectOverlay() {
 
 // Exibe uma copia ampliada do objeto sob hover, sem interferir na fisica.
 function showInspectOverlay(piece) {
-  const key = getInspectPieceKey(piece);
-  if (!piece?.mesh || !key || app.inspectedPieceKey === key) return;
-
-  clearInspectClone();
-  app.inspectedPiece = piece;
-  app.inspectedPieceKey = key;
-
-  const clone = piece.mesh.clone(true);
-  normalizeInspectCloneOrientation(clone, piece);
-  clone.position.set(0, 0, 0);
-  clone.updateMatrixWorld(true);
-  app.inspectGroup.add(clone);
-  app.inspectClone = clone;
-
-  const box = new THREE.Box3().setFromObject(clone);
-  const center = box.getCenter(new THREE.Vector3());
-  const size = box.getSize(new THREE.Vector3());
-  clone.position.sub(center);
-
-  const fitSize = Math.max(size.x, size.z, size.y * 0.8, 0.1);
-  const scale = THREE.MathUtils.clamp(1.55 / fitSize, 1.1, 5.8);
-  app.inspectGroup.scale.setScalar(scale);
-  app.inspectGroup.position.set(0, 0, 0);
-  app.inspectGroup.visible = true;
-  hideHoverTooltip();
-}
-
-// Ajusta a copia inspecionada para leitura, ignorando a orientacao da mesa.
-function normalizeInspectCloneOrientation(clone, piece) {
-  clone.quaternion.identity();
-  clone.rotation.set(0, 0, 0);
-
-  if (piece.kind === 'deck' || piece.data?.id) {
-    clone.rotation.y = Math.PI;
-  }
-
-  if (piece.kind === 'gold-coin' || piece.kind === 'silver-coin') {
-    clone.rotation.y = Math.PI / 2;
-  }
-
-  if (piece.kind === 'die') {
-    clone.rotation.set(-0.42, 0.56, 0.18);
-  }
-
-  clone.updateMatrixWorld(true);
-}
-
-// Gera uma chave estavel para nao recriar o clone a cada frame.
-function getInspectPieceKey(piece) {
-  if (piece.kind === 'deck') return 'deck';
-  if (piece.data?.id) return `card:${piece.data.id}`;
-  if (piece.id) return `object:${piece.id}`;
-  return piece.mesh?.uuid || null;
+  showInspectOverlayForPiece(piece, app, hideHoverTooltip);
 }
 
 // Oculta a visualizacao ampliada do Alt.
 function hideInspectOverlay({ resetAlt = true } = {}) {
-  if (resetAlt) app.inspectAltDown = false;
-  clearInspectClone();
+  hideInspectOverlayForState(app, { resetAlt });
 }
 
 // Remove o clone usado pela visualizacao ampliada sem descartar materiais compartilhados.
 function clearInspectClone() {
-  if (app.inspectClone) {
-    app.inspectGroup?.remove(app.inspectClone);
-  }
-  app.inspectClone = null;
-  app.inspectedPiece = null;
-  app.inspectedPieceKey = null;
-  if (app.inspectGroup) app.inspectGroup.visible = false;
+  clearInspectCloneState(app);
 }
 
 // Prepara uma peca para arrasto cinematico sem empurrar outros objetos.
 function beginDrag(event, piece, mode) {
-  event.preventDefault();
-  hideInspectOverlay();
-  clearPointerHover();
-  canvas.setPointerCapture(event.pointerId);
-  app.controls.enabled = false;
-  app.dragged = piece;
-  app.dragMode = mode;
-  app.dragQuat = piece.mesh.quaternion.clone();
-  app.dragStart = { x: event.clientX, y: event.clientY };
-  app.hasDragged = false;
-
-  setPieceSensor(piece, true);
-  piece.body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true);
-  piece.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-  piece.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-
-  if (rayToPlane(event, app.dragPoint)) {
-    const pos = piece.mesh.position;
-    app.dragOffset.copy(pos).sub(app.dragPoint);
-    app.dragOffset.y = 0.5;
-  } else {
-    app.dragOffset.set(0, 0.5, 0);
-  }
+  beginKinematicPieceDrag(event, piece, mode, {
+    canvas,
+    controls: app.controls,
+    state: app,
+    hideInspectOverlay,
+    clearPointerHover,
+    setPieceSensor,
+    rayToPlane
+  });
 }
 
 // Atualiza gestos pendentes, arrastos e hover durante movimento do mouse.
 function onPointerMove(event) {
   if (app.pendingDeckDrag && !app.dragged) {
-    const dx = event.clientX - app.pendingDeckDrag.x;
-    const dy = event.clientY - app.pendingDeckDrag.y;
-    if (Math.hypot(dx, dy) <= 6) return;
+    if (!didPendingGestureMove(app.pendingDeckDrag, event)) return;
     if (performance.now() - app.pendingDeckDrag.startedAt >= DECK_DRAG_HOLD_MS) {
       startDeckDrag(event);
     } else {
@@ -1699,9 +1609,7 @@ function onPointerMove(event) {
   }
 
   if (app.pendingStackDrag && !app.dragged) {
-    const dx = event.clientX - app.pendingStackDrag.x;
-    const dy = event.clientY - app.pendingStackDrag.y;
-    if (Math.hypot(dx, dy) <= 6) return;
+    if (!didPendingGestureMove(app.pendingStackDrag, event)) return;
     if (performance.now() - app.pendingStackDrag.startedAt >= DECK_DRAG_HOLD_MS) {
       startTableStackDrag(event);
     } else {
@@ -1717,19 +1625,11 @@ function onPointerMove(event) {
   event.preventDefault();
   event.stopImmediatePropagation();
   clearPointerHover();
-  if (app.dragStart) {
-    const dx = event.clientX - app.dragStart.x;
-    const dy = event.clientY - app.dragStart.y;
-    if (Math.hypot(dx, dy) > 6) app.hasDragged = true;
-  }
+  updateDragMovementFlag(app, event);
 
   if (!rayToPlane(event, app.dragPoint)) return;
 
-  const next = app.dragPoint.clone().add(app.dragOffset);
-  const distance = Math.hypot(next.x, next.z);
-  if (distance > PLAY_RADIUS) {
-    next.multiplyScalar(PLAY_RADIUS / distance);
-  }
+  const next = clampDragTargetToRadius(app.dragPoint.clone().add(app.dragOffset), PLAY_RADIUS);
 
   if (app.dragMode === 'deck') {
     app.deckMesh.position.x = next.x;
@@ -1746,9 +1646,7 @@ function onPointerMove(event) {
 
   next.y = 0.42;
 
-  const quat = app.dragMode === 'card'
-    ? app.dragQuat
-    : new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.18, app.dragged.mesh.rotation.y, 0.08));
+  const quat = getKinematicDragQuaternion(app.dragged, app.dragMode, app.dragQuat);
   app.dragged.body.setNextKinematicTranslation(next);
   app.dragged.body.setNextKinematicRotation(quat);
   updateHoveredDrop(event);
@@ -1757,21 +1655,23 @@ function onPointerMove(event) {
 // Finaliza clique, arrasto de objeto, deck, pilha ou carta.
 function onPointerUp(event) {
   if (app.pendingDeckDrag && !app.dragged) {
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    canvas.releasePointerCapture?.(event.pointerId);
-    app.controls.enabled = true;
-    app.pendingDeckDrag = null;
+    endPendingDragGesture(event, {
+      canvas,
+      controls: app.controls,
+      state: app,
+      key: 'pendingDeckDrag'
+    });
     drawCardToPlayer(state.activePlayer);
     return;
   }
 
   if (app.pendingStackDrag && !app.dragged) {
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    canvas.releasePointerCapture?.(event.pointerId);
-    app.controls.enabled = true;
-    app.pendingStackDrag = null;
+    endPendingDragGesture(event, {
+      canvas,
+      controls: app.controls,
+      state: app,
+      key: 'pendingStackDrag'
+    });
     return;
   }
 
@@ -1779,14 +1679,7 @@ function onPointerUp(event) {
 
   event.preventDefault();
   event.stopImmediatePropagation();
-  const piece = app.dragged;
-  const mode = app.dragMode;
-  const wasDragged = app.hasDragged;
-  app.dragged = null;
-  app.dragMode = null;
-  app.dragQuat = null;
-  app.dragStart = null;
-  app.hasDragged = false;
+  const { piece, mode, wasDragged } = consumeActiveDrag(app);
   app.controls.enabled = true;
 
   canvas.releasePointerCapture?.(event.pointerId);
@@ -1866,20 +1759,12 @@ function startDeckCardDrag(event) {
 // Inicia o arrasto do deck inteiro apos segurar o clique.
 function startDeckDrag(event) {
   app.pendingDeckDrag = null;
-  event.preventDefault();
-  app.controls.enabled = false;
-  app.dragged = app.deckMesh;
-  app.dragMode = 'deck';
-  app.dragStart = { x: event.clientX, y: event.clientY };
-  app.hasDragged = true;
-
-  if (rayToPlane(event, app.dragPoint)) {
-    app.dragOffset.copy(app.deckMesh.position).sub(app.dragPoint);
-    app.dragOffset.y = 0;
-  } else {
-    app.dragOffset.set(0, 0, 0);
-  }
-  app.dragOffset.y = 0;
+  beginAggregateDrag(event, app.deckMesh, 'deck', {
+    controls: app.controls,
+    state: app,
+    rayToPlane,
+    getPosition: deck => deck.position
+  });
 }
 
 // Finaliza o arrasto do deck e atualiza seu collider.
@@ -1899,7 +1784,7 @@ function startTableStackTopCardDrag(event) {
     return;
   }
 
-  const card = app.cards.get(stack.cards[stack.cards.length - 1]);
+  const card = app.cards.get(getTopStackCardId(stack));
   if (!card) {
     app.pendingStackDrag = null;
     app.controls.enabled = true;
@@ -1927,16 +1812,10 @@ function startTableStackDrag(event) {
   }
 
   app.pendingStackDrag = null;
-  event.preventDefault();
-  app.controls.enabled = false;
-  app.dragged = stack;
-  app.dragMode = 'stack';
-  app.dragStart = { x: event.clientX, y: event.clientY };
   app.dragOrigin = {
     location: 'stack',
     position: stack.position.clone()
   };
-  app.hasDragged = true;
 
   stack.cards.forEach((id) => {
     const card = app.cards.get(id);
@@ -1949,32 +1828,37 @@ function startTableStackDrag(event) {
     card.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
   });
 
-  if (rayToPlane(event, app.dragPoint)) {
-    app.dragOffset.copy(stack.position).sub(app.dragPoint);
-    app.dragOffset.y = 0;
-  } else {
-    app.dragOffset.set(0, 0, 0);
-  }
+  beginAggregateDrag(event, stack, 'stack', {
+    controls: app.controls,
+    state: app,
+    rayToPlane,
+    getPosition: item => item.position
+  });
 }
 
 // Finaliza o arrasto de pilha, juntando pilhas fechadas ao deck ou pilhas compativeis.
 function finishTableStackDrag(stack, event) {
   const origin = app.dragOrigin;
   app.dragOrigin = null;
+  const targetStack = findCompatibleTableStackForStack(stack);
+  const action = resolveStackDropAction({
+    stack,
+    isOverDeck: isStackOverDeck(stack, event),
+    targetStack
+  });
 
-  if (isStackOverDeck(stack, event)) {
-    if (!stack.faceUp) {
-      returnTableStackToDeck(stack);
-      return;
-    }
+  if (action === 'return-to-deck') {
+    returnTableStackToDeck(stack);
+    return;
+  }
 
+  if (action === 'restore-origin') {
     if (origin?.position) {
       moveTableStack(stack, origin.position.x, origin.position.z);
     }
   }
 
-  const targetStack = findCompatibleTableStackForStack(stack);
-  if (targetStack) {
+  if (action === 'merge') {
     mergeTableStacks(stack, targetStack);
     return;
   }
@@ -2036,18 +1920,12 @@ function isCardOverDeckGesture(card, event) {
 
 // Devolve carta ao deck respeitando cooldown contra cliques duplicados.
 function tryReturnCardToDeck(card, animated = false, options = {}) {
-  if (!card || card.data.location === 'deck') return false;
-  if (card.data.specialCard) return false;
-
   const now = performance.now();
-  if (now - app.lastCardReturnAt < CARD_RETURN_COOLDOWN_MS) return false;
+  if (!canReturnCardNow(card, app.lastCardReturnAt, now)) return false;
 
   app.lastCardReturnAt = now;
   const action = animated && options.publishAction !== false
-    ? publishTableAction('return-card-to-deck', {
-      cardId: card.id,
-      card: cloneCardData(card.data)
-    })
+    ? publishTableAction('return-card-to-deck', createReturnCardActionPayload(card, cloneCardData))
     : null;
   const runReturn = () => {
     if (animated) {
@@ -2080,14 +1958,13 @@ function deleteSelectedPiece() {
 
 // Vira a carta ou pilha selecionada, como o atalho F.
 function flipSelectedCards() {
-  if (!app.selectedCard) return false;
-  if (app.selectedCard.data.location === 'deck') return false;
+  const target = getSelectedFlipTarget(app.selectedCard, getCardStack);
+  if (!target) return false;
 
-  const stack = getCardStack(app.selectedCard);
-  if (stack && stack.cards.length > 1) {
-    flipTableStack(stack);
+  if (target.type === 'stack') {
+    flipTableStack(target.stack);
   } else {
-    flipCard(app.selectedCard);
+    flipCard(target.card);
   }
   return true;
 }
@@ -2095,21 +1972,22 @@ function flipSelectedCards() {
 // Gira o objeto sob o mouse ou selecionado com os atalhos Q/E.
 function rotateSelectedPiece(direction) {
   const piece = app.hoveredPiece || app.selectedCard || app.selectedObject;
-  if (!piece) return false;
-  const delta = direction * OBJECT_ROTATION_STEP;
+  const target = getRotationTarget(piece);
+  if (!target) return false;
 
-  if (piece.kind === 'deck') {
+  const delta = getRotationDelta(direction);
+  if (target.type === 'deck') {
     rotateDeck(delta);
     return true;
   }
 
-  if (piece.data) {
-    rotateCardPiece(piece, delta);
+  if (target.type === 'card') {
+    rotateCardPiece(target.piece, delta);
     return true;
   }
 
-  if (piece.body && piece.mesh) {
-    rotatePhysicsObject(piece, delta);
+  if (target.type === 'object') {
+    rotatePhysicsObject(target.piece, delta);
     scheduleTableSync();
     return true;
   }
@@ -2131,7 +2009,7 @@ function rotateCardPiece(card, delta) {
   if (card.target || card.flip || card.data.location === 'deck') return;
 
   const stack = getCardStack(card);
-  if (stack && stack.cards.length > 1) {
+  if (hasStackGroup(stack)) {
     stack.rotationY += delta;
     layoutTableStack(stack, false);
     scheduleTableSync();
@@ -2160,11 +2038,11 @@ function flipCard(card) {
 
 // Vira todas as cartas de uma pilha como uma unica orientacao de grupo.
 function flipTableStack(stack) {
-  if (!stack || stack.cards.length <= 1) return;
+  if (!hasStackGroup(stack)) return;
   const cards = stack.cards.map(id => app.cards.get(id)).filter(Boolean);
-  if (cards.some(card => card.flip)) return;
+  if (!canFlipStack(stack, cards)) return;
 
-  const nextFaceUp = !stack.faceUp;
+  const nextFaceUp = getNextStackFaceUp(stack);
   stack.faceUp = nextFaceUp;
   cards.forEach((card) => {
     startCardFlip(card, nextFaceUp, false);
@@ -2334,13 +2212,9 @@ function finalizeAnimatedCardReturn(card) {
 // Devolve uma pilha fechada inteira ao deck sem revelar suas cartas.
 function returnTableStackToDeck(stack) {
   clearPointerHover();
-  const timer = app.stackShuffleTimers.get(stack.id);
-  if (timer) {
-    window.clearTimeout(timer);
-    app.stackShuffleTimers.delete(stack.id);
-  }
+  clearStackTimer(stack, app.stackShuffleTimers);
 
-  const ids = stack.cards.slice();
+  const ids = getStackCardIds(stack);
   ids.forEach((id) => {
     const card = app.cards.get(id);
     if (!card) return;
@@ -2420,11 +2294,7 @@ function addCardToTableStack(card, stack) {
 
 // Une duas pilhas de cartas mantendo a pilha solta no topo da pilha alvo.
 function mergeTableStacks(sourceStack, targetStack) {
-  const sourceTimer = app.stackShuffleTimers.get(sourceStack.id);
-  if (sourceTimer) {
-    window.clearTimeout(sourceTimer);
-    app.stackShuffleTimers.delete(sourceStack.id);
-  }
+  clearStackTimer(sourceStack, app.stackShuffleTimers);
 
   sourceStack.cards.forEach((id) => {
     const card = app.cards.get(id);
@@ -2452,19 +2322,12 @@ function mergeTableStacks(sourceStack, targetStack) {
 
 // Embaralha a ordem de uma pilha de mesa com uma pequena animacao visual.
 function shuffleTableStack(stack) {
-  if (!stack || stack.cards.length <= 1) return;
+  if (!hasStackGroup(stack)) return;
 
-  const existingTimer = app.stackShuffleTimers.get(stack.id);
-  if (existingTimer) {
-    window.clearTimeout(existingTimer);
-    app.stackShuffleTimers.delete(stack.id);
-  }
+  clearStackTimer(stack, app.stackShuffleTimers);
 
-  const currentOrder = stack.cards.slice();
-  const nextOrder = shuffle(currentOrder.slice());
-  if (nextOrder.every((id, index) => id === currentOrder[index])) {
-    nextOrder.push(nextOrder.shift());
-  }
+  const currentOrder = getStackCardIds(stack);
+  const nextOrder = getNextShuffledStackOrder(stack, shuffle);
 
   currentOrder.forEach((id, index) => {
     const card = app.cards.get(id);
@@ -2500,14 +2363,8 @@ function removeCardFromTableStack(card) {
   card.data.stackId = null;
   if (!stack) return;
 
-  stack.cards = stack.cards.filter(id => id !== card.id);
-  if (stack.cards.length <= 1) {
-    const timer = app.stackShuffleTimers.get(stack.id);
-    if (timer) {
-      window.clearTimeout(timer);
-      app.stackShuffleTimers.delete(stack.id);
-    }
-
+  if (removeCardIdFromStack(stack, card.id)) {
+    clearStackTimer(stack, app.stackShuffleTimers);
     const remaining = app.cards.get(stack.cards[0]);
     if (remaining) {
       remaining.data.stackId = null;
