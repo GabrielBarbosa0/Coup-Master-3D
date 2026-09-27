@@ -2,23 +2,25 @@ import {
   cancelRemovePlayerBtn,
   closePlayerInfoBtn,
   confirmRemovePlayerBtn,
+  playerInfoAvatar,
+  playerInfoGames,
+  playerInfoLosses,
   playerInfoModal,
   playerInfoName,
   playerInfoNote,
-  playerInfoRole,
-  playerInfoSeat,
-  playerInfoStatus,
+  playerInfoPoints,
+  playerInfoRankedSummary,
+  playerInfoWinRate,
+  playerInfoWins,
   playerRemoveConfirm,
   removePlayerBtn,
   roomPlayerList
 } from './dom.js';
-import { playVfx } from './audio-service.js';
 import { closeModal, openModal } from './modal-service.js';
 
 const roomPlayersState = {
   getPlayers: () => [],
   isAdmin: () => false,
-  onCoinCountChange: () => {},
   selectedRoomPlayer: null
 };
 
@@ -34,7 +36,6 @@ function getPlayerFallbackName(playerId = '') {
 function setupRoomPlayerList(options = {}) {
   roomPlayersState.getPlayers = options.getPlayers || roomPlayersState.getPlayers;
   roomPlayersState.isAdmin = options.isAdmin || roomPlayersState.isAdmin;
-  roomPlayersState.onCoinCountChange = options.onCoinCountChange || roomPlayersState.onCoinCountChange;
 
   closePlayerInfoBtn?.addEventListener('click', closePlayerInfoModal);
   removePlayerBtn?.addEventListener('click', showPlayerRemoveConfirmation);
@@ -61,18 +62,7 @@ function renderRoomPlayerList() {
     button.title = `${playerName} · P${player.id}`;
     button.addEventListener('click', () => openPlayerInfoModal(player.id));
 
-    const coinControls = document.createElement('div');
-    coinControls.className = 'room-player-coins';
-    coinControls.setAttribute('aria-label', t('three.coinsOf', { name: playerName }, `Moedas de ${playerName}`));
-
-    const removeBtn = createPlayerCoinButton(player.id, -1, '-', t('three.remove', {}, 'Remover'));
-    const count = document.createElement('span');
-    count.className = 'room-player-coin-count';
-    count.textContent = String(player.coinCount || 0);
-    const addBtn = createPlayerCoinButton(player.id, 1, '+', t('common.add', {}, 'Adicionar'));
-
-    coinControls.append(removeBtn, count, addBtn);
-    row.append(button, coinControls);
+    row.append(button);
     roomPlayerList.append(row);
   });
 }
@@ -91,36 +81,6 @@ function refreshOpenPlayerInfoModal() {
 
   roomPlayersState.selectedRoomPlayer = player;
   renderPlayerInfoModal(player);
-}
-
-// Cria um botao circular para ajustar o contador manual de moedas.
-function createPlayerCoinButton(playerId, delta, label, title) {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'room-player-coin-btn';
-  button.textContent = label;
-  button.title = title;
-  button.setAttribute('aria-label', `${title} P${playerId}`);
-  button.addEventListener('click', (event) => {
-    event.stopPropagation();
-    adjustPlayerCoinCount(playerId, delta);
-  });
-  return button;
-}
-
-// Atualiza o contador manual de moedas do jogador e sincroniza a mesa.
-function adjustPlayerCoinCount(playerId, delta) {
-  const player = getPlayerById(playerId);
-  if (!player?.isReserved) return;
-
-  const current = Number(player.coinCount) || 0;
-  const next = Math.max(0, Math.min(99, current + delta));
-  if (next === current) return;
-
-  player.coinCount = next;
-  playVfx('falling-coin');
-  renderRoomPlayerList();
-  roomPlayersState.onCoinCountChange(player);
 }
 
 // Retorna somente os assentos realmente reservados por jogadores da sala.
@@ -143,13 +103,25 @@ function renderPlayerInfoModal(player) {
   const localUid = window.CoupMaster3DOnline?.user?.uid;
   const canRemove = Boolean(roomPlayersState.isAdmin() && player.uid && player.uid !== localUid);
   const isConfirmingRemoval = Boolean(playerRemoveConfirm && !playerRemoveConfirm.hidden);
+  const playerName = player.name || getPlayerFallbackName(player.id);
+  const rankedStats = getPlayerRankedStats(player);
 
-  if (playerInfoName) playerInfoName.textContent = player.name || getPlayerFallbackName(player.id);
-  if (playerInfoSeat) playerInfoSeat.textContent = `P${player.id}`;
-  if (playerInfoStatus) playerInfoStatus.textContent = player.isOnline
-    ? t('common.online', {}, 'Online')
-    : t('common.offline', {}, 'Offline');
-  if (playerInfoRole) playerInfoRole.textContent = getPlayerRoomRole(player);
+  if (playerInfoName) playerInfoName.textContent = playerName;
+  if (playerInfoRankedSummary) {
+    playerInfoRankedSummary.textContent = t(
+      'three.rankedGamesRegistered',
+      { count: rankedStats.games },
+      `${rankedStats.games} jogo(s) ranqueado(s) registrados.`
+    );
+  }
+  if (playerInfoGames) playerInfoGames.textContent = String(rankedStats.games);
+  if (playerInfoWins) playerInfoWins.textContent = String(rankedStats.wins);
+  if (playerInfoLosses) playerInfoLosses.textContent = String(rankedStats.losses);
+  if (playerInfoWinRate) playerInfoWinRate.textContent = `${rankedStats.winRate}%`;
+  if (playerInfoPoints) {
+    playerInfoPoints.textContent = t('three.rankedPointsValue', { points: rankedStats.points }, `${rankedStats.points} PTS`);
+  }
+  renderPlayerAvatar(player, playerName);
 
   if (removePlayerBtn) {
     removePlayerBtn.hidden = !canRemove || isConfirmingRemoval;
@@ -168,14 +140,6 @@ function renderPlayerInfoModal(player) {
       playerInfoNote.hidden = true;
     }
   }
-}
-
-// Mostra se o perfil pertence ao host permanente da sala.
-function getPlayerRoomRole(player) {
-  const adminUid = window.CoupMaster3DOnline?.adminUid;
-  return player.uid && adminUid && player.uid === adminUid
-    ? t('common.host', {}, 'Host')
-    : t('common.player', {}, 'Jogador');
 }
 
 // Fecha o modal e limpa estados temporarios de remocao.
@@ -240,6 +204,38 @@ function getPlayers() {
 // Localiza um jogador pelo assento.
 function getPlayerById(playerId) {
   return getPlayers()[playerId - 1] || null;
+}
+
+// Mantem o perfil pronto para receber estatisticas ranqueadas reais no futuro.
+function getPlayerRankedStats(player) {
+  const stats = player?.rankedStats || {};
+  const games = Math.max(0, Number(stats.games) || 0);
+  const wins = Math.max(0, Number(stats.wins) || 0);
+  const losses = Math.max(0, Number(stats.losses) || 0);
+  const points = Math.max(0, Number(stats.points) || 0);
+  const winRate = games > 0 ? Math.round((wins / games) * 100) : 0;
+  return { games, wins, losses, points, winRate };
+}
+
+// Preenche avatar com foto do provedor ou iniciais quando ainda nao ha imagem.
+function renderPlayerAvatar(player, playerName) {
+  if (!playerInfoAvatar) return;
+
+  playerInfoAvatar.textContent = getPlayerInitials(playerName);
+  playerInfoAvatar.style.backgroundImage = player.avatarUrl
+    ? `url(${JSON.stringify(player.avatarUrl)})`
+    : '';
+  playerInfoAvatar.classList.toggle('has-photo', Boolean(player.avatarUrl));
+  playerInfoAvatar.setAttribute('aria-label', playerName);
+}
+
+function getPlayerInitials(playerName = '') {
+  const parts = String(playerName)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  const initials = parts.slice(0, 2).map(part => part[0]).join('');
+  return (initials || 'J').toUpperCase();
 }
 
 export {

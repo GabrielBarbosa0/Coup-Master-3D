@@ -7,6 +7,8 @@ import {
 } from './dom.js';
 import {
   CARD_LIBRARY,
+  CARD_LABELS,
+  RULE_CARD_GROUPS,
   DEFAULT_DECK_CONFIG
 } from './config.js';
 import { closeModal, openModal } from './modal-service.js';
@@ -29,10 +31,13 @@ function setupDeckConfigService(options = {}) {
   deckConfigState.canEdit = options.canEdit || deckConfigState.canEdit;
   deckConfigState.onApply = options.onApply || deckConfigState.onApply;
 
+  renderDeckConfigList();
   syncDeckConfigInputs();
 
   openDeckConfigBtn?.addEventListener('click', () => {
+    renderDeckConfigList();
     syncDeckConfigInputs();
+    syncDeckConfigControls();
     closeModal(settingsModal);
     openModal(configModal);
   });
@@ -55,6 +60,72 @@ function setupDeckConfigService(options = {}) {
       applyDeckPreset(button.dataset.preset);
     });
   });
+
+  window.addEventListener('coup:languagechange', () => {
+    const currentValues = readDeckConfigInputs();
+    renderDeckConfigList(currentValues);
+    syncDeckConfigControls();
+  });
+}
+
+// Renderiza os campos de configuracao a partir do catalogo atual de cartas.
+function renderDeckConfigList(values = deckConfigState.getDeckConfig()) {
+  const list = document.querySelector('.card-config-list');
+  if (!list) return;
+
+  const presets = list.querySelector('.deck-presets-container');
+  const applyItem = list.querySelector('.card-config-apply-item');
+  list.innerHTML = '';
+  if (presets) list.append(presets);
+
+  const groupEntries = [
+    { id: 'base', cards: RULE_CARD_GROUPS.base, title: '' },
+    { id: 'promo', cards: RULE_CARD_GROUPS.promo, title: t('three.deckGroupPromo', {}, '"Sombras do Palácio"') },
+    { id: 'revolution', cards: RULE_CARD_GROUPS.revolution, title: t('three.deckGroupRevolution', {}, '"A Revolução"') },
+    { id: 'shadows', cards: RULE_CARD_GROUPS.shadows, title: t('three.deckGroupShadows', {}, '"Sombras do Asilo"') }
+  ];
+
+  groupEntries.forEach((group) => {
+    if (group.title) list.append(createDeckGroupTitle(group.title));
+    group.cards
+      .filter(cardType => CARD_LIBRARY.some(card => card.type === cardType))
+      .forEach(cardType => list.append(createCardConfigItem(cardType, values?.[cardType])));
+  });
+
+  if (applyItem) list.append(applyItem);
+}
+
+// Cria o separador visual de um grupo de cartas configuraveis.
+function createDeckGroupTitle(title) {
+  const item = document.createElement('li');
+  item.className = 'title-dlc-card-config-item';
+
+  const text = document.createElement('p');
+  text.textContent = title;
+  item.append(text);
+  return item;
+}
+
+// Cria uma linha numerica para uma carta do catalogo.
+function createCardConfigItem(cardType, value = DEFAULT_DECK_CONFIG[cardType] ?? 0) {
+  const item = document.createElement('li');
+  item.className = 'card-config-item';
+
+  const inputId = `config-${cardType}`;
+  const label = document.createElement('label');
+  label.htmlFor = inputId;
+  label.textContent = t(`three.cards.${cardType}`, {}, CARD_LABELS[cardType] || cardType);
+
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.id = inputId;
+  input.dataset.card = cardType;
+  input.min = '0';
+  input.max = '10';
+  input.value = clampDeckCopyCount(value);
+
+  item.append(label, input);
+  return item;
 }
 
 // Atualiza os inputs do modal com a configuracao ativa.

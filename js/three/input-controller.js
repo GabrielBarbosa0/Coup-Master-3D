@@ -25,7 +25,6 @@ export function setupInputController(options) {
   buttons.focusCameraBtn?.addEventListener('click', actions.focusCamera);
   buttons.resetBtn?.addEventListener('pointerdown', actions.playResetSoundFromButton);
   buttons.resetBtn?.addEventListener('click', actions.triggerResetFromButton);
-  buttons.roomCodeStatusBtn?.addEventListener('click', actions.copyRoomCodeFromHud);
 
   windowTarget.addEventListener('resize', actions.resize);
   canvas.addEventListener('pointerdown', actions.onPointerDown);

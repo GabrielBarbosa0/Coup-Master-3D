@@ -114,6 +114,10 @@
           data-i18n-aria-label="three.alternativeRules">
           <img src="assets/img/icons/parchment.svg" alt="">
         </button>
+        <button id="shareRoomBtn3d" class="settings-btn" type="button" title="Compartilhar Sala"
+          aria-label="Compartilhar Sala" data-i18n-title="three.shareRoom" data-i18n-aria-label="three.shareRoom">
+          <img src="assets/img/icons/share.svg" alt="">
+        </button>
         <button id="spectatorBtn3d" class="settings-btn spectator-btn" type="button" title="Modo espectador"
           aria-label="Modo espectador" data-i18n-title="three.spectatorMode"
           data-i18n-aria-label="three.spectatorMode">
@@ -133,15 +137,6 @@
         </button>
       </div>
     </section>
-
-    <div class="status-row table-status">
-      <button id="roomCodeStatus" class="room-code-status" type="button" title="Copiar código da sala"
-        data-i18n-title="three.copyRoomCode">Sala:
-        ----</button>
-      <span id="deckCount">Deck: 0</span>
-      <span id="tableCount">Mesa: 0</span>
-      <span id="objectCount">Objetos: 0</span>
-    </div>
 
     <section class="hud side-actions" aria-label="Chat e histórico" data-i18n-aria-label="three.chatAndHistory">
       <button id="historyBtn3d" class="settings-btn" type="button" title="Histórico" aria-label="Histórico"
@@ -205,8 +200,39 @@
       </button>
     </section>
 
+    <div class="status-row table-status">
+      <span id="deckCount">Deck: 0</span>
+      <span id="tableCount">Mesa: 0</span>
+      <span id="objectCount">Objetos: 0</span>
+    </div>
 
     <div id="hoverTooltip" class="hover-tooltip" role="status" aria-live="polite"></div>
+
+    <div id="shareRoomModal" class="modal-overlay" style="display: none;">
+      <div class="modal-content standard-modal-content share-room-modal-content">
+        <button id="closeShareRoomBtn" class="close-btn" type="button" aria-label="Fechar"
+          data-i18n-aria-label="common.close">&times;</button>
+        <h2 data-i18n="three.shareRoom">Compartilhar Sala</h2>
+
+        <div class="share-room-invite-card" aria-label="Convite da sala" data-i18n-aria-label="three.roomInvite">
+          <div id="shareRoomCodeCopy" class="share-room-code-panel" role="button" tabindex="0"
+            title="Clique para copiar o código da sala" data-i18n-title="three.copyCodeHint"
+            aria-label="Clique para copiar o código da sala" data-i18n-aria-label="three.copyCodeHint">
+            <span class="share-room-label" data-i18n="three.roomShortLabel">Sala:</span>
+            <strong id="shareRoomCode">...</strong>
+          </div>
+
+          <button id="shareRoomLinkCopy" class="share-room-qr-frame" type="button"
+            title="Clique no QR Code para copiar o link da sala" data-i18n-title="three.copyLinkHint"
+            aria-label="Clique no QR Code para copiar o link da sala" data-i18n-aria-label="three.copyLinkHint">
+            <img id="shareRoomQr" src="" alt="QR Code da sala" data-i18n-alt="three.roomQr">
+          </button>
+
+          <span id="shareRoomCopyStatus" class="share-room-scan-label" data-i18n="three.scanToJoin"
+            aria-live="polite">Escaneie para entrar</span>
+        </div>
+      </div>
+    </div>
 
     <div id="settingsModal" class="modal-overlay" style="display: none;">
       <div class="modal-content">
@@ -239,6 +265,12 @@
               style="background: #1e90ff; color: white; padding: 10px; border: 0; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold;"
               data-i18n="three.configureDeck">
               Configurar Baralho
+            </button>
+          </div>
+
+          <div class="setting-row" style="justify-content: center;">
+            <button id="ruleDrawBtn" class="settings-action-btn" type="button" data-i18n="three.drawAlternativeRules">
+              Sortear Regras Alternativas
             </button>
           </div>
 
@@ -436,13 +468,39 @@
       <div class="modal-content player-info-modal-content">
         <button id="closePlayerInfoBtn" class="close-btn" type="button" aria-label="Fechar"
           data-i18n-aria-label="common.close">&times;</button>
-        <h2 data-i18n="common.player">Jogador</h2>
+        <h2 data-i18n="three.playerProfileTitle">Perfil do Jogador</h2>
 
-        <div class="player-info-list">
-          <p><span data-i18n="three.playerName">Nome</span><strong id="playerInfoName">Jogador</strong></p>
-          <p><span data-i18n="three.playerSeat">Slot</span><strong id="playerInfoSeat">P1</strong></p>
-          <p><span data-i18n="three.playerStatus">Status</span><strong id="playerInfoStatus">Online</strong></p>
-          <p><span data-i18n="three.playerProfile">Perfil</span><strong id="playerInfoRole">Jogador</strong></p>
+        <div class="player-profile-card">
+          <div id="playerInfoAvatar" class="player-profile-avatar" role="img" aria-label="Jogador">J</div>
+          <div class="player-profile-identity">
+            <span class="player-profile-label" data-i18n="three.playerProfile">Perfil do Jogador</span>
+            <strong id="playerInfoName">Jogador</strong>
+            <span id="playerInfoRankedSummary" data-i18n="three.rankedGamesRegistered">0 jogo(s) ranqueado(s) registrados.</span>
+          </div>
+        </div>
+
+        <div class="player-stats-grid" aria-label="Estatísticas ranqueadas"
+          data-i18n-aria-label="three.rankedStats">
+          <div class="player-stat-card">
+            <span data-i18n="three.rankedGames">Jogos</span>
+            <strong id="playerInfoGames">0</strong>
+          </div>
+          <div class="player-stat-card">
+            <span data-i18n="three.rankedWins">Vitórias</span>
+            <strong id="playerInfoWins">0</strong>
+          </div>
+          <div class="player-stat-card">
+            <span data-i18n="three.rankedLosses">Derrotas</span>
+            <strong id="playerInfoLosses">0</strong>
+          </div>
+          <div class="player-stat-card">
+            <span data-i18n="three.rankedWinRate">Taxa de Vitória</span>
+            <strong id="playerInfoWinRate">0%</strong>
+          </div>
+          <div class="player-stat-card player-stat-card-wide">
+            <span data-i18n="three.rankedPoints">Pontos</span>
+            <strong id="playerInfoPoints">0 PTS</strong>
+          </div>
         </div>
 
         <p id="playerInfoNote" class="permission-note" hidden></p>
@@ -504,12 +562,8 @@
             aria-label="Alternar carta de regras" data-i18n-aria-label="three.ruleCardToggle">
             <div class="rule-flip-card-inner">
               <div class="rule-flip-card-face rule-flip-card-front">
-                <img id="ruleFrontImg" src="assets/img/guides/front-actions.png" alt="Regras dos personagens"
-                  data-i18n-alt="three.rulesCharacters">
               </div>
               <div class="rule-flip-card-face rule-flip-card-back">
-                <img id="ruleBackImg" src="assets/img/guides/back-actions.png" alt="Resumo de turno"
-                  data-i18n-alt="three.turnSummary">
               </div>
             </div>
           </div>
@@ -529,18 +583,48 @@
             aria-label="Alternar regra alternativa" data-i18n-aria-label="three.altRuleToggle">
             <div class="rule-flip-card-inner">
               <div class="rule-flip-card-face rule-flip-card-front">
-                <img id="altRuleFrontImg" src="assets/img/guides/alternative-rules1.png" alt="Regra alternativa"
-                  data-i18n-alt="three.altRule">
               </div>
               <div class="rule-flip-card-face rule-flip-card-back">
-                <img id="altRuleBackImg" src="assets/img/guides/alternative-rules2.png" alt="Regra alternativa"
-                  data-i18n-alt="three.altRule">
               </div>
             </div>
           </div>
         </div>
 
         <div id="altRuleCounter" class="rule-cards-counter" aria-live="polite">1 / 5</div>
+      </div>
+    </div>
+
+    <div id="ruleDrawModal" class="modal-overlay" style="display: none;">
+      <div class="modal-content rule-draw-modal-content">
+        <button id="closeRuleDrawBtn" class="close-btn" type="button" aria-label="Fechar"
+          data-i18n-aria-label="common.close">&times;</button>
+        <div class="rule-draw-scroll">
+          <h2 data-i18n="three.drawAlternativeRules">Sorteador de Regras</h2>
+
+          <div id="ruleDrawSetup" class="rule-draw-setup">
+            <div class="rule-draw-count-options" role="group" aria-label="Número de regras"
+              data-i18n-aria-label="three.ruleCountLabel">
+              <button class="rule-draw-count-btn" type="button" data-rule-count="1">1</button>
+              <button class="rule-draw-count-btn" type="button" data-rule-count="2">2</button>
+              <button class="rule-draw-count-btn" type="button" data-rule-count="3">3</button>
+              <button class="rule-draw-count-btn" type="button" data-rule-count="4">4</button>
+              <button class="rule-draw-count-btn" type="button" data-rule-count="5">5</button>
+            </div>
+          </div>
+
+          <div id="ruleSelectionList" class="rule-selection-list"></div>
+          <p id="ruleSelectionCount" class="rule-selection-count"></p>
+          <p id="ruleSelectionStatus" class="rule-selection-status" aria-live="polite"></p>
+
+          <div class="rule-selection-actions">
+            <button id="startRuleDrawBtn" class="settings-action-btn rule-draw-start-btn" type="button"
+              data-i18n="three.drawRules">Sortear regras</button>
+            <button id="applyRuleSelectionBtn" class="settings-action-btn" type="button"
+              data-i18n="three.applyRuleSelection">Aplicar seleção</button>
+            <button id="resetRuleSelectionBtn" class="settings-action-btn feedback-secondary-btn" type="button"
+              data-i18n="three.restoreDefaultRules">Restaurar regras padrão</button>
+          </div>
+        </div>
       </div>
     </div>
 

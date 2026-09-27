@@ -23,6 +23,10 @@ import {
 } from './chat-service.js';
 import { setupFeedbackService } from './feedback-service.js';
 import {
+  renderShareRoomModal,
+  setupShareRoomService
+} from './share-room-service.js';
+import {
   refreshOpenPlayerInfoModal,
   renderRoomPlayerList,
   setupRoomPlayerList
@@ -124,6 +128,7 @@ import {
   spawnDie
 } from './object-system.js';
 import { setupRulesGuidesUi } from './rules-guides-ui.js';
+import { applyAlternativeDeckRules } from './alternative-rules-service.js';
 
 const {
   acceptSpectatorBtn,
@@ -151,9 +156,9 @@ const {
   rollBtn,
   rotateLeftBtn,
   rotateRightBtn,
-  roomCodeStatusBtn,
   settingsBtn,
   settingsModal,
+  shareRoomBtn,
   shuffleBtn,
   silverCoinBtn,
   spectatorBtn,
@@ -202,6 +207,7 @@ const state = {
   activePlayer: 1,
   viewPlayer: 1,
   deckConfig: { ...DEFAULT_DECK_CONFIG },
+  alternativeRuleDraw: null,
   deck: [],
   tableCards: [],
   players: Array.from({ length: PLAYER_COUNT }, (_, index) => ({
@@ -271,7 +277,6 @@ const app = {
   lastAppliedTableState: null,
   isApplyingRemoteState: false,
   isAdmin: Boolean(window.CoupMaster3DOnline?.isAdmin),
-  roomCodeFeedbackTimer: null,
   lastTime: performance.now(),
   textures: {}
 };
@@ -377,8 +382,7 @@ function init() {
   setupChatPanel();
   setupRoomPlayerList({
     getPlayers: () => state.players,
-    isAdmin: () => app.isAdmin,
-    onCoinCountChange: scheduleTableSync
+    isAdmin: () => app.isAdmin
   });
   setupAudioControls({
     canReset: () => app.isAdmin,
@@ -418,14 +422,12 @@ function init() {
       rollBtn,
       rotateLeftBtn,
       rotateRightBtn,
-      roomCodeStatusBtn,
       shuffleBtn,
       silverCoinBtn
     },
     actions: {
       clearTableObjects,
       closeAllModals,
-      copyRoomCodeFromHud,
       dealInitialHands,
       deleteSelectedPiece,
       drawCardToActivePlayer: () => drawCardToPlayer(state.activePlayer),
@@ -654,6 +656,20 @@ function setupSettingsModal() {
   });
 
   closeSettingsBtn?.addEventListener('click', () => closeModal(settingsModal));
+  setupShareRoomService({
+    shareRoomBtn,
+    shareRoomModal: dom.shareRoomModal,
+    closeShareRoomBtn: dom.closeShareRoomBtn,
+    shareRoomCodeCopy: dom.shareRoomCodeCopy,
+    shareRoomCode: dom.shareRoomCode,
+    shareRoomLinkCopy: dom.shareRoomLinkCopy,
+    shareRoomQr: dom.shareRoomQr,
+    shareRoomCopyStatus: dom.shareRoomCopyStatus,
+    openModal,
+    closeModal,
+    getRoomCode,
+    t
+  });
   setupFeedbackService({
     feedbackBtn,
     feedbackModal,
@@ -674,7 +690,19 @@ function setupSettingsModal() {
   spectatorBtn?.addEventListener('click', openSpectatorModal);
   setupFullscreenControl();
   setupRulesGuidesUi({
-    getDeckConfig: () => state.deckConfig
+    getDeckConfig: () => state.deckConfig,
+    getAlternativeRuleDraw: () => state.alternativeRuleDraw,
+    setAlternativeRuleDraw: (drawData) => {
+      state.alternativeRuleDraw = drawData ? cloneTableState(drawData) : null;
+    },
+    canEditAlternativeRules: () => app.isAdmin,
+    onAlternativeRuleDrawChange: () => {
+      scheduleTableSync();
+      syncDeckConfigInputs();
+    },
+    getPlayerName: () => window.CoupMaster3DOnline?.playerName
+      || window.CoupMaster3DOnline?.user?.displayName
+      || t('common.host', {}, 'Host')
   });
   setupDeckConfigService({
     getDeckConfig: () => state.deckConfig,
@@ -811,26 +839,9 @@ function showSpectatorResponse(message) {
   openModal(spectatorModal);
 }
 
-// Copia o codigo da sala exibido no HUD.
-async function copyRoomCodeFromHud(event) {
-  event?.stopPropagation();
-  const roomCode = window.CoupMaster3DOnline?.roomCode;
-  if (!roomCode) return;
-
-  try {
-    await navigator.clipboard?.writeText(roomCode);
-    showRoomCodeCopyFeedback('Copiado!');
-  } catch {
-    showRoomCodeCopyFeedback(t('three.roomCopied', { code: roomCode }, `Sala: ${roomCode}`));
-  }
-}
-
-// Mostra feedback curto sem esconder o codigo por muito tempo.
-function showRoomCodeCopyFeedback(message) {
-  if (!roomCodeStatusBtn) return;
-  roomCodeStatusBtn.textContent = message;
-  window.clearTimeout(app.roomCodeFeedbackTimer);
-  app.roomCodeFeedbackTimer = window.setTimeout(updateRoomCodeStatus, 900);
+// Le o codigo da sala atual a partir do bootstrap online ou da URL.
+function getRoomCode() {
+  return window.CoupMaster3DOnline?.roomCode || new URLSearchParams(location.search).get('room') || '';
 }
 
 // Reinicia o estado do MVP 3D sem distribuir cartas automaticamente.
@@ -852,7 +863,7 @@ function resetMvp() {
   app.tableStacks = [];
   clearTableObjects(false);
 
-  state.deck = buildDeck(state.deckConfig, clampDeckCopyCount);
+  state.deck = buildDeck(applyAlternativeDeckRules(state.deckConfig, state.alternativeRuleDraw), clampDeckCopyCount);
   state.tableCards = [];
   state.players.forEach(player => {
     player.cards = [];
@@ -2850,6 +2861,7 @@ function getTableState() {
   return {
     version: 1,
     deckConfig: { ...state.deckConfig },
+    alternativeRuleDraw: state.alternativeRuleDraw ? cloneTableState(state.alternativeRuleDraw) : null,
     deck: state.deck.map(cloneCardData),
     deckTransform: serializeTransform(app.deckMesh),
     objectId: getObjectId(),
@@ -2914,6 +2926,7 @@ function applyTableState(snapshot) {
   clearTableObjects(false);
 
   state.deckConfig = { ...DEFAULT_DECK_CONFIG, ...(snapshot.deckConfig || {}) };
+  state.alternativeRuleDraw = snapshot.alternativeRuleDraw ? cloneTableState(snapshot.alternativeRuleDraw) : null;
   state.deck = (snapshot.deck || []).map(cloneCardData).filter(Boolean);
   state.tableCards = [];
   state.players.forEach(player => {
@@ -3120,10 +3133,15 @@ function bumpStackIdFrom(id) {
 
 // Atualiza contadores e visibilidade do deck no HUD.
 function updateHud() {
-  updateRoomCodeStatus();
   deckCountEl.textContent = t('three.deckCount', { count: state.deck.length }, `Deck: ${state.deck.length}`);
   tableCountEl.textContent = t('three.tableCount', { count: state.tableCards.length }, `Mesa: ${state.tableCards.length}`);
   objectCountEl.textContent = t('three.objectCount', { count: getObjectCount() }, `Objetos: ${getObjectCount()}`);
+  renderShareRoomModal({
+    shareRoomCode: dom.shareRoomCode,
+    shareRoomQr: dom.shareRoomQr,
+    getRoomCode,
+    t
+  });
 
   if (app.deckMesh) {
     app.deckMesh.visible = true;
@@ -3135,16 +3153,6 @@ function updateHud() {
   }
 
   scheduleTableSync();
-}
-
-// Mantem o codigo da sala clicavel ao lado dos contadores.
-function updateRoomCodeStatus() {
-  if (!roomCodeStatusBtn) return;
-  const roomCode = window.CoupMaster3DOnline?.roomCode || '----';
-  roomCodeStatusBtn.textContent = t('three.roomCode', { code: roomCode }, `Sala: ${roomCode}`);
-  roomCodeStatusBtn.title = roomCode === '----'
-    ? t('three.roomCodeUnavailable', {}, 'Código da sala indisponível')
-    : t('three.copyRoomCode', { code: roomCode }, `Copiar sala ${roomCode}`);
 }
 
 // Retorna a altura visual/fisica atual do deck real.

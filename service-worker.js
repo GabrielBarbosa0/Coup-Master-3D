@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'coup-master-pwa-v28';
+const CACHE_VERSION = 'coup-master-pwa-v35';
 const APP_SHELL = [
   './',
   './index.html',
@@ -22,6 +22,7 @@ const APP_SHELL = [
   './js/three/boot.js',
   './js/three/app.js',
   './js/three/animation-service.js',
+  './js/three/alternative-rules-service.js',
   './js/three/audio-service.js',
   './js/three/camera-service.js',
   './js/three/card-system.js',
@@ -36,8 +37,10 @@ const APP_SHELL = [
   './js/three/object-system.js',
   './js/three/player-badges.js',
   './js/three/room-players-ui.js',
+  './js/three/rules-guide-builder.js',
   './js/three/rules-guides-ui.js',
   './js/three/scene-table.js',
+  './js/three/share-room-service.js',
   './js/three/stack-system.js',
   './js/three/table-sync-service.js',
   './lang/pt-BR.json',
@@ -53,8 +56,11 @@ const APP_SHELL = [
   './assets/img/icons/google.svg',
   './assets/img/icons/home.svg',
   './assets/img/icons/logout.svg',
+  './assets/img/icons/share.svg',
   './assets/img/icons/translate.svg',
-  './assets/img/icons/trophy.svg'
+  './assets/img/icons/trophy.svg',
+  './assets/img/guides/clean.png',
+  './assets/img/cards/base/back.png'
 ];
 
 // Prepara o shell minimo para abrir a PWA mesmo durante uma falha de rede.
