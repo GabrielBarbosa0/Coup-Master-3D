@@ -141,7 +141,7 @@ rooms/{roomCode}
 
 A lista de jogadores com assento reservado define os badges, a lista textual do HUD e o assento local. Fechar ou minimizar a aba nao libera o slot; apenas a remocao explicita feita pelo host libera o assento em `rooms/{roomCode}/seats/{seat}` e remove `rooms/{roomCode}/players/{uid}`. A ordem de alocacao prioriza lados opostos da mesa, mas nao rebalanceia jogadores ja assentados para preservar o dono das cartas e o estado da partida.
 
-O lobby casual nao segura jogadores em uma sala de espera; criar ou entrar em sala abre `index.html?room=CODIGO`. A mesa casual sincroniza snapshots finais via `tableState` usando transacoes do Realtime Database. Compras reservam a carta em uma transacao dedicada; `tableActions` permanece para distribuicao inicial e devolucao animada ao deck. Drag livre ainda nao transmite posicoes intermediarias.
+O lobby casual nao segura jogadores em uma sala de espera; criar ou entrar em sala abre `index.html?room=CODIGO`. A mesa casual sincroniza snapshots finais via `tableState` usando transacoes do Realtime Database. Compras simples usam `tableActions.draw-card` para animacao previsivel e publicam depois o snapshot final. Distribuicao inicial e devolucao animada ao deck tambem usam eventos discretos. Drag livre ainda nao transmite posicoes intermediarias.
 
 Cada publicacao informa o snapshot-base conhecido pelo cliente. `room-service.js` executa `runTransaction()` e usa `table-state-merge.mjs` para fazer uma mesclagem de tres vias entre base, alteracao local e estado remoto atual. Cartas, objetos e pilhas sao mesclados por ID, e os contadores manuais de moedas sao combinados por diferenca. Assim, duas acoes simultaneas sobre entidades diferentes nao se apagam por uma gravacao de snapshot atrasada.
 
@@ -277,7 +277,7 @@ Responsabilidades:
 - slot de retorno quando o deck esta vazio;
 - auto-shuffle interno quando cartas ou pilhas fechadas entram;
 - retorno ao centro no reset.
-- reserva transacional da carta antes de todos os clientes animarem a compra.
+- compra simples por evento discreto e publicacao do snapshot final apos a animacao local.
 
 A animacao de giro do deck ao embaralhar esta desativada temporariamente. `shuffle.mp3` nao deve tocar no retorno de carta ao deck.
 
@@ -529,19 +529,22 @@ O snapshot atual inclui:
 
 `tableActions` publica eventos pequenos, deduplicados por ID, para acoes que possuem um gatilho claro e uma animacao previsivel:
 
+- `draw-card`: clique no deck compra uma carta localmente, anima uma vez para a mao do assento ativo e publica o snapshot final ao fim da janela de supressao.
 - `deal-initial-hands`: distribuicao inicial usa uma fila fixa de cartas e assentos.
 - `return-card-to-deck`: duplo clique em carta fechada executa devolucao animada ao deck.
 
-A compra simples nao usa mais `draw-card` como fonte de verdade. `drawRoomCard()` executa uma transacao sobre `tableState`, retira uma carta unica do deck, atribui o assento correto e devolve o snapshot confirmado. Cada cliente detecta a nova carta nesse snapshot e anima sua saida do deck para a mao correspondente.
+Snapshots de `tableState` sao estado final, nao fonte de animacao. `applyTableState()` deve reconstruir cartas diretamente nas posicoes finais, sem inferir compra nova e sem animar cartas saindo do deck. A animacao de compra pertence ao evento discreto `draw-card` ou ao gesto local de arrasto.
 
 Enquanto uma acao discreta esta rodando, `tableSyncSuppressCount` adia a publicacao do `tableState`. Ao fim da animacao, o snapshot final e publicado como garantia para quem perdeu o evento, entrou depois ou ficou com estado divergente.
+
+Regra importante: o retorno da propria publicacao local de `tableState` nao deve chamar `applyTableState()`. Ele apenas confirma a base de sincronizacao (`lastAppliedTableState`). Reaplicar esse retorno limpa e recria a cena local, causando o bug visual em que cartas compradas somem por alguns milissegundos e voltam para a mao. Apenas snapshots remotos recebidos pelo listener devem reconstruir a cena.
 
 As gravacoes de `tableState` usam transacoes e mesclagem de tres vias:
 
 - entidades independentes sao preservadas por ID quando dois clientes agem ao mesmo tempo;
 - IDs de objetos compartilhados incluem cliente, horario e aleatoriedade para evitar colisoes;
 - incrementos simultaneos do contador manual de moedas sao somados por delta;
-- compras usam uma transacao dedicada antes da animacao, reservando cartas distintas para cada assento mesmo quando os cliques sao simultaneos;
+- compras simples usam evento discreto e snapshot final; conflitos simultaneos continuam limitados pelo carater casual do MVP e devem ser reavaliados antes de um modo ranqueado/autoritativo;
 - cada cliente serializa suas gravacoes e recompoe a proxima carga sobre a ultima transacao confirmada;
 - snapshots remotos recebidos durante drag ou gravacao local ficam pendentes ate a interacao terminar;
 - `syncRevision` identifica a progressao dos estados confirmados.

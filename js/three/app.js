@@ -77,7 +77,6 @@ import {
 } from './stack-system.js';
 import { setupInputController } from './input-controller.js';
 import {
-  flushPendingRemoteState,
   publishTableAction,
   receiveTableState,
   runWithTableSyncSuppressed,
@@ -273,7 +272,6 @@ const app = {
   dropZones: [],
   stackId: 1,
   isDealing: false,
-  pendingDrawCount: 0,
   lastAppliedTableState: null,
   isApplyingRemoteState: false,
   isAdmin: Boolean(window.CoupMaster3DOnline?.isAdmin),
@@ -331,13 +329,16 @@ function init() {
     applyTableState,
     isApplyingRemoteState: () => app.isApplyingRemoteState,
     isSceneInteractionPending: () => Boolean(
-      app.pendingDrawCount > 0
-      || app.dragged
+      app.dragged
       || app.pendingDeckDrag
       || app.pendingStackDrag
+      || hasActiveCardAnimations()
     ),
     publishOnlineAction: () => window.CoupMaster3DOnline?.publishTableAction,
-    publishOnlineState: () => window.CoupMaster3DOnline?.publishTableState
+    publishOnlineState: () => window.CoupMaster3DOnline?.publishTableState,
+    confirmLocalTableState: (snapshot) => {
+      app.lastAppliedTableState = cloneTableState(snapshot);
+    }
   });
   setupObjectSystem({
     getScene: () => app.scene,
@@ -459,6 +460,11 @@ function init() {
     isAnyModalOpen
   });
   window.addEventListener('coup:languagechange', refreshLanguageAwareUi);
+}
+
+// Evita publicar snapshots enquanto cartas ainda estao em animacao.
+function hasActiveCardAnimations() {
+  return [...app.cards.values()].some(card => Boolean(card.target || card.flip));
 }
 
 // Reaplica textos dinamicos que nao vivem direto em data-i18n.
@@ -880,11 +886,6 @@ function resetMvp() {
 function drawCardToPlayer(playerId, animateDraw = true, options = {}) {
   const targetPlayerId = normalizePlayerId(playerId);
 
-  if (options.publishAction !== false && window.CoupMaster3DOnline?.drawCard) {
-    requestAuthoritativeCardDraw(targetPlayerId);
-    return true;
-  }
-
   const data = takeDeckCard(options.cardData);
   if (!data) {
     updateHud();
@@ -907,26 +908,6 @@ function drawCardToPlayer(playerId, animateDraw = true, options = {}) {
   }
 
   return true;
-}
-
-// Reserva a carta no Firebase antes de atualizar qualquer cliente da sala.
-async function requestAuthoritativeCardDraw(playerId) {
-  const drawActionId = createTableActionId();
-  app.pendingDrawCount += 1;
-
-  try {
-    const result = await window.CoupMaster3DOnline.drawCard(playerId, drawActionId);
-    if (!result?.tableState) {
-      updateHud();
-      return;
-    }
-    receiveTableState(result.tableState);
-  } catch {
-    // O boot ja registra o erro de rede; a mesa local permanece intacta.
-  } finally {
-    app.pendingDrawCount = Math.max(0, app.pendingDrawCount - 1);
-    flushPendingRemoteState();
-  }
 }
 
 // Retira do deck a carta solicitada pelo evento ou a carta do topo local.
@@ -1357,15 +1338,7 @@ function onPointerDown(event) {
   if (!hit) return;
 
   if (hit.object.userData.deck) {
-    event.preventDefault();
-    canvas.setPointerCapture(event.pointerId);
-    app.controls.enabled = false;
-    app.pendingDeckDrag = {
-      pointerId: event.pointerId,
-      x: event.clientX,
-      y: event.clientY,
-      startedAt: performance.now()
-    };
+    beginPendingDeckGesture(event);
     return;
   }
 
@@ -1376,6 +1349,7 @@ function onPointerDown(event) {
 
     if (!isCardOverDeckGesture(card, event) && isCardDoubleClick(card, event)) {
       event.preventDefault();
+      event.stopImmediatePropagation();
       app.lastCardClick = null;
       tryReturnCardToDeck(card, true);
       return;
@@ -1383,6 +1357,7 @@ function onPointerDown(event) {
 
     if (stack) {
       event.preventDefault();
+      event.stopImmediatePropagation();
       canvas.setPointerCapture(event.pointerId);
       app.controls.enabled = false;
       app.selectedCard = card;
@@ -1397,6 +1372,7 @@ function onPointerDown(event) {
     }
 
     event.preventDefault();
+    event.stopImmediatePropagation();
     removeCardFromTableStack(card);
     beginDrag(event, card, 'card');
     app.selectedCard = card;
@@ -1411,8 +1387,23 @@ function onPointerDown(event) {
   if (!object) return;
 
   event.preventDefault();
+  event.stopImmediatePropagation();
   beginDrag(event, object, 'object');
   app.selectedObject = object;
+}
+
+// Inicia clique/arrasto no deck quando o raycast acerta o baralho diretamente.
+function beginPendingDeckGesture(event) {
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  canvas.setPointerCapture(event.pointerId);
+  app.controls.enabled = false;
+  app.pendingDeckDrag = {
+    pointerId: event.pointerId,
+    x: event.clientX,
+    y: event.clientY,
+    startedAt: performance.now()
+  };
 }
 
 // Detecta duplo clique proprio para devolver cartas ao deck.
@@ -1724,6 +1715,7 @@ function onPointerMove(event) {
   }
 
   event.preventDefault();
+  event.stopImmediatePropagation();
   clearPointerHover();
   if (app.dragStart) {
     const dx = event.clientX - app.dragStart.x;
@@ -1765,6 +1757,8 @@ function onPointerMove(event) {
 // Finaliza clique, arrasto de objeto, deck, pilha ou carta.
 function onPointerUp(event) {
   if (app.pendingDeckDrag && !app.dragged) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
     canvas.releasePointerCapture?.(event.pointerId);
     app.controls.enabled = true;
     app.pendingDeckDrag = null;
@@ -1773,6 +1767,8 @@ function onPointerUp(event) {
   }
 
   if (app.pendingStackDrag && !app.dragged) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
     canvas.releasePointerCapture?.(event.pointerId);
     app.controls.enabled = true;
     app.pendingStackDrag = null;
@@ -1781,6 +1777,8 @@ function onPointerUp(event) {
 
   if (!app.dragged) return;
 
+  event.preventDefault();
+  event.stopImmediatePropagation();
   const piece = app.dragged;
   const mode = app.dragMode;
   const wasDragged = app.hasDragged;
@@ -2286,6 +2284,7 @@ function returnCardToDeck(card) {
   if (oldOwner) layoutPlayerHand(oldOwner, 0.12);
   autoShuffleDeckAfterReturn();
   updateHud();
+  scheduleTableSync();
 }
 
 // Anima uma carta voltando ao deck antes de inseri-la no baralho.
@@ -2329,6 +2328,7 @@ function finalizeAnimatedCardReturn(card) {
   app.cards.delete(card.id);
   autoShuffleDeckAfterReturn();
   updateHud();
+  scheduleTableSync();
 }
 
 // Devolve uma pilha fechada inteira ao deck sem revelar suas cartas.
@@ -2897,20 +2897,6 @@ function getTableState() {
 function applyTableState(snapshot) {
   if (!snapshot || snapshot.version !== 1) return;
 
-  const previousCardIds = new Set(
-    (app.lastAppliedTableState?.cards || [])
-      .map(entry => entry?.data?.id)
-      .filter(Boolean)
-  );
-  const animatedDrawIds = new Set(
-    app.lastAppliedTableState
-      ? (snapshot.cards || [])
-        .filter(entry => entry?.data?.owner && !previousCardIds.has(entry.data.id))
-        .map(entry => entry.data.id)
-      : []
-  );
-  const animatedDrawOwners = new Set();
-
   app.isApplyingRemoteState = true;
   clearPointerHover();
   clearDropHover();
@@ -2952,10 +2938,6 @@ function applyTableState(snapshot) {
 
     const card = createCardObject(data);
     placeCardFromSnapshot(card, entry);
-    if (animatedDrawIds.has(data.id)) {
-      placeCard(card, getDeckDrawPosition(1.0), getHandRotation(data.owner), false);
-      animatedDrawOwners.add(data.owner);
-    }
     bumpObjectIdFrom(data.id);
   });
 
@@ -2996,9 +2978,7 @@ function applyTableState(snapshot) {
     }
   });
 
-  state.players.forEach((player) => {
-    layoutPlayerHand(player.id, animatedDrawOwners.has(player.id) ? 0.34 : 0);
-  });
+  state.players.forEach(player => layoutPlayerHand(player.id, 0));
   renderRoomPlayerList();
   setLocalPlayerSeat(getLocalPlayerSeat(), { focus: false, preserveView: true });
   updateHud();

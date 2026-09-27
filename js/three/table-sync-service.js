@@ -9,6 +9,7 @@ const tableSync = {
   isSceneInteractionPending: null,
   publishOnlineAction: null,
   publishOnlineState: null,
+  confirmLocalTableState: null,
   syncTimer: null,
   syncGeneration: 0,
   pendingSyncCount: 0,
@@ -30,6 +31,7 @@ export function setupTableSyncService(options) {
   tableSync.isSceneInteractionPending = options.isSceneInteractionPending;
   tableSync.publishOnlineAction = options.publishOnlineAction;
   tableSync.publishOnlineState = options.publishOnlineState;
+  tableSync.confirmLocalTableState = options.confirmLocalTableState;
 }
 
 // Agenda uma transacao de estado final sem transmitir animacoes intermediarias.
@@ -127,6 +129,14 @@ export function isTableSyncBusy() {
 // Serializa gravacoes locais para que toda transacao use a ultima base confirmada.
 async function publishScheduledTableState(generation) {
   tableSync.syncTimer = null;
+  if (tableSync.isSceneInteractionPending?.()) {
+    tableSync.syncTimer = window.setTimeout(
+      () => publishScheduledTableState(generation),
+      120
+    );
+    return;
+  }
+
   if (tableSync.pendingSyncCount > 0) {
     tableSync.syncQueued = true;
     return;
@@ -154,10 +164,10 @@ async function publishScheduledTableState(generation) {
       cloneTableState(tableSync.lastAppliedTableState)
     );
     if (mergedState) {
-      tableSync.lastAppliedTableState = cloneTableState(mergedState);
       if (generation === tableSync.syncGeneration && !tableSync.syncQueued) {
-        applyRemoteTableState(mergedState);
+        confirmAppliedTableState(mergedState);
       } else {
+        tableSync.lastAppliedTableState = cloneTableState(mergedState);
         tableSync.syncRebaseState = {
           base: cloneTableState(localSceneState),
           remote: cloneTableState(mergedState)
@@ -199,6 +209,12 @@ function isLocalTableInteractionPending() {
 function applyRemoteTableState(snapshot) {
   tableSync.applyTableState(snapshot);
   setLastAppliedTableState(snapshot);
+}
+
+// Atualiza a base confirmada sem destruir/recriar a cena local.
+function confirmAppliedTableState(snapshot) {
+  setLastAppliedTableState(snapshot);
+  tableSync.confirmLocalTableState?.(snapshot);
 }
 
 // Cria IDs locais estaveis o bastante para deduplicar eventos recebidos.
