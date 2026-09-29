@@ -79,6 +79,7 @@ Arquivos:
 - `js/firebase/auth-service.js`: login, logout, observacao de sessao e guard de autenticacao.
 - `js/firebase/room-service.js`: criacao de sala, entrada de jogador, remocao pelo host, assentos, assinatura de jogadores, snapshots de mesa, eventos discretos de mesa e pedidos de espectador.
 - `js/three/boot.js`: valida login e sala antes de importar `app.js`, mantendo `index.html` em estado de carregamento ate o estado inicial ficar pronto.
+- `js/three/asset-preloader.js`: pre-carrega imagens criticas da mesa 3D, cartas, retratos dos guias, moedas, mesa, icones de HUD e logos durante o boot. Falhas e timeouts individuais nao bloqueiam a entrada na sala.
 
 Estrutura inicial no Realtime Database:
 
@@ -148,6 +149,8 @@ Cada publicacao informa o snapshot-base conhecido pelo cliente. `room-service.js
 O contador manual de moedas exibido na lista de jogadores fica em `tableState.players[].coinCount`. Ele e separado dos objetos fisicos de moeda em `tableState.objects`, pois serve como anotacao rapida de mesa para partidas casuais.
 
 O chat casual usa `chatMessages` com limite de leitura das ultimas mensagens. O `boot.js` assina esse caminho e entrega os dados para o HUD; o envio tambem passa por `room-service.js` para manter Firebase fora da renderizacao 3D.
+
+O overlay inicial so e liberado depois que autenticacao, sala, estado inicial e pre-carregamento de assets criticos terminam. O preload usa `Image` e `decode()` para aquecer cache do navegador e atualiza `#bootLoadingMessage` com progresso traduzido.
 
 ## 3.2 PWA
 

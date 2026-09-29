@@ -88,6 +88,7 @@
     "title": "Coup Master 3D | Play Coup Online with Friends",
     "description": "Coup Master 3D is an online sandbox virtual table for playing Coup in the browser",
     "loadingTable": "Loading table...",
+    "loadingResources": "Loading assets... {completed}/{total}",
     "reset": "Reset",
     "leaveRoom": "Leave room",
     "resetTable": "Reset table",

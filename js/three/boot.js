@@ -1,4 +1,5 @@
 import { requireAuth } from '../firebase/auth-service.js';
+import { preloadThreeAssets } from './asset-preloader.js';
 import {
   clearSpectatorRequest,
   drawRoomCard,
@@ -49,6 +50,10 @@ if (!requestedRoom || !(await roomExists(requestedRoom))) {
   location.replace('lobby.html');
   throw new Error('Sala obrigatoria para abrir a mesa.');
 }
+
+const assetPreloadPromise = preloadThreeAssets({
+  messageElement: '#bootLoadingMessage'
+});
 
 const roomInfo = await getRoomInfo(requestedRoom);
 const isAdmin = roomInfo?.adminUid === user.uid;
@@ -120,6 +125,7 @@ if (initialTableState) {
   );
   window.CoupMaster3D?.applyTableState?.(createdTableState);
 }
+await assetPreloadPromise;
 syncReady = true;
 revealTable();
 

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'coup-master-pwa-v72';
+const CACHE_VERSION = 'coup-master-pwa-v73';
 const APP_SHELL = [
   './',
   './index.html',
@@ -26,6 +26,7 @@ const APP_SHELL = [
   './js/three/app.js',
   './js/three/animation-service.js',
   './js/three/alternative-rules-service.js',
+  './js/three/asset-preloader.js',
   './js/three/audio-service.js',
   './js/three/camera-service.js',
   './js/three/card-actions-service.js',
