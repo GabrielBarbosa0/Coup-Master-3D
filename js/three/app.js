@@ -26,6 +26,7 @@ import {
   renderShareRoomModal,
   setupShareRoomService
 } from './share-room-service.js';
+import { createGameActionsController } from './game-actions-controller.js';
 import {
   refreshOpenPlayerInfoModal,
   renderRoomPlayerList,
@@ -69,14 +70,24 @@ import {
   setupCardSystem
 } from './card-system.js';
 import {
+  animateCardReturnToDeck,
   canReturnCardNow,
   canReturnCardToDeck,
   createDrawCardActionPayload,
   createReturnCardActionPayload,
+  getHandCardPosition,
+  getHandRotation,
   getRotationDelta,
   getRotationTarget,
   getSelectedFlipTarget,
-  resolveActionPlayerId
+  layoutPlayerHand,
+  moveCardToPlayer,
+  moveCardToTable,
+  removeSpecialCard,
+  restoreDraggedCard,
+  returnCardToDeck,
+  resolveActionPlayerId,
+  setupCardActionsService
 } from './card-actions-service.js';
 import {
   easeInOutCubic,
@@ -101,15 +112,21 @@ import {
 } from './stack-system.js';
 import {
   canFlipStack,
-  clearStackTimer,
-  getNextShuffledStackOrder,
   getNextStackFaceUp,
-  getStackCardIds,
-  getTopStackCardId,
-  hasStackGroup,
-  removeCardIdFromStack,
-  resolveStackDropAction
+  hasStackGroup
 } from './stack-actions-service.js';
+import {
+  addCardToTableStack,
+  findCompatibleTableStack,
+  finishTableStackDrag,
+  layoutTableStack,
+  moveTableStack,
+  removeCardFromTableStack,
+  setupTableStackController,
+  shuffleTableStack,
+  startTableStackDrag,
+  startTableStackTopCardDrag
+} from './table-stack-controller.js';
 import { setupInputController } from './input-controller.js';
 import {
   publishTableAction,
@@ -246,10 +263,6 @@ const {
   DECK_DRAG_HOLD_MS,
   DECK_ROTATION_Y,
   DEFAULT_DECK_CONFIG,
-  HAND_LADDER_DEPTH,
-  HAND_LADDER_LIFT,
-  HAND_LADDER_ROTATION,
-  HAND_LADDER_SPACING,
   HAND_RADIUS,
   LIMBO_RADIUS,
   LIMBO_Y,
@@ -385,6 +398,52 @@ function init() {
     getTableCards: () => state.tableCards,
     createStackId: () => createSharedEntityId('stack')
   });
+  setupTableStackController({
+    app,
+    state,
+    autoShuffleDeckAfterReturn,
+    beginDrag,
+    clearPointerHover,
+    createTableStackRecord,
+    findCompatibleLooseStackBaseCard,
+    findCompatibleTableStackForStack,
+    findExistingCompatibleTableStack,
+    getStackCardPosition,
+    getStackCardTranslation,
+    isStackOverDeck,
+    placeCard,
+    pruneStackCards,
+    random,
+    rayToPlane,
+    refreshCardMaterial,
+    removeTableStack,
+    scheduleTableSync,
+    setPieceSensor,
+    shuffle,
+    tossTo,
+    updateHud
+  });
+  setupCardActionsService({
+    app,
+    state,
+    addCardToTableStack,
+    autoShuffleDeckAfterReturn,
+    clearPointerHover,
+    findCompatibleTableStack,
+    getDeckReturnPosition,
+    getPlayerAngle,
+    getPlayerSeatPosition,
+    isPublicSlotCard,
+    placeCard,
+    playVfx,
+    random,
+    refreshCardMaterial,
+    removeCardFromTableStack,
+    scheduleTableSync,
+    setPieceSensor,
+    tossTo,
+    updateHud
+  });
   setupTableSyncService({
     getActivePlayer: () => state.activePlayer,
     getUserUid: () => window.CoupMaster3DOnline?.user?.uid,
@@ -489,14 +548,16 @@ function init() {
       shuffleBtn,
       silverCoinBtn
     },
-    actions: {
+    actions: createGameActionsController({
       clearTableObjects,
       closeAllModals,
       dealInitialHands,
       deleteSelectedPiece,
-      drawCardToActivePlayer: () => drawCardToPlayer(state.activePlayer),
+      drawCardToPlayer,
       flipSelectedCards,
-      focusCamera: () => focusTableCamera(state.viewPlayer),
+      focusTableCamera,
+      getActivePlayer: () => state.activePlayer,
+      getViewPlayer: () => state.viewPlayer,
       hideInspectOverlay,
       onDoubleClick,
       onPointerDown,
@@ -512,14 +573,12 @@ function init() {
       },
       shuffleDeck,
       shuffleHoveredCards,
-      spawnAsylumCard: () => spawnSpecialCard('asilo'),
+      spawnCoin,
       spawnDie,
-      spawnGoldCoin: () => spawnCoin('gold'),
-      spawnReligionCard: () => spawnSpecialCard('religiao'),
-      spawnSilverCoin: () => spawnCoin('silver'),
+      spawnSpecialCard,
       triggerResetFromButton,
       updateInspectOverlay
-    },
+    }),
     isAnyModalOpen
   });
   window.addEventListener('coup:languagechange', refreshLanguageAwareUi);
@@ -1642,105 +1701,6 @@ function finishDeckDrag() {
   scheduleTableSync();
 }
 
-// Retira a carta do topo de uma pilha para arrastar.
-function startTableStackTopCardDrag(event) {
-  const stack = getPendingTableStack();
-  if (!stack) {
-    app.pendingStackDrag = null;
-    app.controls.enabled = true;
-    return;
-  }
-
-  const card = app.cards.get(getTopStackCardId(stack));
-  if (!card) {
-    app.pendingStackDrag = null;
-    app.controls.enabled = true;
-    return;
-  }
-
-  removeCardFromTableStack(card);
-  beginDrag(event, card, 'card');
-  app.selectedCard = card;
-  app.hasDragged = true;
-  app.dragOrigin = {
-    owner: null,
-    location: 'table'
-  };
-  app.pendingStackDrag = null;
-}
-
-// Inicia o arrasto de uma pilha inteira de cartas.
-function startTableStackDrag(event) {
-  const stack = getPendingTableStack();
-  if (!stack) {
-    app.pendingStackDrag = null;
-    app.controls.enabled = true;
-    return;
-  }
-
-  app.pendingStackDrag = null;
-  app.dragOrigin = {
-    location: 'stack',
-    position: stack.position.clone()
-  };
-
-  stack.cards.forEach((id) => {
-    const card = app.cards.get(id);
-    if (!card) return;
-    card.target = null;
-    card.flip = null;
-    setPieceSensor(card, true);
-    card.body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true);
-    card.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-    card.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-  });
-
-  beginAggregateDrag(event, stack, 'stack', {
-    controls: app.controls,
-    state: app,
-    rayToPlane,
-    getPosition: item => item.position
-  });
-}
-
-// Finaliza o arrasto de pilha, juntando pilhas fechadas ao deck ou pilhas compativeis.
-function finishTableStackDrag(stack, event) {
-  const origin = app.dragOrigin;
-  app.dragOrigin = null;
-  const targetStack = findCompatibleTableStackForStack(stack);
-  const action = resolveStackDropAction({
-    stack,
-    isOverDeck: isStackOverDeck(stack, event),
-    targetStack
-  });
-
-  if (action === 'return-to-deck') {
-    returnTableStackToDeck(stack);
-    return;
-  }
-
-  if (action === 'restore-origin') {
-    if (origin?.position) {
-      moveTableStack(stack, origin.position.x, origin.position.z);
-    }
-  }
-
-  if (action === 'merge') {
-    mergeTableStacks(stack, targetStack);
-    return;
-  }
-
-  stack.cards.forEach((id) => setPieceSensor(app.cards.get(id), false));
-  layoutTableStack(stack, false);
-  scheduleTableSync();
-}
-
-// Busca a pilha associada ao gesto pendente atual.
-function getPendingTableStack() {
-  if (!app.pendingStackDrag) return null;
-  return app.tableStacks.find(stack => stack.id === app.pendingStackDrag.stackId) || null;
-}
-
 // Liga ou desliga colisao fisica durante o arrasto de uma peca.
 function setPieceSensor(piece, enabled) {
   piece?.collider?.setSensor?.(enabled);
@@ -1942,405 +1902,10 @@ function startCardFlip(card, nextFaceUp, restoreDynamic) {
   };
 }
 
-// Cancela arrasto e devolve a carta ao local de origem.
-function restoreDraggedCard(card) {
-  setPieceSensor(card, false);
-  const origin = app.dragOrigin;
-  if (!origin) {
-    moveCardToTable(card);
-    return;
-  }
-
-  if (origin.owner) {
-    layoutPlayerHand(origin.owner, 0.12);
-    return;
-  }
-
-  card.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true);
-  card.body.setLinvel({ x: 0, y: -0.15, z: 0 }, true);
-  card.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-}
-
-// Move uma carta para a mao de um jogador.
-function moveCardToPlayer(card, playerId) {
-  setPieceSensor(card, false);
-  const oldOwner = card.data.owner;
-  removeCardFromCollections(card);
-  card.data.owner = playerId;
-  card.data.location = `player-${playerId}`;
-  if (!isPublicSlotCard(card.data)) {
-    card.data.faceUp = true;
-  }
-  state.players[playerId - 1].cards.push(card.data);
-  refreshCardMaterial(card);
-
-  if (oldOwner && oldOwner !== playerId) layoutPlayerHand(oldOwner, 0.12);
-  layoutPlayerHand(playerId, 0.22);
-  updateHud();
-  scheduleTableSync();
-}
-
-// Solta a carta na mesa ou agrupa em pilha compativel.
-function moveCardToTable(card) {
-  setPieceSensor(card, false);
-  const oldOwner = card.data.owner;
-  removeCardFromCollections(card);
-  card.data.owner = null;
-  card.data.location = 'table';
-  state.tableCards.push(card.data);
-  refreshCardMaterial(card);
-
-  const pos = card.mesh.position.clone();
-  const stack = findCompatibleTableStack(card, pos);
-  if (stack) {
-    addCardToTableStack(card, stack);
-    if (oldOwner) layoutPlayerHand(oldOwner, 0.12);
-    updateHud();
-    scheduleTableSync();
-    return;
-  }
-
-  card.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true);
-  card.body.setTranslation({ x: pos.x, y: 0.28, z: pos.z }, true);
-  card.body.setRotation(card.mesh.quaternion, true);
-  card.body.setLinvel({ x: random(-0.25, 0.25), y: -0.4, z: random(-0.25, 0.25) }, true);
-  card.body.setAngvel({ x: random(-0.2, 0.2), y: random(-0.55, 0.55), z: random(-0.2, 0.2) }, true);
-  card.target = null;
-  if (oldOwner) layoutPlayerHand(oldOwner, 0.12);
-  updateHud();
-  scheduleTableSync();
-}
-
-// Remove a carta da cena e devolve seus dados ao deck.
-function returnCardToDeck(card) {
-  clearPointerHover();
-  setPieceSensor(card, false);
-  const oldOwner = card.data.owner;
-  removeCardFromCollections(card);
-  card.data.owner = null;
-  card.data.location = 'deck';
-  card.data.faceUp = false;
-  state.deck.push(card.data);
-
-  app.scene.remove(card.mesh);
-  app.world.removeRigidBody(card.body);
-  app.cards.delete(card.id);
-  if (app.selectedCard?.id === card.id) app.selectedCard = null;
-  if (oldOwner) layoutPlayerHand(oldOwner, 0.12);
-  autoShuffleDeckAfterReturn();
-  updateHud();
-  scheduleTableSync();
-}
-
-// Anima uma carta voltando ao deck antes de inseri-la no baralho.
-function animateCardReturnToDeck(card) {
-  if (!app.deckMesh) {
-    returnCardToDeck(card);
-    return;
-  }
-
-  clearPointerHover();
-  setPieceSensor(card, true);
-  const oldOwner = card.data.owner;
-  removeCardFromCollections(card);
-  card.data.owner = null;
-  card.data.location = 'returning-deck';
-  card.data.faceUp = false;
-  refreshCardMaterial(card);
-  if (app.selectedCard?.id === card.id) app.selectedCard = null;
-  if (oldOwner) layoutPlayerHand(oldOwner, 0.12);
-
-  const target = getDeckReturnPosition();
-  playVfx('card-whoosh');
-  tossTo(card, target, app.deckMesh.rotation.y, 0.42, () => {
-    finalizeAnimatedCardReturn(card);
-  });
-  updateHud();
-}
-
-// Conclui a devolução animada, removendo a carta visual e atualizando o deck.
-function finalizeAnimatedCardReturn(card) {
-  if (!app.cards.has(card.id)) return;
-
-  setPieceSensor(card, false);
-  card.data.owner = null;
-  card.data.location = 'deck';
-  card.data.faceUp = false;
-  state.deck.push(card.data);
-
-  app.scene.remove(card.mesh);
-  app.world.removeRigidBody(card.body);
-  app.cards.delete(card.id);
-  autoShuffleDeckAfterReturn();
-  updateHud();
-  scheduleTableSync();
-}
-
-// Devolve uma pilha fechada inteira ao deck sem revelar suas cartas.
-function returnTableStackToDeck(stack) {
-  clearPointerHover();
-  clearStackTimer(stack, app.stackShuffleTimers);
-
-  const ids = getStackCardIds(stack);
-  ids.forEach((id) => {
-    const card = app.cards.get(id);
-    if (!card) return;
-
-    setPieceSensor(card, false);
-    card.target = null;
-    card.flip = null;
-    card.data.stackId = null;
-    card.data.owner = null;
-    card.data.location = 'deck';
-    card.data.faceUp = false;
-    state.deck.push(card.data);
-
-    app.scene.remove(card.mesh);
-    app.world.removeRigidBody(card.body);
-    app.cards.delete(card.id);
-  });
-
-  state.tableCards = state.tableCards.filter(data => !ids.includes(data.id));
-  removeTableStack(stack);
-  if (app.selectedCard && ids.includes(app.selectedCard.id)) app.selectedCard = null;
-  autoShuffleDeckAfterReturn();
-  updateHud();
-}
-
 // Embaralha automaticamente sempre que cartas fechadas voltam para o deck.
 function autoShuffleDeckAfterReturn() {
   if (state.deck.length === 0) return;
   if (state.deck.length > 1) shuffleDeck();
-}
-
-// Remove a carta de maos, mesa e pilhas antes de mover.
-function removeCardFromCollections(card) {
-  removeCardFromTableStack(card);
-  state.tableCards = state.tableCards.filter(data => data.id !== card.id);
-  state.players.forEach((player) => {
-    player.cards = player.cards.filter(data => data.id !== card.id);
-  });
-}
-
-// Procura uma pilha de mesa com mesmo lado visivel e proximidade.
-function findCompatibleTableStack(card, position) {
-  const existingStack = findExistingCompatibleTableStack(card, position);
-  if (existingStack) return existingStack;
-
-  const baseCard = findCompatibleLooseStackBaseCard(card, position);
-  return baseCard ? createTableStack(baseCard) : null;
-}
-
-// Cria uma nova pilha de mesa a partir de uma carta base.
-function createTableStack(baseCard) {
-  const stack = createTableStackRecord(baseCard);
-  app.stackId += 1;
-  layoutTableStack(stack);
-  return stack;
-}
-
-// Adiciona carta a uma pilha e realinha o conjunto.
-function addCardToTableStack(card, stack) {
-  setPieceSensor(card, false);
-  removeCardFromTableStack(card);
-  card.data.stackId = stack.id;
-  card.data.owner = null;
-  card.data.location = 'table';
-  card.data.faceUp = stack.faceUp;
-  refreshCardMaterial(card);
-  if (!state.tableCards.some(data => data.id === card.id)) {
-    state.tableCards.push(card.data);
-  }
-
-  if (!stack.cards.includes(card.id)) {
-    stack.cards.push(card.id);
-  }
-
-  layoutTableStack(stack);
-}
-
-// Une duas pilhas de cartas mantendo a pilha solta no topo da pilha alvo.
-function mergeTableStacks(sourceStack, targetStack) {
-  clearStackTimer(sourceStack, app.stackShuffleTimers);
-
-  sourceStack.cards.forEach((id) => {
-    const card = app.cards.get(id);
-    if (!card) return;
-
-    setPieceSensor(card, false);
-    card.target = null;
-    card.flip = null;
-    card.data.stackId = targetStack.id;
-    card.data.owner = null;
-    card.data.location = 'table';
-    card.data.faceUp = targetStack.faceUp;
-    refreshCardMaterial(card);
-
-    if (!targetStack.cards.includes(id)) {
-      targetStack.cards.push(id);
-    }
-  });
-
-  removeTableStack(sourceStack);
-  layoutTableStack(targetStack, true);
-  updateHud();
-  scheduleTableSync();
-}
-
-// Embaralha a ordem de uma pilha de mesa com uma pequena animacao visual.
-function shuffleTableStack(stack) {
-  if (!hasStackGroup(stack)) return;
-
-  clearStackTimer(stack, app.stackShuffleTimers);
-
-  const currentOrder = getStackCardIds(stack);
-  const nextOrder = getNextShuffledStackOrder(stack, shuffle);
-
-  currentOrder.forEach((id, index) => {
-    const card = app.cards.get(id);
-    if (!card) return;
-
-    const angle = (index / currentOrder.length) * Math.PI * 2 + random(-0.25, 0.25);
-    const radius = random(0.05, 0.16);
-    const position = getStackCardPosition(stack, index, 0.03);
-    position.x += Math.cos(angle) * radius;
-    position.z += Math.sin(angle) * radius;
-
-    tossTo(card, position, stack.rotationY + random(-0.35, 0.35), 0.1);
-  });
-
-  const timer = window.setTimeout(() => {
-    stack.cards = nextOrder;
-    layoutTableStack(stack, true);
-    app.stackShuffleTimers.delete(stack.id);
-    updateHud();
-    scheduleTableSync();
-  }, 190);
-
-  app.stackShuffleTimers.set(stack.id, timer);
-}
-
-// Remove carta de uma pilha e desfaz pilhas com uma carta so.
-function removeCardFromTableStack(card) {
-  setPieceSensor(card, false);
-  const stackId = card.data.stackId;
-  if (!stackId) return;
-
-  const stack = app.tableStacks.find(item => item.id === stackId);
-  card.data.stackId = null;
-  if (!stack) return;
-
-  if (removeCardIdFromStack(stack, card.id)) {
-    clearStackTimer(stack, app.stackShuffleTimers);
-    const remaining = app.cards.get(stack.cards[0]);
-    if (remaining) {
-      remaining.data.stackId = null;
-      remaining.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true);
-      remaining.body.setLinvel({ x: 0, y: -0.04, z: 0 }, true);
-      remaining.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-    }
-    removeTableStack(stack);
-    return;
-  }
-
-  layoutTableStack(stack);
-}
-
-// Reposiciona as cartas de uma pilha em camadas.
-function layoutTableStack(stack, animateLayout = true) {
-  pruneStackCards(stack);
-  stack.cards.forEach((id, index) => {
-    const card = app.cards.get(id);
-    if (!card) return;
-
-    const position = getStackCardPosition(stack, index);
-    if (animateLayout) {
-      tossTo(card, position, stack.rotationY, 0.06);
-    } else {
-      placeCard(card, position, stack.rotationY, false);
-    }
-  });
-}
-
-// Move todas as cartas de uma pilha durante o arrasto.
-function moveTableStack(stack, x, z) {
-  stack.position.x = x;
-  stack.position.z = z;
-  const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, stack.rotationY, 0));
-
-  stack.cards.forEach((id, index) => {
-    const card = app.cards.get(id);
-    if (!card) return;
-
-    card.body.setNextKinematicTranslation(getStackCardTranslation(stack, index));
-    card.body.setNextKinematicRotation(quat);
-  });
-}
-
-// Remove cartas auxiliares da mesa, como Asilo e Religião.
-function removeSpecialCard(card) {
-  if (!card?.data.specialCard) return;
-
-  clearPointerHover();
-  removeCardFromCollections(card);
-  app.scene.remove(card.mesh);
-  app.world.removeRigidBody(card.body);
-  app.cards.delete(card.id);
-  if (app.selectedCard?.id === card.id) app.selectedCard = null;
-  updateHud();
-  scheduleTableSync();
-}
-
-// Organiza e anima as cartas da mao de um jogador.
-function layoutPlayerHand(playerId, lift = 0.16) {
-  const player = state.players[playerId - 1];
-  if (!player) return;
-
-  player.cards.forEach((data, index) => {
-    const card = app.cards.get(data.id);
-    if (!card) return;
-
-    const target = getHandCardPosition(playerId, index, player.cards.length);
-    const rotationY = getHandRotation(playerId, index, player.cards.length);
-    if (lift <= 0) {
-      placeCard(card, target, rotationY, false);
-      return;
-    }
-
-    tossTo(card, target, rotationY, lift);
-  });
-}
-
-// Calcula a posicao de uma carta dentro da mao.
-function getHandCardPosition(playerId, cardIndex, handCount = null) {
-  const seat = getPlayerSeatPosition(playerId);
-  const player = state.players[playerId - 1];
-  const count = Math.max(handCount ?? player.cards.length, 1);
-  const angle = getPlayerAngle(playerId);
-  const rotation = getHandRotation(playerId);
-  const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rotation, 0));
-  const localX = new THREE.Vector3(1, 0, 0).applyQuaternion(quat);
-  const localZ = new THREE.Vector3(0, 0, 1).applyQuaternion(quat);
-  const radial = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
-  const centerIndex = (count - 1) / 2;
-  const offset = cardIndex - centerIndex;
-  const base = new THREE.Vector3(seat.x, CARD_REST_Y, seat.z);
-
-  base.add(localX.multiplyScalar(offset * HAND_LADDER_SPACING));
-  base.add(localZ.multiplyScalar(offset * HAND_LADDER_DEPTH));
-  base.add(radial.multiplyScalar(0.1));
-  base.y += cardIndex * HAND_LADDER_LIFT;
-
-  return base;
-}
-
-// Calcula a rotacao de uma carta na mao do jogador.
-function getHandRotation(playerId, cardIndex = null, handCount = null) {
-  const baseRotation = -getPlayerAngle(playerId) - Math.PI / 2;
-  if (cardIndex === null || handCount === null || handCount <= 1) return baseRotation;
-
-  const centerIndex = (handCount - 1) / 2;
-  return baseRotation + (cardIndex - centerIndex) * HAND_LADDER_ROTATION;
 }
 
 // Atualiza destaque visual de zona de drop sob o cursor.
