@@ -1,4 +1,5 @@
 import { mergeTableStates } from '../firebase/table-state-merge.mjs';
+import { cloneTableState } from './table-state-serializer.js';
 
 const tableSync = {
   getActivePlayer: null,
@@ -221,9 +222,4 @@ function confirmAppliedTableState(snapshot) {
 function createTableActionId() {
   const randomPart = Math.random().toString(36).slice(2, 10);
   return `action-${Date.now()}-${randomPart}`;
-}
-
-// Clona snapshots serializaveis usados como base da mesclagem transacional.
-function cloneTableState(snapshot) {
-  return snapshot ? JSON.parse(JSON.stringify(snapshot)) : null;
 }

@@ -32,6 +32,13 @@ import {
   setupRoomPlayerList
 } from './room-players-ui.js';
 import {
+  renderSpectatorTargets,
+  setupSpectatorService,
+  showSpectatorRequest,
+  showSpectatorResponse,
+  startSpectatingPlayer
+} from './spectator-service.js';
+import {
   clampDeckCopyCount,
   setupDeckConfigService,
   syncDeckConfigControls,
@@ -46,6 +53,13 @@ import {
   shuffleDeck as shuffleDeckCards,
   takeDeckCard as takeDeckCardFromDeck
 } from './deck-system.js';
+import {
+  createDeckMesh,
+  createDeckRim as createDeckRimMesh,
+  syncDeckHitboxGeometry as syncDeckHitboxGeometryForMesh,
+  syncDeckRim as syncDeckRimForMesh,
+  updateDeckVisualLayers as updateDeckVisualLayersForMesh
+} from './deck-visual-service.js';
 import {
   canRevealCardFace,
   createCardObject as createCardRuntimeObject,
@@ -106,6 +120,14 @@ import {
   setupTableSyncService,
   shouldApplyTableAction
 } from './table-sync-service.js';
+import {
+  cloneCardData,
+  cloneTableState,
+  createTableStateSnapshot,
+  quaternionFromSnapshot,
+  stackFromSnapshot,
+  vectorFromSnapshot
+} from './table-state-serializer.js';
 import {
   createPlayerBadges,
   refreshPlayerBadge,
@@ -219,10 +241,8 @@ const {
   CARD_D,
   CARD_H,
   CARD_LABELS,
-  CARD_RADIUS,
   CARD_REST_Y,
   CARD_W,
-  DECK_BASE_HEIGHT,
   DECK_DRAG_HOLD_MS,
   DECK_ROTATION_Y,
   DEFAULT_DECK_CONFIG,
@@ -306,7 +326,6 @@ const app = {
   hoveredDrop: null,
   hoveredPiece: null,
   hoverOutline: null,
-  spectatorRequest: null,
   deckShuffle: null,
   deckVisualCount: -1,
   deckHitHeight: 0,
@@ -597,15 +616,10 @@ function setOnlinePlayerProfiles(profiles = []) {
 
 // Cria o deck visual central e prepara sua borda e collider.
 function createDeck() {
-  const geo = createRoundedCardGeometry(CARD_W, CARD_H, DECK_BASE_HEIGHT, CARD_RADIUS);
-  const materials = makeDeckHitMaterials();
-  app.deckMesh = new THREE.Mesh(geo, materials);
-  app.deckMesh.position.set(0, CARD_REST_Y + getDeckHeight() / 2, 0);
-  app.deckMesh.rotation.y = DECK_ROTATION_Y;
-  app.deckMesh.castShadow = false;
-  app.deckMesh.receiveShadow = false;
-  app.deckMesh.name = 'deck';
-  app.deckMesh.userData.deck = true;
+  app.deckMesh = createDeckMesh({
+    createRoundedCardGeometry,
+    deckHeight: getDeckHeight()
+  });
   syncDeckHitboxGeometry();
   updateDeckVisualLayers();
   app.scene.add(app.deckMesh);
@@ -615,40 +629,31 @@ function createDeck() {
 
 // Recria a pilha visual do deck com uma camada para cada carta real.
 function updateDeckVisualLayers(force = false) {
-  if (!app.deckMesh) return;
-  const layerCount = getVisibleDeckLayerCount();
-  if (!force && app.deckVisualCount === layerCount) return;
-
-  clearDeckVisualLayers();
-  app.deckVisualCount = layerCount;
-  if (layerCount <= 0) return;
-
-  const layerGeo = createRoundedCardGeometry(CARD_W, CARD_H, CARD_D, CARD_RADIUS);
-  const deckHeight = getDeckHeight();
-
-  for (let i = 0; i < layerCount; i++) {
-    const layer = new THREE.Mesh(layerGeo, makeDeckLayerMaterials(i === layerCount - 1));
-    layer.position.y = -deckHeight / 2 + CARD_D / 2 + i * getDeckLayerStep();
-    layer.castShadow = i === layerCount - 1;
-    layer.receiveShadow = true;
-    layer.name = `deck-layer-${i + 1}`;
-    app.deckMesh.add(layer);
-  }
+  app.deckVisualCount = updateDeckVisualLayersForMesh({
+    deckMesh: app.deckMesh,
+    deckVisualCount: app.deckVisualCount,
+    force,
+    layerCount: getVisibleDeckLayerCount(),
+    deckHeight: getDeckHeight(),
+    deckLayerStep: getDeckLayerStep(),
+    createRoundedCardGeometry,
+    loadTexture
+  });
 }
 
 // Remove camadas visuais antigas do deck antes de reconstruir.
 function clearDeckVisualLayers() {
-  if (!app.deckMesh) return;
-
-  while (app.deckMesh.children.length > 0) {
-    const child = app.deckMesh.children.pop();
-    child.geometry?.dispose?.();
-    if (Array.isArray(child.material)) {
-      child.material.forEach(material => material.dispose?.());
-    } else {
-      child.material?.dispose?.();
-    }
-  }
+  updateDeckVisualLayersForMesh({
+    deckMesh: app.deckMesh,
+    deckVisualCount: -1,
+    force: true,
+    layerCount: 0,
+    deckHeight: getDeckHeight(),
+    deckLayerStep: getDeckLayerStep(),
+    createRoundedCardGeometry,
+    loadTexture
+  });
+  app.deckVisualCount = 0;
 }
 
 // Libera geometrias, materiais e texturas de um objeto visual removido da cena.
@@ -667,23 +672,9 @@ function disposeObject3D(object) {
 
 // Adiciona o aro branco superior que destaca a borda do deck.
 function createDeckRim() {
-  const outer = createRoundedRectShape(CARD_W, CARD_H, CARD_RADIUS);
-  const inner = createRoundedRectShape(CARD_W - 0.07, CARD_H - 0.07, Math.max(0.01, CARD_RADIUS - 0.035));
-  const rimShape = outer;
-  rimShape.holes.push(inner);
-
-  const geo = new THREE.ShapeGeometry(rimShape, 14);
-  geo.rotateX(Math.PI / 2);
-  const mat = new THREE.MeshBasicMaterial({
-    color: 0xf4f7ff,
-    side: THREE.DoubleSide,
-    transparent: true,
-    opacity: 0.94,
-    depthWrite: false
+  app.deckRim = createDeckRimMesh({
+    createRoundedRectShape
   });
-
-  app.deckRim = new THREE.Mesh(geo, mat);
-  app.deckRim.name = 'deck-rim';
   app.scene.add(app.deckRim);
   syncDeckRim();
 }
@@ -737,7 +728,23 @@ function setupSettingsModal() {
     getPlayerName: () => window.CoupMaster3DOnline?.playerName || window.CoupMaster3DOnline?.user?.displayName || 'Visitante',
     t
   });
-  spectatorBtn?.addEventListener('click', openSpectatorModal);
+  setupSpectatorService({
+    spectatorBtn,
+    spectatorModal,
+    closeSpectatorBtn,
+    spectatorPlayerList,
+    spectatorStatusText,
+    spectatorRequestModal,
+    spectatorRequestText,
+    acceptSpectatorBtn,
+    declineSpectatorBtn,
+    openModal,
+    closeModal,
+    getPlayers: () => state.players,
+    getOnlineService: () => window.CoupMaster3DOnline,
+    setObservedPlayerSeat,
+    t
+  });
   setupFullscreenControl();
   setupRulesGuidesUi({
     getDeckConfig: () => state.deckConfig,
@@ -763,10 +770,6 @@ function setupSettingsModal() {
     onApply: resetMvp
   });
 
-  closeSpectatorBtn?.addEventListener('click', () => closeModal(spectatorModal));
-  acceptSpectatorBtn?.addEventListener('click', () => respondCurrentSpectatorRequest('accepted'));
-  declineSpectatorBtn?.addEventListener('click', () => respondCurrentSpectatorRequest('declined'));
-
   setupModalOverlayDismiss({
     ignoredModals: [spectatorRequestModal]
   });
@@ -789,104 +792,6 @@ function syncAdminControls() {
 
   syncDeckConfigControls(app.isAdmin);
   refreshOpenPlayerInfoModal();
-}
-
-// Abre a lista de jogadores conectados que podem autorizar espectador.
-function openSpectatorModal() {
-  renderSpectatorTargets();
-  openModal(spectatorModal);
-  spectatorBtn?.blur();
-}
-
-// Atualiza a lista de alvos disponiveis para espectar.
-function renderSpectatorTargets(statusText = t('three.choosePlayer', {}, 'Escolha um jogador.')) {
-  if (!spectatorPlayerList || !spectatorStatusText) return;
-
-  const localUid = window.CoupMaster3DOnline?.user?.uid;
-  const targets = state.players.filter((player) => {
-    return player.uid && player.uid !== localUid && player.isOnline;
-  });
-
-  spectatorPlayerList.innerHTML = '';
-  if (targets.length === 0) {
-    spectatorStatusText.textContent = t('three.noPlayerToSpectate', {}, 'Nao ha nenhum jogador para espectar.');
-    return;
-  }
-
-  spectatorStatusText.textContent = statusText;
-  targets.forEach((player) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'spectator-player-btn';
-    button.innerHTML = `${player.name}<span>P${player.id}</span>`;
-    button.addEventListener('click', () => requestSpectatorTarget(player));
-    spectatorPlayerList.append(button);
-  });
-}
-
-// Envia o pedido ao jogador escolhido na sala.
-async function requestSpectatorTarget(player) {
-  if (!window.CoupMaster3DOnline?.requestSpectate) return;
-  spectatorStatusText.textContent = t('three.requestSentTo', { name: player.name }, `Pedido enviado para ${player.name}.`);
-  spectatorPlayerList.querySelectorAll('button').forEach((button) => {
-    button.disabled = true;
-  });
-  try {
-    await window.CoupMaster3DOnline.requestSpectate({
-      uid: player.uid,
-      seat: player.id,
-      displayName: player.name,
-      photoURL: player.avatarUrl || ''
-    });
-  } catch (error) {
-    console.error('Falha ao pedir espectador.', error);
-    renderSpectatorTargets('Nao foi possivel enviar o pedido.');
-  }
-}
-
-// Mostra o pedido recebido pelo dono do slot.
-function showSpectatorRequest(request) {
-  app.spectatorRequest = request;
-  if (spectatorRequestText) {
-    spectatorRequestText.textContent = t(
-      'three.spectatorRequestText',
-      { name: request.requesterName || t('common.player', {}, 'Um jogador') },
-      `${request.requesterName || 'Um jogador'} quer espectar sua mao.`
-    );
-  }
-  openModal(spectatorRequestModal);
-}
-
-// Responde o pedido atualmente exibido.
-async function respondCurrentSpectatorRequest(status) {
-  if (!app.spectatorRequest || !window.CoupMaster3DOnline?.respondSpectateRequest) return;
-  const request = app.spectatorRequest;
-  app.spectatorRequest = null;
-  closeModal(spectatorRequestModal);
-  await window.CoupMaster3DOnline.respondSpectateRequest(request.id, status);
-}
-
-// Muda a visao local para o slot autorizado pelo jogador alvo.
-function startSpectatingPlayer(request) {
-  if (!request?.targetSeat) return;
-  setObservedPlayerSeat(request.targetSeat, { focus: true });
-  if (spectatorStatusText) {
-    spectatorStatusText.textContent = t(
-      'three.spectating',
-      { name: request.targetName || t('common.player', {}, 'jogador') },
-      `Espectando ${request.targetName || 'jogador'}.`
-    );
-    spectatorPlayerList.innerHTML = '';
-    openModal(spectatorModal);
-  }
-}
-
-// Mostra retorno de pedido recusado ou expirado.
-function showSpectatorResponse(message) {
-  if (!spectatorStatusText || !spectatorPlayerList) return;
-  spectatorStatusText.textContent = message;
-  spectatorPlayerList.innerHTML = '';
-  openModal(spectatorModal);
 }
 
 // Le o codigo da sala atual a partir do bootstrap online ou da URL.
@@ -1192,44 +1097,6 @@ function getNearbyPlayerSpawnPosition(playerId, y, innerOffset, tangentJitter) {
 // Posiciona cartas especiais em um anel interno proximo ao slot do jogador.
 function getSpecialCardSpawnPosition(playerId) {
   return getNearbyPlayerSpawnPosition(playerId, 0.42, 0.74, 0.18);
-}
-
-// Cria materiais invisiveis para o hitbox clicavel do deck.
-function makeDeckHitMaterials() {
-  const hit = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    transparent: true,
-    opacity: 0,
-    depthWrite: false,
-    colorWrite: false
-  });
-
-  return [hit, hit, hit];
-}
-
-// Cria materiais de uma camada individual visivel do deck.
-function makeDeckLayerMaterials(showBack) {
-  const backTexture = loadTexture('assets/img/cards/base/back.png');
-  const edge = new THREE.MeshStandardMaterial({
-    color: 0xf2f6ff,
-    roughness: 0.62,
-    metalness: 0.03,
-    side: THREE.DoubleSide
-  });
-  const top = new THREE.MeshStandardMaterial({
-    map: showBack ? backTexture : null,
-    color: showBack ? 0xffffff : 0xf8fbff,
-    roughness: 0.62,
-    metalness: 0.02
-  });
-  const bottom = new THREE.MeshStandardMaterial({
-    color: 0xe4ecf8,
-    roughness: 0.66,
-    metalness: 0.03,
-    side: THREE.DoubleSide
-  });
-
-  return [edge, top, bottom];
 }
 
 // Carrega e reaproveita texturas com cache.
@@ -2715,39 +2582,19 @@ function resize() {
 
 // Serializa o estado atual da mesa para o Firebase.
 function getTableState() {
-  return {
-    version: 1,
-    deckConfig: { ...state.deckConfig },
-    alternativeRuleDraw: state.alternativeRuleDraw ? cloneTableState(state.alternativeRuleDraw) : null,
-    deck: state.deck.map(cloneCardData),
-    deckTransform: serializeTransform(app.deckMesh),
+  return createTableStateSnapshot({
+    deckConfig: state.deckConfig,
+    alternativeRuleDraw: state.alternativeRuleDraw,
+    deck: state.deck,
+    deckMesh: app.deckMesh,
     objectId: getObjectId(),
     stackId: app.stackId,
-    players: state.players.map(player => ({
-      id: player.id,
-      coinCount: Number(player.coinCount) || 0,
-      cards: player.cards.map(cloneCardData)
-    })),
-    tableCards: state.tableCards.map(cloneCardData),
-    cards: [...app.cards.values()].map(card => ({
-      data: cloneCardData(card.data),
-      position: serializeBodyPosition(card),
-      quaternion: serializeBodyRotation(card)
-    })),
-    objects: getTableObjects().map(object => ({
-      id: object.id,
-      kind: object.kind,
-      position: serializeBodyPosition(object),
-      quaternion: serializeBodyRotation(object)
-    })),
-    stacks: app.tableStacks.map(stack => ({
-      id: stack.id,
-      faceUp: stack.faceUp,
-      cards: stack.cards.slice(),
-      position: serializeVector(stack.position),
-      rotationY: stack.rotationY
-    }))
-  };
+    players: state.players,
+    tableCards: state.tableCards,
+    cards: app.cards,
+    objects: getTableObjects(),
+    stacks: app.tableStacks
+  });
 }
 
 // Aplica o estado final publicado por outro jogador, sem reemitir eco.
@@ -2800,13 +2647,7 @@ function applyTableState(snapshot) {
 
   app.tableStacks = (snapshot.stacks || []).map(stack => {
     bumpStackIdFrom(stack.id);
-    return {
-      id: stack.id,
-      faceUp: Boolean(stack.faceUp),
-      cards: Array.isArray(stack.cards) ? stack.cards.slice() : [],
-      position: vectorFromSnapshot(stack.position, new THREE.Vector3()),
-      rotationY: Number(stack.rotationY) || 0
-    };
+    return stackFromSnapshot(stack, new THREE.Vector3());
   });
 
   app.tableStacks.forEach(stack => {
@@ -2893,75 +2734,6 @@ function applyDeckTransform(transform) {
   updateDeckCollider();
 }
 
-// Serializa transform de mesh para objeto simples.
-function serializeTransform(mesh) {
-  if (!mesh) return null;
-  return {
-    position: serializeVector(mesh.position),
-    quaternion: serializeQuaternion(mesh.quaternion)
-  };
-}
-
-// Serializa posicao do corpo fisico, caindo para mesh quando necessario.
-function serializeBodyPosition(piece) {
-  const position = piece.body?.translation?.();
-  return serializeVector(position || piece.mesh?.position);
-}
-
-// Serializa rotacao do corpo fisico, caindo para mesh quando necessario.
-function serializeBodyRotation(piece) {
-  const rotation = piece.body?.rotation?.();
-  return serializeQuaternion(rotation || piece.mesh?.quaternion);
-}
-
-// Serializa um vetor em objeto aceito pelo Firebase.
-function serializeVector(vector) {
-  return {
-    x: Number(vector?.x) || 0,
-    y: Number(vector?.y) || 0,
-    z: Number(vector?.z) || 0
-  };
-}
-
-// Serializa um quaternion em objeto aceito pelo Firebase.
-function serializeQuaternion(quaternion) {
-  return {
-    x: Number(quaternion?.x) || 0,
-    y: Number(quaternion?.y) || 0,
-    z: Number(quaternion?.z) || 0,
-    w: Number(quaternion?.w) || 1
-  };
-}
-
-// Recria um Vector3 a partir de dados simples.
-function vectorFromSnapshot(value, fallback) {
-  return new THREE.Vector3(
-    Number(value?.x ?? fallback?.x ?? 0),
-    Number(value?.y ?? fallback?.y ?? 0),
-    Number(value?.z ?? fallback?.z ?? 0)
-  );
-}
-
-// Recria um Quaternion a partir de dados simples.
-function quaternionFromSnapshot(value, fallback) {
-  return new THREE.Quaternion(
-    Number(value?.x ?? fallback?.x ?? 0),
-    Number(value?.y ?? fallback?.y ?? 0),
-    Number(value?.z ?? fallback?.z ?? 0),
-    Number(value?.w ?? fallback?.w ?? 1)
-  );
-}
-
-// Clona dados de carta para evitar referencias mutaveis.
-function cloneCardData(data) {
-  return data ? JSON.parse(JSON.stringify(data)) : null;
-}
-
-// Clona snapshots serializaveis usados como base da mesclagem transacional.
-function cloneTableState(snapshot) {
-  return snapshot ? JSON.parse(JSON.stringify(snapshot)) : null;
-}
-
 // Mantem o contador de pilhas acima dos IDs restaurados.
 function bumpStackIdFrom(id) {
   const number = Number(String(id).match(/(\d+)$/)?.[1]);
@@ -3009,27 +2781,22 @@ function getVisibleDeckLayerCount() {
 
 // Mantem o hitbox invisivel do deck com a mesma altura da pilha real.
 function syncDeckHitboxGeometry() {
-  if (!app.deckMesh) return;
-  const deckHeight = getDeckHeight();
-  if (Math.abs(app.deckHitHeight - deckHeight) < 0.0001) return;
-
-  app.deckMesh.geometry.dispose();
-  app.deckMesh.geometry = createRoundedCardGeometry(CARD_W, CARD_H, deckHeight, CARD_RADIUS);
-  app.deckHitHeight = deckHeight;
+  app.deckHitHeight = syncDeckHitboxGeometryForMesh({
+    deckMesh: app.deckMesh,
+    deckHitHeight: app.deckHitHeight,
+    deckHeight: getDeckHeight(),
+    createRoundedCardGeometry
+  });
 }
 
 // Mantem o aro visual do deck alinhado ao deck.
 function syncDeckRim() {
-  if (!app.deckRim || !app.deckMesh) return;
-
-  const deckHeight = getDeckHeight();
-  app.deckRim.position.set(
-    app.deckMesh.position.x,
-    app.deckMesh.position.y + deckHeight / 2 + 0.004,
-    app.deckMesh.position.z
-  );
-  app.deckRim.rotation.set(0, app.deckMesh.rotation.y, 0);
-  app.deckRim.visible = state.deck.length > 0;
+  syncDeckRimForMesh({
+    deckMesh: app.deckMesh,
+    deckRim: app.deckRim,
+    deckHeight: getDeckHeight(),
+    deckCount: state.deck.length
+  });
 }
 
 // Recria o collider fisico fixo do deck.
