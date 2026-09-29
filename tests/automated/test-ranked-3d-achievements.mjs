@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {
   RANKED_3D_ACHIEVEMENT_KEYS,
   evaluateRanked3dAchievements
-} from '../js/gamemode/ranked-3d/ranked-3d-achievements.js';
+} from '../../js/gamemode/ranked-3d/ranked-3d-achievements.js';
 
 const qualifyingStats = {
   wins: 1,

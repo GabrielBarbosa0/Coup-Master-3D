@@ -1,5 +1,5 @@
 import { mergeTableStates } from '../firebase/table-state-merge.mjs';
-import { cloneTableState } from './table-state-serializer.js';
+import { cloneTableState } from './table-state-clone.js';
 
 const tableSync = {
   getActivePlayer: null,

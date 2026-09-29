@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {
   drawCardFromTableState,
   mergeTableStates
-} from '../js/firebase/table-state-merge.mjs';
+} from '../../js/firebase/table-state-merge.mjs';
 
 function card(id, owner = null, location = 'deck') {
   return {

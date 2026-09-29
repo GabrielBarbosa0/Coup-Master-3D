@@ -11,7 +11,7 @@ js/gamemode/ranked-3d/ranked-3d-achievements.js
 O teste de paridade fica em:
 
 ```txt
-tools/test-ranked-3d-achievements.mjs
+tests/automated/test-ranked-3d-achievements.mjs
 ```
 
 ## Regras Gerais

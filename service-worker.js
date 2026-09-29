@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'coup-master-pwa-v86';
+const CACHE_VERSION = 'coup-master-pwa-v87';
 const APP_SHELL = [
   './',
   './index.html',
@@ -56,6 +56,7 @@ const APP_SHELL = [
   './js/three/spectator-service.js',
   './js/three/stack-system.js',
   './js/three/table-stack-controller.js',
+  './js/three/table-state-clone.js',
   './js/three/table-state-serializer.js',
   './js/three/table-sync-service.js',
   './lang/pt-BR.json',

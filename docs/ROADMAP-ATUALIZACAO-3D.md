@@ -97,7 +97,7 @@ Tarefas:
 - Atualizar `docs/GDD.md` e `docs/TDD.md` para trocar referencias antigas de "MVP local" por "MVP online casual", quando fizer sentido.
 - Decidir o comportamento do botao de historico existente no HTML: implementar, esconder ou remover temporariamente.
 - Revisar referencias do service worker e `CACHE_VERSION` antes de qualquer mudanca grande em shell/JS/CSS.
-- Manter `node --check` e `tools/test-table-state-merge.mjs` como checagem minima.
+- Manter `node --check` e `tests/automated/test-table-state-merge.mjs` como checagem minima.
 
 Resultado esperado:
 
@@ -374,7 +374,7 @@ Resultado esperado:
 node --check js\three\app.js
 node --check js\three\boot.js
 node --check js\firebase\room-service.js
-node tools\test-table-state-merge.mjs
+node tests\automated\test-table-state-merge.mjs
 ```
 
 ### Para novos modulos
@@ -430,4 +430,3 @@ Primeiro pacote pequeno:
 6. Migrar presets de baralho para modulo proprio.
 
 Esse pacote prepara o terreno para quase todo o restante e tem risco menor do que iniciar por ranking, conquistas ou modo ranqueado.
-

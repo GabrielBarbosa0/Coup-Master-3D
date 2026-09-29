@@ -45,7 +45,7 @@ function wait(ms = 240) {
 
 async function importFreshTableSyncService() {
   const suffix = `?test=${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  return import(`../js/three/table-sync-service.js${suffix}`);
+  return import(`../../js/three/table-sync-service.js${suffix}`);
 }
 
 async function testEquivalentConfirmationDoesNotReapplyScene() {

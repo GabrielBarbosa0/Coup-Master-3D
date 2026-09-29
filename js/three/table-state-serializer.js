@@ -1,18 +1,9 @@
 import * as THREE from 'three';
-
-// Clona dados serializaveis para evitar referencias mutaveis entre estado e rede.
-function cloneSerializable(value) {
-  return value ? JSON.parse(JSON.stringify(value)) : null;
-}
+import { cloneSerializable, cloneTableState } from './table-state-clone.js';
 
 // Clona dados de carta para snapshots e payloads discretos.
 function cloneCardData(data) {
   return cloneSerializable(data);
-}
-
-// Clona snapshots serializaveis usados como base da mesclagem transacional.
-function cloneTableState(snapshot) {
-  return cloneSerializable(snapshot);
 }
 
 // Serializa transform de mesh para objeto simples.
