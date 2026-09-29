@@ -26,6 +26,9 @@ Estado separado do casual:
 - `ranked3dState` para a partida.
 - `rankedResults` para resultados beta.
 - `rankedStats` para estatisticas do jogador.
+- `rankedStats/{uid}/unlockedAchievements` para conquistas permanentes.
+
+As conquistas ranqueadas planejadas estao documentadas em `docs/modos-de-jogo/conquistas-ranqueadas-3d.md` e avaliadas por `js/gamemode/ranked-3d/ranked-3d-achievements.js`.
 
 ## Regras Planejadas
 

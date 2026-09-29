@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'coup-master-pwa-v85';
+const CACHE_VERSION = 'coup-master-pwa-v86';
 const APP_SHELL = [
   './',
   './index.html',
@@ -23,6 +23,7 @@ const APP_SHELL = [
   './js/firebase/room-service.js',
   './js/firebase/table-state-merge.mjs',
   './js/gamemode/game-modes.js',
+  './js/gamemode/ranked-3d/ranked-3d-achievements.js',
   './js/three/boot.js',
   './js/three/app.js',
   './js/three/animation-service.js',

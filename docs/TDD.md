@@ -193,6 +193,9 @@ Documentacao de produto dos modos:
 - `docs/modos-de-jogo/modo-ranqueado-3d.md`
 - `docs/modos-de-jogo/modo-personalizado-3d.md`
 - `docs/modos-de-jogo/modo-treinamento-3d.md`
+- `docs/modos-de-jogo/conquistas-ranqueadas-3d.md`
+
+O pacote planejado do ranqueado 3D tambem possui `js/gamemode/ranked-3d/ranked-3d-achievements.js`, que avalia conquistas a partir de estatisticas acumuladas em `rankedStats/{uid}`. Esse modulo e puro e nao altera o fluxo atual do lobby.
 
 Antes de habilitar outro modo no lobby, deve existir separacao clara de estado, rota, permissoes, documentacao e criterios de teste. O modo casual 3D nao deve herdar regras competitivas automaticamente.
 
