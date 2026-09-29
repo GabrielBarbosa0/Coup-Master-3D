@@ -174,6 +174,28 @@ O sistema de idioma segue o padrao do Coup Master original:
 
 Textos novos de UI devem entrar nos arquivos `lang/*.json` e usar `data-i18n` quando estiverem no HTML. Textos criados via JavaScript devem usar `window.CoupLanguage.t(key, params, fallback)`.
 
+## 3.4 Modos De Jogo
+
+A base de modos de jogo fica em `js/gamemode/game-modes.js`.
+
+O objetivo inicial e registrar os modos planejados sem alterar o fluxo atual do MVP. O lobby continua criando apenas salas casuais 3D, mas o projeto passa a ter um contrato unico para identificar modos, status, limites de jogadores, rota prevista, chave de estado e documento de referencia.
+
+Modos registrados:
+
+- `casual`: modo casual 3D, habilitado, sandbox manual, ate 8 jogadores, rota `index.html`.
+- `ranked`: modo ranqueado 3D, planejado, automatizado e competitivo, ate 6 jogadores.
+- `personalized`: modo personalizado 3D, planejado, sala automatizada com amigos e bots.
+- `training`: modo treinamento 3D, planejado, tutorial/pratica individual.
+
+Documentacao de produto dos modos:
+
+- `docs/modos-de-jogo/modo-casual-3d.md`
+- `docs/modos-de-jogo/modo-ranqueado-3d.md`
+- `docs/modos-de-jogo/modo-personalizado-3d.md`
+- `docs/modos-de-jogo/modo-treinamento-3d.md`
+
+Antes de habilitar outro modo no lobby, deve existir separacao clara de estado, rota, permissoes, documentacao e criterios de teste. O modo casual 3D nao deve herdar regras competitivas automaticamente.
+
 ## 4. Estado Local
 
 O estado principal vive no objeto `state`:

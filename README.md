@@ -573,7 +573,9 @@ Documentos auxiliares do repositório:
 | --- | --- |
 | `docs/GDD.md` | Game Design Document: visão de produto, experiência, controles, HUD, roadmap e escopo |
 | `docs/TDD.md` | Technical Design Document: arquitetura, estado local, sistemas, física, assets e critérios de aceite |
+| `docs/modos-de-jogo/` | Documentação dos modos casual 3D, ranqueado 3D, personalizado 3D e treinamento 3D |
 | `AGENTS.md` | Instruções para agentes de IA, Codex e colaboradores |
+| `js/gamemode/game-modes.js` | Registro inicial dos modos de jogo planejados |
 | `js/firebase/firebase-rules.json` | Regras atuais de referência para o Realtime Database |
 
 ---
@@ -592,6 +594,7 @@ Documentos auxiliares do repositório:
 - [x] Adicionar chat em tempo real.
 - [x] Adicionar modo espectador inicial.
 - [x] Adicionar contador manual de moedas por jogador.
+- [x] Iniciar documentação e registro dos modos de jogo 3D.
 - [ ] Refinar experiência mobile/touch.
 - [ ] Melhorar estabilidade física em casos extremos.
 - [ ] Adicionar preview oficial no README.
@@ -605,6 +608,7 @@ Documentos auxiliares do repositório:
 - [ ] Melhorar UX de inspeção de cartas.
 - [ ] Criar tutorial inicial de controles.
 - [ ] Melhorar ferramentas de host.
+- [ ] Integrar seletor de modos ao contrato de `js/gamemode/game-modes.js`.
 
 ### Futuro
 
