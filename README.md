@@ -8,7 +8,7 @@
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
-  <img src="./marketing/banners/banner-coup-master.png" alt="Banner do Coup Master 3D" width="100%">
+  <img src="./assets/img/marketing/banners/banner-coup-master2.png" alt="Banner do Coup Master 3D" width="100%">
 </p>
 
 ## 📖 Sobre o Projeto
@@ -314,7 +314,7 @@ Coup-Master-3D/
 |
 `-- marketing/
     `-- banners/
-        |-- banner-coup-master.png
+        |-- banner-coup-master2.png
         `-- coup-master-capa.png
 ```
 
