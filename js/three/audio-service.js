@@ -10,6 +10,7 @@ import {
 const audioState = {
   musicStarted: false,
   musicMuted: false,
+  musicStartPreparing: false,
   resumeMusicWhenVisible: false,
   vfxVolume: DEFAULT_VFX_VOLUME,
   lastResetVfxAt: 0,
@@ -17,6 +18,10 @@ const audioState = {
   canReset: () => false,
   onReset: null
 };
+
+const RANDOM_BGM_START_MIN_DURATION = 12;
+const RANDOM_BGM_START_END_PADDING = 4;
+const RANDOM_BGM_START_TIMEOUT_MS = 1800;
 
 function t(key, params = {}, fallback = key) {
   return window.CoupLanguage?.t?.(key, params, fallback) || fallback;
@@ -98,14 +103,26 @@ export function playResetSoundFromButton(event) {
 
 // Tenta iniciar a música respeitando o bloqueio de autoplay dos navegadores.
 function startBackgroundMusic() {
-  if (!bgmAudio || audioState.musicMuted || document.hidden || !bgmAudio.paused) return;
+  if (
+    !bgmAudio
+    || audioState.musicMuted
+    || document.hidden
+    || !bgmAudio.paused
+    || audioState.musicStartPreparing
+  ) return;
+
+  audioState.musicStartPreparing = true;
   bgmAudio.volume = clampAudioVolume(volumeSlider?.value, DEFAULT_MUSIC_VOLUME);
-  bgmAudio.play()
+  prepareRandomBackgroundStart(bgmAudio)
+    .then(() => bgmAudio.play())
     .then(() => {
       audioState.musicStarted = true;
       setMediaSessionPlaybackState('playing');
     })
-    .catch(() => {});
+    .catch(() => {})
+    .finally(() => {
+      audioState.musicStartPreparing = false;
+    });
 }
 
 // Pausa a trilha quando o jogo deixa de estar visivel.
@@ -158,6 +175,66 @@ function setupBackgroundMediaSession() {
       if (!document.hidden && !audioState.musicMuted) startBackgroundMusic();
     });
   } catch {}
+}
+
+// Escolhe um ponto aleatorio da faixa antes da primeira reproducao da BGM.
+function prepareRandomBackgroundStart(audio) {
+  if (!audio || audio.dataset.randomBackgroundStartApplied === 'true') {
+    return Promise.resolve(false);
+  }
+
+  audio.dataset.randomBackgroundStartApplied = 'true';
+
+  function applyRandomStart() {
+    const duration = Number(audio.duration);
+    if (!Number.isFinite(duration) || duration <= RANDOM_BGM_START_MIN_DURATION) return false;
+
+    const endPadding = Math.min(RANDOM_BGM_START_END_PADDING, duration * 0.1);
+    const maxStart = Math.max(0, duration - endPadding);
+    if (maxStart <= 0) return false;
+
+    try {
+      audio.currentTime = Math.random() * maxStart;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  if (audio.readyState >= 1) {
+    return Promise.resolve(applyRandomStart());
+  }
+
+  return new Promise((resolve) => {
+    let finished = false;
+
+    function done(value) {
+      if (finished) return;
+      finished = true;
+      audio.removeEventListener('loadedmetadata', handleMetadata);
+      audio.removeEventListener('error', handleError);
+      resolve(value);
+    }
+
+    function handleMetadata() {
+      done(applyRandomStart());
+    }
+
+    function handleError() {
+      done(false);
+    }
+
+    audio.addEventListener('loadedmetadata', handleMetadata, { once: true });
+    audio.addEventListener('error', handleError, { once: true });
+
+    try {
+      audio.load?.();
+    } catch {
+      // O play acionado pelo usuario ainda pode carregar a faixa depois.
+    }
+
+    window.setTimeout(() => done(false), RANDOM_BGM_START_TIMEOUT_MS);
+  });
 }
 
 // Atualiza o estado exposto ao sistema operacional quando suportado.
