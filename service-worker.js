@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'coup-master-pwa-v68';
+const CACHE_VERSION = 'coup-master-pwa-v71';
 const APP_SHELL = [
   './',
   './index.html',
@@ -34,7 +34,6 @@ const APP_SHELL = [
   './js/three/config.js',
   './js/three/deck-config-service.js',
   './js/three/deck-system.js',
-  './js/three/deck-visual-service.js',
   './js/three/dom.js',
   './js/three/feedback-service.js',
   './js/three/game-actions-controller.js',
@@ -44,13 +43,13 @@ const APP_SHELL = [
   './js/three/modal-service.js',
   './js/three/object-system.js',
   './js/three/player-badges.js',
+  './js/three/pointer-interaction-controller.js',
   './js/three/room-players-ui.js',
   './js/three/rules-guide-builder.js',
   './js/three/rules-guides-ui.js',
   './js/three/scene-table.js',
   './js/three/share-room-service.js',
   './js/three/spectator-service.js',
-  './js/three/stack-actions-service.js',
   './js/three/stack-system.js',
   './js/three/table-stack-controller.js',
   './js/three/table-state-serializer.js',

@@ -134,6 +134,73 @@ export function getStackHoverLabel(stack, labels) {
     .join('\n');
 }
 
+// Verifica se uma pilha tem cartas suficientes para acoes de grupo.
+export function hasStackGroup(stack) {
+  return Boolean(stack && stack.cards.length > 1);
+}
+
+// Retorna o ID da carta no topo da pilha.
+export function getTopStackCardId(stack) {
+  if (!stack?.cards.length) return null;
+  return stack.cards[stack.cards.length - 1];
+}
+
+// Decide o que acontece quando uma pilha arrastada e solta.
+export function resolveStackDropAction({ stack, isOverDeck, targetStack }) {
+  if (isOverDeck && !stack.faceUp) return 'return-to-deck';
+  if (isOverDeck && stack.faceUp) return 'restore-origin';
+  if (targetStack) return 'merge';
+  return 'layout';
+}
+
+// Limpa qualquer timer pendente relacionado a uma pilha.
+export function clearStackTimer(stack, timers, clearTimeoutFn = window.clearTimeout) {
+  if (!stack) return false;
+
+  const timer = timers.get(stack.id);
+  if (!timer) return false;
+
+  clearTimeoutFn(timer);
+  timers.delete(stack.id);
+  return true;
+}
+
+// Cria uma copia estavel dos IDs de uma pilha antes de remover/embaralhar.
+export function getStackCardIds(stack) {
+  return Array.isArray(stack?.cards) ? stack.cards.slice() : [];
+}
+
+// Embaralha uma pilha garantindo que a ordem mude quando possivel.
+export function getNextShuffledStackOrder(stack, shuffleFn) {
+  const currentOrder = getStackCardIds(stack);
+  if (currentOrder.length <= 1) return currentOrder;
+
+  const nextOrder = shuffleFn(currentOrder.slice());
+  if (nextOrder.every((id, index) => id === currentOrder[index])) {
+    nextOrder.push(nextOrder.shift());
+  }
+
+  return nextOrder;
+}
+
+// Remove uma carta da pilha e retorna se a pilha deve ser dissolvida.
+export function removeCardIdFromStack(stack, cardId) {
+  if (!stack) return false;
+
+  stack.cards = stack.cards.filter(id => id !== cardId);
+  return stack.cards.length <= 1;
+}
+
+// Valida se uma pilha pode virar em grupo.
+export function canFlipStack(stack, cards) {
+  return hasStackGroup(stack) && !cards.some(card => card.flip);
+}
+
+// Calcula a proxima orientacao comum da pilha.
+export function getNextStackFaceUp(stack) {
+  return !stack.faceUp;
+}
+
 // Retorna a distancia no plano XZ entre dois pontos.
 function getPlanarDistance(a, b) {
   return Math.hypot(a.x - b.x, a.z - b.z);

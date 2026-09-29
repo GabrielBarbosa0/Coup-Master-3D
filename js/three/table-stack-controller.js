@@ -11,7 +11,7 @@ import {
   hasStackGroup,
   removeCardIdFromStack,
   resolveStackDropAction
-} from './stack-actions-service.js';
+} from './stack-system.js';
 
 const tableStack = {
   app: null,
