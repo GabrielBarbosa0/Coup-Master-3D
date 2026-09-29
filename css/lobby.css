@@ -814,6 +814,19 @@ h2 {
     width: 100%;
 }
 
+.login-page .status-text:empty,
+.login-page .pwa-install-status:empty {
+    display: none;
+}
+
+.login-page .status-text,
+.login-page .pwa-install-status {
+    margin: 0;
+    max-width: 300px;
+    font-size: 11px;
+    line-height: 1.35;
+}
+
 .auth-note {
     max-width: 280px;
     line-height: 1.4;

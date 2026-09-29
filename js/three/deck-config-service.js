@@ -74,7 +74,6 @@ function renderDeckConfigList(values = deckConfigState.getDeckConfig()) {
   if (!list) return;
 
   const presets = list.querySelector('.deck-presets-container');
-  const applyItem = list.querySelector('.card-config-apply-item');
   list.innerHTML = '';
   if (presets) list.append(presets);
 
@@ -92,7 +91,6 @@ function renderDeckConfigList(values = deckConfigState.getDeckConfig()) {
       .forEach(cardType => list.append(createCardConfigItem(cardType, values?.[cardType])));
   });
 
-  if (applyItem) list.append(applyItem);
 }
 
 // Cria o separador visual de um grupo de cartas configuraveis.

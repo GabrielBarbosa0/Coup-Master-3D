@@ -57,14 +57,18 @@
 
 :root {
   color-scheme: dark;
-  --bg: #000000;
-  --panel: rgba(12, 16, 23, 0.78);
-  --line: rgba(255, 255, 255, 0.14);
-  --text: #edf4ff;
-  --muted: rgba(237, 244, 255, 0.62);
-  --accent: #3da3ff;
-  --active: #18f28a;
+  --bg: #171d26;
+  --panel: #232a33;
+  --panel-soft: rgba(35, 42, 51, 0.92);
+  --panel-strong: rgba(35, 42, 51, 0.96);
+  --line: rgba(230, 238, 246, 0.16);
+  --text: #e6eef6;
+  --muted: rgba(230, 238, 246, 0.52);
+  --muted-soft: rgba(230, 238, 246, 0.25);
+  --accent: #1e90ff;
+  --active: #00ff73;
   --gold: #f6c35b;
+  --seat-border: rgba(133, 154, 177, 0.25);
 }
 
 html,
@@ -108,8 +112,8 @@ body.is-booting .hover-tooltip {
   position: fixed;
   z-index: 10;
   border: 1px solid var(--line);
-  background: var(--panel);
-  backdrop-filter: blur(14px);
+  background: var(--panel-soft);
+  backdrop-filter: blur(8px);
 }
 
 .top-left {
@@ -144,6 +148,8 @@ body.is-booting .hover-tooltip {
   top: max(14px, env(safe-area-inset-top));
   right: max(14px, env(safe-area-inset-right));
   padding: 8px;
+  border: 0;
+  background: transparent;
   border-radius: 8px;
 }
 
@@ -153,6 +159,8 @@ body.is-booting .hover-tooltip {
   display: flex;
   gap: 8px;
   padding: 8px;
+  border: 0;
+  background: transparent;
   border-radius: 8px;
   width: auto;
   max-width: calc(100vw - 28px);
@@ -166,6 +174,8 @@ body.is-booting .hover-tooltip {
   flex-direction: column;
   gap: 8px;
   padding: 8px;
+  border: 0;
+  background: transparent;
   border-radius: 8px;
   transform: translateY(-50%);
 }
@@ -216,7 +226,7 @@ body.is-booting .hover-tooltip {
   padding: 7px 9px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: rgba(12, 16, 23, 0.68);
+  background: rgba(35, 42, 51, 0.84);
   color: var(--muted);
   font: 10px/1.45 Consolas, "Liberation Mono", monospace;
   letter-spacing: 0;
@@ -267,7 +277,7 @@ body.is-booting .hover-tooltip {
 
 .player-info-modal-content {
   width: min(380px, calc(100vw - 28px));
-  padding: 28px 26px 24px;
+  padding: 20px;
 }
 
 .player-info-modal-content h2 {
@@ -280,9 +290,9 @@ body.is-booting .hover-tooltip {
   gap: 14px;
   margin-bottom: 12px;
   padding: 14px 12px;
-  border: 1px solid rgba(148, 163, 184, 0.24);
+  border: 2px solid var(--seat-border);
   border-radius: 7px;
-  background: rgba(15, 23, 42, 0.28);
+  background: rgba(35, 42, 51, 0.72);
 }
 
 .player-profile-avatar {
@@ -353,9 +363,9 @@ body.is-booting .hover-tooltip {
   min-height: 66px;
   place-items: center;
   padding: 10px 8px;
-  border: 1px solid rgba(148, 163, 184, 0.22);
+  border: 2px solid var(--seat-border);
   border-radius: 7px;
-  background: rgba(15, 23, 42, 0.34);
+  background: var(--panel);
   text-align: center;
 }
 
@@ -411,31 +421,35 @@ body.is-booting .hover-tooltip {
 
 button {
   min-height: 34px;
-  border: 1px solid var(--line);
+  border: 2px solid var(--seat-border);
   border-radius: 7px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--panel);
   color: var(--text);
   font: inherit;
   font-size: 8px;
   font-weight: 700;
   cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
 }
 
 .settings-btn {
-  display: inline-grid;
+  display: inline-flex;
   width: 34px;
   height: 34px;
   min-height: 34px;
-  place-items: center;
-  padding: 7px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
 .settings-btn img {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
   filter: none;
   forced-color-adjust: none;
+  pointer-events: none;
 }
 
 .reset-actions {
@@ -446,11 +460,13 @@ button {
   display: flex;
   gap: 8px;
   padding: 8px;
+  border: 0;
+  background: transparent;
   border-radius: 8px;
 }
 
 .reset-icon-btn {
-  display: inline-grid;
+  display: inline-flex;
 }
 
 .music-toggle-btn.is-muted img {
@@ -458,8 +474,8 @@ button {
 }
 
 .music-toggle-btn.is-muted {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(230, 238, 246, 0.1);
+  background: rgba(35, 42, 51, 0.62);
 }
 
 .spectator-btn {
@@ -468,25 +484,29 @@ button {
 
 button:hover,
 button:focus-visible {
-  border-color: rgba(61, 163, 255, 0.7);
-  background: rgba(61, 163, 255, 0.18);
+  border-color: var(--accent);
+  background: #2c3540;
   outline: none;
+  transform: none;
 }
 
 .quick-actions button {
-  display: grid;
+  display: inline-flex;
   width: 34px;
   height: 34px;
   min-height: 34px;
-  place-items: center;
-  padding: 7px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
 .quick-actions button img {
   display: block;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
   forced-color-adjust: none;
+  pointer-events: none;
 }
 
 .quick-actions button img.mirror-x {
@@ -516,13 +536,13 @@ button:focus-visible {
 }
 
 #rollBtn {
-  border-color: rgba(24, 242, 138, 0.42);
+  border-color: rgba(0, 255, 115, 0.42);
 }
 
 #rollBtn:hover,
 #rollBtn:focus-visible {
-  border-color: rgba(24, 242, 138, 0.86);
-  background: rgba(24, 242, 138, 0.14);
+  border-color: rgba(0, 255, 115, 0.86);
+  background: rgba(0, 255, 115, 0.14);
 }
 
 .help-panel {
@@ -575,10 +595,10 @@ button:focus-visible {
   width: 80%;
   max-width: 380px;
   max-height: calc(100vh - 36px);
-  padding: 25px 15px 15px 25px;
-  border: 1px solid var(--line);
+  padding: 20px;
+  border: 2px solid var(--seat-border);
   border-radius: 10px;
-  background: var(--panel);
+  background: var(--panel-strong);
   color: var(--text);
 }
 
@@ -604,7 +624,7 @@ button:focus-visible {
   max-height: calc(100dvh - 28px);
   overflow: visible;
   border: 0;
-  background: linear-gradient(180deg, rgba(34, 44, 57, 0.98), rgba(25, 34, 45, 0.98));
+  background: var(--panel-strong);
   box-shadow: 0 22px 70px rgba(0, 0, 0, 0.55);
   box-sizing: border-box;
 }
@@ -747,7 +767,7 @@ button:focus-visible {
   min-width: 0;
   min-height: 42px;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid var(--seat-border);
   background: #232a33;
   font-family: "Cinzel", serif;
   font-weight: 700;
@@ -760,6 +780,8 @@ button:focus-visible {
 
 .feedback-actions .settings-action-btn:hover {
   background: #2c3540;
+  border-color: var(--accent);
+  transform: none;
 }
 
 .feedback-submit-btn:focus,
@@ -782,7 +804,7 @@ button:focus-visible {
   flex-direction: column;
   align-items: stretch;
   width: min(92vw, 360px);
-  padding: 24px 18px 18px;
+  padding: 20px;
   text-align: center;
 }
 
@@ -799,9 +821,9 @@ button:focus-visible {
   width: min(230px, 68vw);
   margin: 0 auto;
   padding: 14px 12px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 2px solid var(--seat-border);
   border-radius: 8px;
-  background: rgba(10, 15, 22, 0.45);
+  background: rgba(35, 42, 51, 0.72);
 }
 
 .share-room-code-panel {
@@ -906,7 +928,7 @@ button:focus-visible {
   #shareRoomModal .share-room-modal-content {
     width: min(360px, calc(100vw - 28px));
     max-height: calc(100dvh - 28px);
-    padding: 16px 18px;
+    padding: 18px;
     overflow: visible;
   }
 
@@ -948,13 +970,13 @@ button:focus-visible {
 
 .rule-card-stage {
   position: relative;
-  width: min(390px, 70vw, calc((100dvh - 104px) * 0.69));
+  width: min(430px, 86vw, calc((100dvh - 86px) * 0.6886));
   container-type: inline-size;
 }
 
 .rule-flip-card {
   width: 100%;
-  aspect-ratio: 0.69;
+  aspect-ratio: 1886 / 2739;
   cursor: pointer;
   perspective: 1200px;
 }
@@ -1300,7 +1322,8 @@ button:focus-visible {
   max-width: min(520px, calc(100vw - 28px));
   padding: 0;
   overflow: visible;
-  border: 1px solid rgba(30, 144, 255, 0.35);
+  border: 2px solid var(--seat-border);
+  background: var(--panel-strong);
   box-shadow: 0 18px 60px rgba(0, 0, 0, 0.42);
 }
 
@@ -1337,10 +1360,10 @@ button:focus-visible {
 
 .rule-draw-count-btn {
   min-height: 42px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  border: 2px solid var(--seat-border);
   border-radius: 7px;
-  background: rgba(15, 23, 42, 0.45);
-  color: #eef5ff;
+  background: rgba(35, 42, 51, 0.82);
+  color: var(--text);
   font-size: 1rem;
   font-weight: 700;
 }
@@ -1349,7 +1372,7 @@ button:focus-visible {
 .rule-draw-count-btn:focus-visible,
 .rule-draw-count-btn.is-selected {
   border-color: var(--accent);
-  background: rgba(30, 144, 255, 0.18);
+  background: rgba(30, 144, 255, 0.22);
   outline: 0;
 }
 
@@ -1436,12 +1459,12 @@ button:focus-visible {
 }
 
 .rule-cards-modal .close-btn {
-  top: clamp(-16px, -4cqw, -8px);
-  right: clamp(-16px, -4cqw, -8px);
-  width: clamp(22px, 8.2cqw, 32px);
-  height: clamp(22px, 8.2cqw, 32px);
-  min-height: clamp(22px, 8.2cqw, 32px);
-  font-size: clamp(14px, 5.7cqw, 22px);
+  top: -10px;
+  right: -10px;
+  width: 35px;
+  height: 35px;
+  min-height: 35px;
+  font-size: 24px;
 }
 
 .rule-cards-counter {
@@ -1450,21 +1473,21 @@ button:focus-visible {
 
 .close-btn {
   position: absolute;
-  top: -14px;
-  right: -14px;
+  top: -10px;
+  right: -10px;
   z-index: 1010;
   display: grid;
-  width: 32px;
-  height: 32px;
-  min-height: 32px;
+  width: 35px;
+  height: 35px;
+  min-height: 35px;
   place-items: center;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 2px solid white;
   border-radius: 999px;
   background: #ff3b3b;
   color: #fff;
-  font-size: 22px;
-  line-height: 1;
+  font: bold 24px/1 Arial, Helvetica, sans-serif;
+  text-align: center;
 }
 
 .settings-container {
@@ -1501,9 +1524,9 @@ button:focus-visible {
 .settings-language-select {
   min-width: 150px;
   padding: 8px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 2px solid var(--seat-border);
   border-radius: 8px;
-  background: rgba(12, 18, 28, 0.96);
+  background: #171d26;
   color: var(--text);
   font: inherit;
 }
@@ -1519,21 +1542,26 @@ button:focus-visible {
 .settings-action-btn {
   width: 100%;
   padding: 10px;
-  border: 0;
+  border: 2px solid var(--seat-border);
   border-radius: 8px;
-  color: white;
+  background: var(--panel-soft);
+  color: var(--text);
   font-size: 14px;
   cursor: pointer;
 }
 
 .settings-primary-action-btn {
-  background: #1e90ff;
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
   font-weight: 700;
 }
 
 .settings-action-btn:hover {
-  filter: brightness(1.1);
-  transform: scale(1.02);
+  border-color: var(--accent);
+  background: #2c3540;
+  filter: none;
+  transform: none;
 }
 
 .config-title {
@@ -1543,32 +1571,69 @@ button:focus-visible {
 .config-p-title {
   margin-top: 0;
   margin-bottom: 20px;
+  color: rgba(230, 238, 246, 0.32);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
   text-align: center;
+}
+
+#configModal .modal-content {
+  box-sizing: border-box;
+  width: min(380px, calc(100vw - 28px));
+  max-width: 380px;
+  padding: 20px;
 }
 
 .deck-presets-container {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 28px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .preset-btn {
-  min-height: 32px;
-  padding: 0 8px;
-  font-size: 11px;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  font-family: "Cinzel", serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.preset-btn:hover,
+.preset-btn:focus-visible {
+  border-color: var(--accent);
+  background: #2c3540;
 }
 
 .card-config-list {
   max-height: 60vh;
   margin: 0;
-  padding: 0 12px 8px 0;
+  padding: 0 12px 0 0;
+  overflow-x: hidden;
   overflow-y: auto;
   list-style: none;
+  scrollbar-color: var(--accent) rgba(255, 255, 255, 0.05);
+  scrollbar-width: thin;
 }
 
 .title-dlc-card-config-item {
   margin: 25px 0 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--muted);
+  color: var(--text);
   text-align: center;
   font-size: 18px;
   font-weight: bold;
@@ -1597,28 +1662,31 @@ button:focus-visible {
   padding: 6px;
   border: 1px solid var(--accent);
   border-radius: 6px;
-  background: var(--bg);
+  background: #171d26;
   color: white;
-}
-
-.card-config-item input:focus {
+  font-size: 16px;
+  text-align: center;
   outline: none;
 }
 
-.card-config-apply-item {
-  position: sticky;
-  bottom: 0;
-  padding: 12px 0 0;
-  background: linear-gradient(180deg, rgba(13, 18, 26, 0), rgba(13, 18, 26, 0.96) 34%);
-  list-style: none;
+.card-config-item input:focus {
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.card-config-actions {
+  margin-top: 20px;
 }
 
 #applyDeckConfigBtn {
   width: 100%;
   padding: 14px;
+  border: 0;
+  border-radius: 8px;
   background: #00ff73;
   color: #000;
   font-size: 16px;
+  font-weight: bold;
+  transition: transform 0.2s, filter 0.2s;
 }
 
 #applyDeckConfigBtn:disabled,
@@ -1648,95 +1716,105 @@ button:focus-visible {
 }
 
 .chat-btn-has-unread {
-  border-color: rgba(24, 242, 138, 0.72);
-  background: rgba(24, 242, 138, 0.16);
+  border-color: rgba(0, 255, 115, 0.72);
+  background: rgba(0, 255, 115, 0.16);
 }
 
 .chat-modal-content {
-  display: flex;
-  height: min(560px, calc(100dvh - 36px));
-  width: min(420px, calc(100vw - 28px));
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto auto minmax(150px, 1fr) auto auto;
+  width: min(620px, calc(100vw - 28px));
+  height: min(700px, calc(100dvh - 28px));
+  box-sizing: border-box;
+  min-height: 0;
   overflow: visible;
+  background: var(--panel);
+  padding: 20px;
 }
 
 .chat-status-text {
-  flex: 0 0 auto;
-  margin: 8px 0 12px;
+  margin: 0 0 12px;
+  color: rgba(230, 238, 246, 0.78);
+  font-size: 1.1em;
   text-align: center;
 }
 
 .chat-messages-list {
-  display: flex;
+  display: grid;
+  align-content: start;
   min-height: 0;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: 8px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 2px 8px 4px 0;
+  gap: 9px;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: #171d26;
+  scrollbar-color: var(--accent) rgba(255, 255, 255, 0.05);
+  scrollbar-width: thin;
 }
 
 .chat-empty-message {
-  margin: auto;
-  color: var(--muted);
-  font-size: 12px;
+  align-self: center;
+  justify-self: center;
+  color: rgba(230, 238, 246, 0.48);
+  font-size: 13px;
   font-weight: 700;
+  line-height: 1.5;
   text-align: center;
 }
 
 .chat-message {
   display: grid;
-  gap: 3px;
-  max-width: 86%;
-  align-self: flex-start;
-  padding: 8px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: fit-content;
+  max-width: 84%;
+  padding: 9px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.04);
   overflow-wrap: anywhere;
 }
 
 .chat-message.is-own {
-  align-self: flex-end;
-  border-color: rgba(61, 163, 255, 0.32);
-  background: rgba(61, 163, 255, 0.14);
+  justify-self: end;
+  border-color: rgba(30, 144, 255, 0.55);
+  background: rgba(30, 144, 255, 0.22);
 }
 
 .chat-message.is-quick {
-  border-color: rgba(24, 242, 138, 0.28);
+  border-color: rgba(242, 178, 51, 0.48);
 }
 
 .chat-message-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  color: var(--muted);
+  color: rgba(230, 238, 246, 0.48);
+  font-family: "Cinzel", Georgia, serif !important;
   font-size: 10px;
+  line-height: 1.4;
   font-weight: 700;
 }
 
 .chat-message-text {
-  font-size: 13px;
-  line-height: 1.28;
+  margin: 4px 0 0;
+  color: var(--text);
+  font-family: "Cinzel", Georgia, serif !important;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .chat-quick-messages {
   display: flex;
-  flex: 0 0 auto;
-  flex-wrap: nowrap;
-  gap: 6px;
-  margin: 12px 0 10px;
+  gap: 7px;
+  margin: 10px 0;
   overflow-x: auto;
   overscroll-behavior-x: contain;
-  padding-bottom: 7px;
+  padding-bottom: 4px;
   scrollbar-width: thin;
   scrollbar-color: var(--accent) rgba(255, 255, 255, 0.05);
   -webkit-overflow-scrolling: touch;
 }
 
 .chat-quick-messages::-webkit-scrollbar {
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 .chat-quick-messages::-webkit-scrollbar-track {
@@ -1751,42 +1829,58 @@ button:focus-visible {
 
 .chat-quick-btn {
   flex: 0 0 auto;
-  min-height: 30px;
-  padding: 6px 8px;
+  min-height: 32px;
+  padding: 7px 9px;
+  border: 1px solid rgba(230, 238, 246, 0.22);
   border-radius: 999px;
-  color: var(--muted);
-  font-size: 10px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
   text-transform: none;
+}
+
+.chat-quick-btn:hover,
+.chat-quick-btn:focus-visible {
+  border-color: var(--accent);
+  background: #2c3540;
+  outline: 0;
 }
 
 .chat-form {
   display: grid;
-  flex: 0 0 auto;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
+  gap: 9px;
 }
 
 .chat-form input {
   min-width: 0;
-  padding: 9px 10px;
-  border: 1px solid var(--line);
+  padding: 12px;
+  border: 1px solid var(--accent);
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.28);
+  background: #171d26;
   color: var(--text);
-  font: inherit;
-  font-size: 13px;
+  font-family: "Cinzel", serif !important;
+  font-size: 14px;
+  line-height: 1.4;
+  user-select: text;
 }
 
 .chat-form input:focus {
-  border-color: rgba(61, 163, 255, 0.72);
-  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 8px rgba(30, 144, 255, 0.35);
+  outline: 0;
 }
 
 .chat-form .settings-action-btn {
   width: auto;
-  min-height: 36px;
-  padding: 8px 12px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 8px;
   background: var(--accent);
+  color: #fff;
+  font-weight: 800;
 }
 
 .spectator-player-list {
@@ -1852,7 +1946,7 @@ button:focus-visible {
 
 #applyDeckConfigBtn:hover:not(:disabled) {
   filter: brightness(1.1);
-  transform: scale(1.02);
+  transform: none;
 }
 
 .settings-container::-webkit-scrollbar,
@@ -1893,9 +1987,10 @@ button:focus-visible {
     width: 29px;
     height: 29px;
     min-height: 29px;
-    padding: 5px;
+    padding: 0;
   }
 
+  .settings-btn img,
   .quick-actions button img {
     width: 18px;
     height: 18px;
@@ -1955,13 +2050,13 @@ button:focus-visible {
 
   .modal-content {
     width: min(380px, calc(100vw - 28px));
-    padding: 22px 12px 14px 18px;
+    padding: 20px;
   }
 
   .chat-modal-content {
-    height: min(480px, calc(100dvh - 28px));
-    width: min(420px, calc(100vw - 28px));
-    padding: 18px 10px 12px 16px;
+    width: min(430px, calc(100vw - 28px));
+    height: min(640px, calc(100dvh - 28px));
+    padding: 20px;
   }
 
   .chat-modal-content h2 {
@@ -1984,13 +2079,13 @@ button:focus-visible {
   }
 
   .chat-form input {
-    padding: 7px 9px;
+    padding: 12px;
     font-size: 12px;
   }
 
   .chat-form .settings-action-btn {
-    min-height: 32px;
-    padding: 7px 10px;
+    min-height: 44px;
+    padding: 0 18px;
   }
 
   .player-info-modal-content {
@@ -2045,6 +2140,12 @@ button:focus-visible {
   }
 
   .rule-card-stage {
-    width: min(310px, 72vw, calc((100dvh - 82px) * 0.69));
+    width: min(330px, 86vw, calc((100dvh - 82px) * 0.6886));
+  }
+}
+
+@media (min-width: 561px) and (min-height: 561px) {
+  .rule-card-stage {
+    width: min(430px, 86vw, calc((100dvh - 86px) * 0.6886));
   }
 }
