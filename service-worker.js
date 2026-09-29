@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'coup-master-pwa-v71';
+const CACHE_VERSION = 'coup-master-pwa-v72';
 const APP_SHELL = [
   './',
   './index.html',
@@ -47,6 +47,7 @@ const APP_SHELL = [
   './js/three/room-players-ui.js',
   './js/three/rules-guide-builder.js',
   './js/three/rules-guides-ui.js',
+  './js/three/scene-runtime-controller.js',
   './js/three/scene-table.js',
   './js/three/share-room-service.js',
   './js/three/spectator-service.js',
