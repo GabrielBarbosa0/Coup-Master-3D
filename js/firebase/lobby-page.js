@@ -1,5 +1,9 @@
 import { requireAuth, signOutUser } from './auth-service.js';
 import { createRoom, joinRoom, normalizeRoomCode } from './room-service.js';
+import {
+  ROOM_LAUNCH_STORAGE_KEY,
+  createRoomLaunchToken
+} from '../navigation/entry-routing.js';
 
 const user = await requireAuth('login.html');
 const createRoomBtn = document.getElementById('create-room-btn') || document.getElementById('createRoomBtn');
@@ -19,6 +23,8 @@ const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
 const loader = document.getElementById('font-loader');
 const loaderMessage = document.getElementById('loader-message');
 let loaderHideTimer = null;
+const lobbyParams = new URLSearchParams(location.search);
+const requestedRoom = normalizeRoomCode(lobbyParams.get('room') || '');
 
 function t(key, params = {}, fallback = key) {
   return window.CoupLanguage?.t?.(key, params, fallback) || fallback;
@@ -34,6 +40,10 @@ if (user) {
   if (userInfoEl) userInfoEl.style.display = 'block';
   if (roomActionsEl) roomActionsEl.style.display = 'block';
   if (signOutBtn) signOutBtn.hidden = false;
+}
+
+if (requestedRoom && roomCodeInput) {
+  roomCodeInput.value = requestedRoom;
 }
 
 // Atualiza feedback do lobby mantendo a tela simples para o MVP online.
@@ -66,6 +76,7 @@ Promise.all([
 // Entra direto na mesa casual depois que a sala foi validada.
 function openCasualRoom(roomCode) {
   localStorage.setItem('coupMaster3dRoom', roomCode);
+  sessionStorage.setItem(ROOM_LAUNCH_STORAGE_KEY, createRoomLaunchToken(roomCode));
   location.assign(`index.html?room=${encodeURIComponent(roomCode)}`);
 }
 

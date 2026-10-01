@@ -1,4 +1,5 @@
 import { observeAuth, resolveRedirectSignIn, signInAsGuest, signInWithGoogle } from './auth-service.js';
+import { getSafeLoginNextPath } from '../navigation/entry-routing.js';
 
 const loginButton = document.getElementById('google-login-btn') || document.getElementById('googleLoginBtn');
 const guestLoginButton = document.getElementById('anonymous-login-btn') || document.getElementById('guestLoginBtn');
@@ -8,7 +9,7 @@ const loaderMessage = document.getElementById('loader-message');
 let loaderHideTimer = null;
 
 const params = new URLSearchParams(location.search);
-const nextPath = params.get('next') || 'lobby.html';
+const nextPath = getSafeLoginNextPath(params.get('next'));
 
 function t(key, params = {}, fallback = key) {
   return window.CoupLanguage?.t?.(key, params, fallback) || fallback;

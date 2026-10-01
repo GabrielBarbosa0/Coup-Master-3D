@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'coup-master-pwa-v87';
+const CACHE_VERSION = 'coup-master-pwa-v88';
 const APP_SHELL = [
   './',
   './index.html',
@@ -14,6 +14,7 @@ const APP_SHELL = [
   './css/compat.css',
   './css/three-board.css',
   './js/pwa.js',
+  './js/navigation/entry-routing.js',
   './js/i18n/initial-language.js',
   './js/i18n/language-service.js',
   './js/firebase/login-page.js',

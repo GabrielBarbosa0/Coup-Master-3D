@@ -8,6 +8,7 @@ Execute a partir da raiz do projeto:
 node tests\automated\test-table-state-merge.mjs
 node tests\automated\test-table-sync-service.mjs
 node tests\automated\test-ranked-3d-achievements.mjs
+node tests\automated\test-entry-routing.mjs
 ```
 
 Novos testes automatizados devem ficar aqui quando validarem modulos isolados do motor do jogo.

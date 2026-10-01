@@ -56,10 +56,10 @@ export async function resolveRedirectSignIn() {
 }
 
 // Exige usuario autenticado e manda para a tela de login quando necessario.
-export async function requireAuth(redirectTo = 'login.html') {
+export async function requireAuth(redirectTo = 'login.html', nextOverride = null) {
   const user = await waitForAuth();
   if (!user) {
-    const next = `${location.pathname.split('/').pop() || 'index.html'}${location.search || ''}`;
+    const next = nextOverride || `${location.pathname.split('/').pop() || 'index.html'}${location.search || ''}`;
     location.replace(`${redirectTo}?next=${encodeURIComponent(next)}`);
     return null;
   }
