@@ -74,7 +74,8 @@ A base online fica isolada em `js/firebase/` para manter `js/three/app.js` focad
 Arquivos:
 
 - `login.html`: tela inicial com login Google e visitante anonimo.
-- `lobby.html`: cria sala curta ou entra em sala existente e redireciona direto para a mesa casual.
+- `lobby.html`: cria sala curta casual ou ranqueada; salas casuais abrem a mesa e salas ranqueadas abrem a espera.
+- `ranked-waiting.html`: espera ranqueada adaptada do Coup Master original, com QR/codigo, lista de jogadores, prontidao e matchmaking por bots IA.
 - `js/firebase/firebase-config.js`: inicializa Firebase App, Auth e Realtime Database.
 - `js/firebase/auth-service.js`: login, logout, observacao de sessao e guard de autenticacao.
 - `js/firebase/room-service.js`: criacao de sala, entrada de jogador, remocao pelo host, assentos, assinatura de jogadores, snapshots de mesa, eventos discretos de mesa e pedidos de espectador.
@@ -178,12 +179,12 @@ Textos novos de UI devem entrar nos arquivos `lang/*.json` e usar `data-i18n` qu
 
 A base de modos de jogo fica em `js/gamemode/game-modes.js`.
 
-O objetivo inicial e registrar os modos planejados sem alterar o fluxo atual do MVP. O lobby continua criando apenas salas casuais 3D, mas o projeto passa a ter um contrato unico para identificar modos, status, limites de jogadores, rota prevista, chave de estado e documento de referencia.
+O objetivo inicial e registrar os modos planejados sem quebrar o fluxo casual do MVP. O lobby cria salas casuais 3D e tambem ja abre a espera inicial do modo ranqueado, enquanto os demais modos seguem planejados.
 
 Modos registrados:
 
 - `casual`: modo casual 3D, habilitado, sandbox manual, ate 8 jogadores, rota `index.html`.
-- `ranked`: modo ranqueado 3D, planejado, automatizado e competitivo, ate 6 jogadores.
+- `ranked`: modo ranqueado 3D, espera habilitada, automatizado e competitivo, temporariamente ate 8 jogadores.
 - `personalized`: modo personalizado 3D, planejado, sala automatizada com amigos e bots.
 - `training`: modo treinamento 3D, planejado, tutorial/pratica individual.
 
@@ -195,7 +196,29 @@ Documentacao de produto dos modos:
 - `docs/modos-de-jogo/modo-treinamento-3d.md`
 - `docs/modos-de-jogo/conquistas-ranqueadas-3d.md`
 
-O pacote planejado do ranqueado 3D tambem possui `js/gamemode/ranked-3d/ranked-3d-achievements.js`, que avalia conquistas a partir de estatisticas acumuladas em `rankedStats/{uid}`. Esse modulo e puro e nao altera o fluxo atual do lobby.
+O pacote do ranqueado 3D fica em `js/gamemode/ranked-3d/` e agora porta diretamente o nucleo do Coup Master original:
+
+- `ranked-3d.js`: entrada agregadora do pacote.
+- `ranked-3d-actions.js`: adaptacao ES Module de `js/gamemode/ranked/ranked-rules.js` do Coup Master original.
+- `ranked-3d-action-panel.js`: painel DOM contextual para acoes de turno e resolucoes de desafio/bloqueio/revelacao na mesa 3D.
+- `ranked-3d-bot-intelligence.js`: port da estrategia de bots que vivia em `js/gamemode/ranked/ranked-game.js` no Coup Master original.
+- `ranked-3d-hud.js`: HUD DOM da partida ranqueada para fase, prazo, jogadores, resultado e conquistas recentes.
+- `ranked-3d-state.js`: reexports de funcoes de estado do motor para manter a separacao planejada no pacote 3D.
+- `ranked-3d-engine.js`: adaptacao ES Module de `js/gamemode/ranked/ranked-engine.js` do Coup Master original.
+- `ranked-3d-room-state.js`: helpers puros para criar e alterar `ranked3dState` antes da persistencia.
+- `ranked-3d-results.js`: monta `rankedResults/{resultKey}` e acumula `rankedStats/{uid}` de forma idempotente.
+- `ranked-3d-table-adapter.js`: converte `ranked3dState` em snapshot visual de `tableState` para a mesa Three.js, sem misturar regras no renderer.
+- `ranked-3d-achievements.js`: avalia conquistas a partir de estatisticas acumuladas em `rankedStats/{uid}`.
+
+O Firebase do modo ranqueado fica em `js/firebase/ranked-room-service.js`. Ele cria salas com `mode: ranked`, salva o motor em `rooms/{roomCode}/ranked3dState` e aplica entrada, presenca, prontidao, acoes, respostas, bloqueios, desafios, perdas de influencia, trocas, investigacoes, decisoes de bot, resultados finais e avancos automaticos por `runTransaction()`.
+
+O mesmo servico assina `rankedStats/{uid}` para os jogadores visiveis. `js/three/boot.js` injeta essas estatisticas nos perfis locais da mesa casual e ranqueada, e `js/three/room-players-ui.js` exibe jogos, vitorias, derrotas, taxa de vitoria e `rankScore` no modal de perfil.
+
+As conquistas sao ligadas ao resultado no momento de `persistRankedMatchResult()`: `normalizeRanked3dStats()` calcula quais chaves foram desbloqueadas nesta partida e o servico anexa esse delta ao jogador autenticado em `rankedResults/{resultKey}/players/{uid}`.
+
+`ranked-waiting.html`, `css/ranked-waiting.css` e `js/firebase/ranked-waiting-page.js` adaptam a sala de espera do Coup Master original para ES Modules/Firebase v10. A espera mostra jogadores, prontidao, QR/codigo da sala, aciona o avanco de matchmaking/deadlines e abre a mesa 3D quando o motor sai de `waiting`.
+
+Os testes em `tests/automated/` podem ser executados por camada com `node tests/automated/run-layer.mjs all` ou com as camadas `navigation`, `modes`, `sync`, `rules`, `engine`, `state` e `ui`. Essa divisao preserva paridade do motor, cobre regras puras, registro de modos, helpers que alimentam a ponte Firebase, IA, persistencia final, modelos de UI e projecao visual da mesa.
 
 Antes de habilitar outro modo no lobby, deve existir separacao clara de estado, rota, permissoes, documentacao e criterios de teste. O modo casual 3D nao deve herdar regras competitivas automaticamente.
 

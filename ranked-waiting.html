@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-BR" data-i18n-title="rankedWaiting.title">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#171d26">
+  <title>Sala Ranqueada | Coup Master 3D</title>
+  <script src="js/i18n/initial-language.js"></script>
+  <link rel="icon" href="assets/img/logo/favicon-coup-master.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/img/logo/coup-master-512x512.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/loading.css">
+  <link rel="stylesheet" href="css/ranked-waiting.css">
+  <link rel="stylesheet" href="css/compat.css">
+</head>
+
+<body data-rank-view="waiting">
+  <div id="rankLoading" class="game-loading-overlay">
+    <div class="game-loading-content">
+      <p id="rankLoadingMessage" data-i18n="rankedWaiting.loading">
+        <span data-loading-lang="pt-BR">Entrando na sala ranqueada...</span>
+        <span data-loading-lang="en-US">Entering ranked room...</span>
+      </p>
+    </div>
+  </div>
+
+  <main class="rank-shell rank-waiting-shell">
+    <header class="rank-header rank-waiting-header">
+      <div class="rank-header-actions rank-room-actions">
+        <button id="leaveRankBtn" class="rank-icon-btn" type="button" title="Sair da Sala"
+          data-i18n-title="rankedWaiting.leaveRoom" aria-label="Sair da Sala"
+          data-i18n-aria-label="rankedWaiting.leaveRoom">
+          <img src="assets/img/icons/logout.svg" alt="" aria-hidden="true">
+        </button>
+      </div>
+
+      <div class="rank-waiting-room">
+        <span id="rankConnectionStatus" class="rank-connection-status" data-i18n="rankedWaiting.connecting">Conectando...</span>
+      </div>
+    </header>
+
+    <section class="rank-waiting-card" aria-live="polite">
+      <div>
+        <span class="rank-kicker" data-i18n="rankedWaiting.kicker">Ranqueado com bots IA</span>
+        <h1 id="rankPhaseTitle" data-i18n="rankedWaiting.searchingTitle">Procurando partida</h1>
+        <p id="rankPhaseDescription" class="rank-phase-description" data-i18n="rankedWaiting.searchingDescription">
+          O sistema preenche a mesa com oponentes IA e inicia quando todos confirmarem prontidão.
+        </p>
+      </div>
+
+      <aside class="rank-waiting-invite" aria-label="Convite da sala por QR Code"
+        data-i18n-aria-label="rankedWaiting.inviteLabel">
+        <button id="rankRoomCode" class="rank-room-code" type="button" title="Copiar código da sala"
+          data-i18n-title="rankedWaiting.copyRoomCode">Sala: ----</button>
+        <img id="rankRoomQr" alt="QR Code para entrar nesta sala ranqueada" data-i18n-alt="rankedWaiting.qrAlt">
+        <span data-i18n="rankedWaiting.scanToJoin">Escaneie para entrar</span>
+      </aside>
+
+      <div id="rankInteraction" class="rank-interaction rank-waiting-interaction"></div>
+    </section>
+
+    <section id="rankPlayers" class="rank-players rank-waiting-players is-waiting-view" aria-label="Jogadores da sala ranqueada"
+      data-i18n-aria-label="rankedWaiting.playersLabel"></section>
+  </main>
+
+  <div id="rankErrorModal" class="rank-modal-overlay" hidden>
+    <section class="rank-modal rank-error-modal" role="alertdialog" aria-modal="true" aria-labelledby="rankErrorTitle">
+      <span class="rank-kicker" data-i18n="common.attention">Atenção</span>
+      <h2 id="rankErrorTitle" data-i18n="rankedWaiting.errorTitle">Não foi possível continuar</h2>
+      <p id="rankErrorText"></p>
+      <button id="rankErrorConfirm" class="rank-primary-btn" type="button" data-i18n="rankedWaiting.understood">Entendi</button>
+    </section>
+  </div>
+
+  <script src="js/i18n/language-service.js" defer></script>
+  <script type="module" src="js/pwa.js"></script>
+  <script type="module" src="js/firebase/ranked-waiting-page.js"></script>
+</body>
+
+</html>

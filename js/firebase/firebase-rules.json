@@ -11,6 +11,40 @@
         ".read": "auth != null",
         ".write": "auth != null && auth.uid === $uid"
       }
+    },
+    "rankedStats": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "rankedResults": {
+      ".read": "auth != null",
+      "$resultKey": {
+        ".write": "auth != null && !data.exists()",
+        "players": {
+          "$uid": {
+            "achievementUnlocks": {
+              ".write": "auth != null && auth.uid === $uid && data.parent().parent().parent().exists()"
+            },
+            "achievementUnlockKeys": {
+              ".write": "auth != null && auth.uid === $uid && data.parent().parent().parent().exists()"
+            },
+            "achievementUnlockCount": {
+              ".write": "auth != null && auth.uid === $uid && data.parent().parent().parent().exists()"
+            },
+            "totalUnlockedAchievements": {
+              ".write": "auth != null && auth.uid === $uid && data.parent().parent().parent().exists()"
+            },
+            "rankScoreAfter": {
+              ".write": "auth != null && auth.uid === $uid && data.parent().parent().parent().exists()"
+            },
+            "statsUpdatedAt": {
+              ".write": "auth != null && auth.uid === $uid && data.parent().parent().parent().exists()"
+            }
+          }
+        }
+      }
     }
   }
 }

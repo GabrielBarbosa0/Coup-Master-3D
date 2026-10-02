@@ -1,9 +1,11 @@
 import { requireAuth, signOutUser } from './auth-service.js';
-import { createRoom, joinRoom, normalizeRoomCode } from './room-service.js';
+import { createRankedRoom, joinRankedRoom } from './ranked-room-service.js';
+import { createRoom, getRoomInfo, joinRoom, normalizeRoomCode } from './room-service.js';
 import {
   ROOM_LAUNCH_STORAGE_KEY,
   createRoomLaunchToken
 } from '../navigation/entry-routing.js';
+import { GAME_MODE_IDS, getRoomGameMode, normalizeGameMode } from '../gamemode/game-modes.js';
 
 const user = await requireAuth('login.html');
 const createRoomBtn = document.getElementById('create-room-btn') || document.getElementById('createRoomBtn');
@@ -16,6 +18,8 @@ const roomActionsEl = document.getElementById('room-actions');
 const userNameEl = document.getElementById('user-name') || document.getElementById('userName');
 const userAvatarEl = document.getElementById('user-photo') || document.getElementById('userAvatar');
 const lobbyStatusEl = document.getElementById('lobbyStatus');
+const rankedModeInput = document.getElementById('ranked-mode-input');
+const gameModeInputs = Array.from(document.querySelectorAll('input[name="game-mode"]'));
 const logoutConfirmModal = document.getElementById('logoutConfirmModal');
 const closeLogoutConfirmModalBtn = document.getElementById('closeLogoutConfirmModalBtn');
 const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
@@ -40,6 +44,12 @@ if (user) {
   if (userInfoEl) userInfoEl.style.display = 'block';
   if (roomActionsEl) roomActionsEl.style.display = 'block';
   if (signOutBtn) signOutBtn.hidden = false;
+}
+
+if (rankedModeInput) {
+  rankedModeInput.disabled = false;
+  rankedModeInput.closest('.game-mode-option')?.classList.remove('is-coming-soon');
+  rankedModeInput.removeAttribute('title');
 }
 
 if (requestedRoom && roomCodeInput) {
@@ -80,13 +90,40 @@ function openCasualRoom(roomCode) {
   location.assign(`index.html?room=${encodeURIComponent(roomCode)}`);
 }
 
+// Abre a sala de espera ranqueada, onde o motor preenche bots e controla prontidao.
+function openRankedRoom(roomCode) {
+  localStorage.setItem('coupMaster3dRankedRoom', roomCode);
+  location.assign(`ranked-waiting.html?room=${encodeURIComponent(roomCode)}`);
+}
+
+function getSelectedGameMode() {
+  const selected = gameModeInputs.find((input) => input.checked);
+  return normalizeGameMode(selected?.value || GAME_MODE_IDS.CASUAL_3D);
+}
+
 createRoomBtn?.addEventListener('click', async () => {
   createRoomBtn.disabled = true;
-  const message = t('lobby.creatingRoom', {}, 'Criando sala...');
+  const selectedMode = getSelectedGameMode();
+  const isRanked = selectedMode === GAME_MODE_IDS.RANKED_3D;
+  const message = isRanked
+    ? t('lobby.creatingRankedRoom', {}, 'Criando sala ranqueada...')
+    : t('lobby.creatingRoom', {}, 'Criando sala...');
   setStatus(message);
   showLoader(message);
 
   try {
+    if (isRanked) {
+      const roomCode = await createRankedRoom(user, {
+        matchmaking: {
+          enabled: true,
+          targetPlayers: 8
+        }
+      });
+      setStatus(t('lobby.rankedRoomCreated', {}, 'Sala ranqueada criada. Abrindo espera...'));
+      openRankedRoom(roomCode);
+      return;
+    }
+
     const roomCode = await createRoom(user);
     setStatus(t('lobby.roomCreated', {}, 'Sala criada. Abrindo mesa...'));
     openCasualRoom(roomCode);
@@ -106,6 +143,16 @@ async function joinCurrentRoom() {
   showLoader(message);
 
   try {
+    const roomInfo = await getRoomInfo(roomCode);
+    const roomMode = getRoomGameMode(roomInfo);
+
+    if (roomMode === GAME_MODE_IDS.RANKED_3D) {
+      await joinRankedRoom(roomCode, user);
+      setStatus(t('lobby.joinedRankedRoom', {}, 'Voce entrou na sala ranqueada. Abrindo espera...'));
+      openRankedRoom(roomCode);
+      return;
+    }
+
     await joinRoom(roomCode, user);
     setStatus(t('lobby.joinedRoom', {}, 'Voce entrou na sala. Abrindo mesa...'));
     openCasualRoom(roomCode);

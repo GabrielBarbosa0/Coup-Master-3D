@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import {
   RANKED_3D_ACHIEVEMENT_KEYS,
-  evaluateRanked3dAchievements
+  evaluateRanked3dAchievements,
+  getNewlyUnlockedRanked3dAchievements
 } from '../../js/gamemode/ranked-3d/ranked-3d-achievements.js';
 
 const qualifyingStats = {
@@ -63,5 +64,11 @@ assert.equal(later.preciseAccuser, true);
 
 assert.equal(evaluateRanked3dAchievements({ honestGames: 20, honestWins: 4 }).unlikelySaint, undefined);
 assert.equal(evaluateRanked3dAchievements({ honestWins: 5 }).unlikelySaint, true);
+
+const newlyUnlocked = getNewlyUnlockedRanked3dAchievements(
+  { firstWin: true },
+  { firstWin: true, courtEntry: true, honestPlayer: true }
+);
+assert.deepEqual(newlyUnlocked, ['courtEntry', 'honestPlayer']);
 
 console.log('ranked-3d-achievements: checks passed');

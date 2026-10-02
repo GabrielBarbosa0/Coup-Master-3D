@@ -241,6 +241,7 @@ export async function getRoomInfo(roomCode) {
     code,
     adminUid: getRoomAdminUid(room),
     createdBy: room.createdBy || null,
+    mode: room.mode || room.gameMode || 'casual',
     status: room.status || 'lobby'
   };
 }

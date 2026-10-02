@@ -26,6 +26,7 @@ import {
   renderShareRoomModal,
   setupShareRoomService
 } from './share-room-service.js';
+import { setupOfficialLogService } from './official-log-service.js';
 import { createGameActionsController } from './game-actions-controller.js';
 import {
   refreshOpenPlayerInfoModal,
@@ -266,6 +267,7 @@ const state = {
 const DRAW_ACTION_SYNC_DELAY_MS = 560;
 const RETURN_ACTION_SYNC_DELAY_MS = 620;
 const DEAL_CARD_DELAY_MS = 140;
+let officialLogService = null;
 
 const app = {
   renderer: null,
@@ -520,6 +522,17 @@ function init() {
   createPlayerBadges();
   createDeck();
   setupSettingsModal();
+  officialLogService = setupOfficialLogService({
+    historyBtn: dom.historyBtn,
+    officialLogModal: dom.officialLogModal,
+    closeOfficialLogBtn: dom.closeOfficialLogBtn,
+    officialLogList: dom.officialLogList,
+    copyOfficialLogBtn: dom.copyOfficialLogBtn,
+    officialLogStatus: dom.officialLogStatus,
+    openModal,
+    closeModal,
+    t
+  });
   setupChatPanel();
   setupRoomPlayerList({
     getPlayers: () => state.players,
@@ -542,6 +555,7 @@ function init() {
     startSpectatingPlayer,
     applyTableAction,
     setChatMessages,
+    setOfficialLogEntries,
     setPlayerProfile
   };
   syncAdminControls();
@@ -651,6 +665,11 @@ function resizeInspectOverlay() {
   app.inspectCamera.top = view;
   app.inspectCamera.bottom = -view;
   app.inspectCamera.updateProjectionMatrix();
+}
+
+// Atualiza o registro oficial exibido pelo botao de historico.
+function setOfficialLogEntries(entries = []) {
+  officialLogService?.setEntries(entries);
 }
 
 // Atualiza um perfil local de jogador; futuramente recebe displayName/photoURL do Google.

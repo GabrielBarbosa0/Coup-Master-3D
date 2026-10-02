@@ -206,14 +206,17 @@ function getPlayerById(playerId) {
   return getPlayers()[playerId - 1] || null;
 }
 
-// Mantem o perfil pronto para receber estatisticas ranqueadas reais no futuro.
+// Normaliza estatisticas ranqueadas persistidas para exibicao no modal de jogador.
 function getPlayerRankedStats(player) {
   const stats = player?.rankedStats || {};
   const games = Math.max(0, Number(stats.games) || 0);
   const wins = Math.max(0, Number(stats.wins) || 0);
   const losses = Math.max(0, Number(stats.losses) || 0);
-  const points = Math.max(0, Number(stats.points) || 0);
-  const winRate = games > 0 ? Math.round((wins / games) * 100) : 0;
+  const points = Math.max(0, Number(stats.rankScore ?? stats.points) || 0);
+  const persistedWinRate = Number(stats.winRate);
+  const winRate = Number.isFinite(persistedWinRate) && persistedWinRate > 0
+    ? Math.round(persistedWinRate * 100)
+    : (games > 0 ? Math.round((wins / games) * 100) : 0);
   return { games, wins, losses, points, winRate };
 }
 

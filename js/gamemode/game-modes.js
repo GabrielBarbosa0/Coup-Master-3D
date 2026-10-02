@@ -17,10 +17,10 @@ export const GAME_MODES = Object.freeze({
   }),
   [GAME_MODE_IDS.RANKED_3D]: Object.freeze({
     id: GAME_MODE_IDS.RANKED_3D,
-    status: 'planned',
-    requiresGoogleAccount: true,
-    maxPlayers: 6,
-    route: null,
+    status: 'enabled',
+    requiresGoogleAccount: false,
+    maxPlayers: 8,
+    route: 'ranked-waiting.html',
     stateKey: 'ranked3dState',
     docs: 'docs/modos-de-jogo/modo-ranqueado-3d.md'
   }),

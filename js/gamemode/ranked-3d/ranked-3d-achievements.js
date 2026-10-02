@@ -70,3 +70,10 @@ export function countUnlockedRanked3dAchievements(stats = {}) {
   const unlocked = evaluateRanked3dAchievements(stats);
   return RANKED_3D_ACHIEVEMENT_KEYS.filter((key) => unlocked[key]).length;
 }
+
+// Retorna somente conquistas que passaram de bloqueadas para desbloqueadas nesta atualizacao.
+export function getNewlyUnlockedRanked3dAchievements(previousUnlocked = {}, nextUnlocked = {}) {
+  return RANKED_3D_ACHIEVEMENT_KEYS.filter((key) => (
+    nextUnlocked[key] && !previousUnlocked[key]
+  ));
+}

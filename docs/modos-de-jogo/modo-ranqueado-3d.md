@@ -1,6 +1,6 @@
 # Coup Master 3D - Modo Ranqueado
 
-O **Modo Ranqueado 3D** e um modo planejado. Ele deve usar a apresentacao 3D da mesa, mas com regras controladas por um motor de jogo mais rigido que o modo casual.
+O **Modo Ranqueado 3D** esta em implementacao inicial. Ele deve usar a apresentacao 3D da mesa, mas com regras controladas por um motor de jogo mais rigido que o modo casual.
 
 ## Objetivo
 
@@ -15,9 +15,9 @@ No ranqueado, o estado visual 3D deve ser consequencia do motor de regras, nao a
 ## Entrada Planejada
 
 - Exigir conta Google.
-- Usar uma espera/matchmaking proprio.
-- Suportar ate 6 jogadores.
-- Permitir bots apenas quando o design do ranqueado aceitar matchmaking simulado.
+- Usar uma espera/matchmaking proprio em `ranked-waiting.html`.
+- Suportar temporariamente ate 8 jogadores.
+- Usar bots de matchmaking simulado com estrategia portada do Coup Master original.
 
 ## Estado Planejado
 
@@ -29,6 +29,35 @@ Estado separado do casual:
 - `rankedStats/{uid}/unlockedAchievements` para conquistas permanentes.
 
 As conquistas ranqueadas planejadas estao documentadas em `docs/modos-de-jogo/conquistas-ranqueadas-3d.md` e avaliadas por `js/gamemode/ranked-3d/ranked-3d-achievements.js`.
+
+## Motor Portado
+
+O pacote `js/gamemode/ranked-3d/` porta o nucleo ranqueado do Coup Master original para ES Modules:
+
+- `ranked-3d-actions.js`: baseado em `ranked-rules.js` do Coup Master original.
+- `ranked-3d-action-panel.js`: painel da mesa 3D para turno, resposta, bloqueio, contestação, revelação e perda de influência.
+- `ranked-3d-bot-intelligence.js`: estratégia dos bots portada de `ranked-game.js` do Coup Master original.
+- `ranked-3d-hud.js`: HUD da mesa 3D para fase atual, prazo, jogadores, resultado e conquistas recentes.
+- `ranked-3d-engine.js`: baseado em `ranked-engine.js` do Coup Master original.
+- `ranked-3d-state.js`: reexports de estado para manter a estrutura planejada do pacote 3D.
+- `ranked-3d-room-state.js`: helpers puros para criar e alterar o estado da sala ranqueada.
+- `ranked-3d-results.js`: monta `rankedResults/{resultKey}` e acumula `rankedStats/{uid}`.
+- `ranked-3d-table-adapter.js`: projeta o estado ranqueado em cartas, moedas, deck e perfis visuais da mesa 3D.
+- `ranked-3d.js`: export agregador para consumidores futuros.
+
+O arquivo `js/firebase/ranked-room-service.js` conecta essa camada ao Realtime Database. Ele cria salas `mode: ranked`, persiste `ranked3dState` em `rooms/{roomCode}/ranked3dState` e aplica mudancas do motor por transacao para evitar sobrescrita entre clientes.
+
+O lobby 3D ja pode criar ou entrar em salas ranqueadas e abrir a espera `ranked-waiting.html`, cujo visual foi adaptado de `ranked/ranked-waiting.html` do Coup Master original. Essa espera assina `ranked3dState`, mostra jogadores, QR/codigo da sala, prontidao, avanca matchmaking/deadlines do motor e abre `index.html?mode=ranked` quando a partida comeca.
+
+A mesa ranqueada 3D agora le `ranked3dState` diretamente e usa uma projecao visual local para desenhar moedas, deck e influencias na mesa. A HUD ranqueada mostra fase, prazo, jogadores, resultado e conquistas recentes, enquanto o painel ranqueado chama o motor para acoes de turno, passar, bloquear, contestar, revelar a carta contestada e escolher a influencia perdida.
+
+Enquanto a mesa ranqueada esta aberta, `js/three/boot.js` agenda deadlines do motor e decisoes de bot. Cada decisao passa por `advanceRankedBotDecision()` em `js/firebase/ranked-room-service.js`, mantendo a IA dentro de transacoes do Realtime Database.
+
+Quando o estado chega em `finished`, a mesa chama `persistRankedMatchResult()`. O resultado completo e salvo uma unica vez em `rankedResults/{resultKey}` e o jogador autenticado acumula seu proprio `rankedStats/{uid}` com protecao por `countedRooms`.
+
+As estatisticas acumuladas tambem sao lidas em tempo real para os jogadores visiveis na mesa. O modal de perfil mostra jogos, vitorias, derrotas, taxa de vitoria e pontuacao ranqueada (`rankScore`).
+
+Cada acumulacao de stats calcula o delta de conquistas desbloqueadas pelo resultado. Esse delta fica em `rankedStats/{uid}/latestUnlockedAchievementKeys` e tambem e anexado ao proprio jogador dentro de `rankedResults/{resultKey}/players/{uid}`.
 
 ## Regras Planejadas
 

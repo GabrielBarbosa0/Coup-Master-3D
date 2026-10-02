@@ -70,6 +70,7 @@ Isso mantém o MVP mais leve, reduz escritas no Firebase e evita travamentos vis
 - Login com Google Authentication via Firebase.
 - Login como visitante anônimo.
 - Lobby em `lobby.html`.
+- Espera ranqueada inicial em `ranked-waiting.html`.
 - Instalação opcional como PWA com o nome **Coup Master 3D**.
 - Execução em janela própria no modo `standalone`, sem a barra comum do navegador.
 - Criação de salas com código curto de 4 caracteres.
@@ -576,7 +577,20 @@ Documentos auxiliares do repositório:
 | `docs/modos-de-jogo/` | Documentação dos modos casual 3D, ranqueado 3D, personalizado 3D e treinamento 3D |
 | `AGENTS.md` | Instruções para agentes de IA, Codex e colaboradores |
 | `js/gamemode/game-modes.js` | Registro inicial dos modos de jogo planejados |
+| `js/gamemode/ranked-3d/ranked-3d.js` | Entrada agregadora do pacote ranqueado 3D |
+| `js/gamemode/ranked-3d/ranked-3d-actions.js` | Port ES Module de `ranked-rules.js` do Coup Master original |
+| `js/gamemode/ranked-3d/ranked-3d-action-panel.js` | Painel de ações ranqueadas para turno, desafio, bloqueio e revelação |
+| `js/gamemode/ranked-3d/ranked-3d-bot-intelligence.js` | Estratégia dos bots portada de `ranked-game.js` do Coup Master original |
+| `js/gamemode/ranked-3d/ranked-3d-hud.js` | HUD da partida ranqueada com fase, prazo, jogadores, resultado e conquistas recentes |
+| `js/gamemode/ranked-3d/ranked-3d-state.js` | Reexports de estado do motor ranqueado 3D |
+| `js/gamemode/ranked-3d/ranked-3d-engine.js` | Port ES Module de `ranked-engine.js` do Coup Master original |
+| `js/gamemode/ranked-3d/ranked-3d-room-state.js` | Helpers puros para criar e alterar `ranked3dState` |
+| `js/gamemode/ranked-3d/ranked-3d-results.js` | Montagem de `rankedResults` e acúmulo idempotente de `rankedStats` |
+| `js/gamemode/ranked-3d/ranked-3d-table-adapter.js` | Projeta `ranked3dState` em snapshot visual aceito pela mesa 3D |
 | `js/gamemode/ranked-3d/ranked-3d-achievements.js` | Avaliador puro das conquistas ranqueadas planejadas |
+| `js/firebase/ranked-room-service.js` | Ponte Firebase para salas ranqueadas, transacoes do motor e leitura de `rankedStats` |
+| `ranked-waiting.html` | Sala de espera ranqueada adaptada do Coup Master original |
+| `js/firebase/ranked-waiting-page.js` | Controller da espera ranqueada com prontidao e matchmaking |
 | `js/firebase/firebase-rules.json` | Regras atuais de referência para o Realtime Database |
 
 ---
@@ -597,6 +611,9 @@ Documentos auxiliares do repositório:
 - [x] Adicionar contador manual de moedas por jogador.
 - [x] Iniciar documentação e registro dos modos de jogo 3D.
 - [x] Preparar avaliador de conquistas ranqueadas 3D.
+- [x] Iniciar motor puro do ranqueado 3D com testes automatizados.
+- [x] Conectar o motor ranqueado ao Firebase em uma ponte transacional.
+- [x] Implementar lobby/espera inicial do modo ranqueado.
 - [ ] Refinar experiência mobile/touch.
 - [ ] Melhorar estabilidade física em casos extremos.
 - [ ] Adicionar preview oficial no README.
@@ -611,7 +628,11 @@ Documentos auxiliares do repositório:
 - [ ] Criar tutorial inicial de controles.
 - [ ] Melhorar ferramentas de host.
 - [ ] Integrar seletor de modos ao contrato de `js/gamemode/game-modes.js`.
-- [ ] Portar motor ranqueado e acumulo de `rankedStats` para o pacote `ranked-3d`.
+- [ ] Implementar a tela de partida ranqueada 3D consumindo `ranked3dState`.
+- [x] Portar inteligência dos bots do ranqueado original para o motor 3D.
+- [x] Persistir `rankedResults` e acumular `rankedStats` no fluxo 3D.
+- [x] Exibir estatísticas ranqueadas reais no perfil de jogador da mesa.
+- [x] Ligar conquistas desbloqueadas ao resultado ranqueado.
 
 ### Futuro
 
