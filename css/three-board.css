@@ -167,6 +167,10 @@ body.is-booting .hover-tooltip {
   transform: translateX(-50%);
 }
 
+body.is-ranked-room .quick-actions {
+  display: none;
+}
+
 .side-actions {
   left: max(14px, env(safe-area-inset-left));
   top: 50%;

@@ -102,6 +102,10 @@ const roomInfo = await getRoomInfo(requestedRoom);
 const roomMode = getRoomGameMode(roomInfo);
 const isRankedRoom = roomMode === GAME_MODE_IDS.RANKED_3D;
 const isAdmin = !isRankedRoom && roomInfo?.adminUid === user.uid;
+
+document.body.classList.toggle('is-ranked-room', isRankedRoom);
+document.body.classList.toggle('is-casual-room', !isRankedRoom);
+
 let rankedState = null;
 let playerSeat = 1;
 let rankedBotDecisionTimer = null;
