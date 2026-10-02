@@ -47,7 +47,7 @@ import {
   subscribeRankedRoomState
 } from '../firebase/ranked-room-service.js';
 import { GAME_MODE_IDS, getRoomGameMode } from '../gamemode/game-modes.js';
-import { PHASES } from '../gamemode/ranked-3d/ranked-3d-actions.js';
+import { PHASES, SETTINGS } from '../gamemode/ranked-3d/ranked-3d-actions.js';
 import { createRanked3dActionPanel } from '../gamemode/ranked-3d/ranked-3d-action-panel.js';
 import { createRanked3dHud } from '../gamemode/ranked-3d/ranked-3d-hud.js';
 import {
@@ -370,7 +370,7 @@ function applyRankedPlayerProfiles(nextRankedState) {
   subscribeVisibleRankedStats(rankedPlayers.map((player) => player.uid), () => {
     applyRankedPlayerProfiles(rankedState);
   });
-  window.CoupMaster3D?.setOnlinePlayerProfiles?.(rankedPlayers.slice(0, 8).map((player) => ({
+  window.CoupMaster3D?.setOnlinePlayerProfiles?.(rankedPlayers.slice(0, SETTINGS.maxPlayers).map((player) => ({
     seat: player.seat,
     uid: player.uid,
     displayName: player.name,

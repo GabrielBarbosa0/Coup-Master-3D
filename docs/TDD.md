@@ -184,7 +184,7 @@ O objetivo inicial e registrar os modos planejados sem quebrar o fluxo casual do
 Modos registrados:
 
 - `casual`: modo casual 3D, habilitado, sandbox manual, ate 8 jogadores, rota `index.html`.
-- `ranked`: modo ranqueado 3D, espera habilitada, automatizado e competitivo, temporariamente ate 8 jogadores.
+- `ranked`: modo ranqueado 3D, espera habilitada, automatizado e competitivo, ate 6 jogadores em mesa hexagonal.
 - `personalized`: modo personalizado 3D, planejado, sala automatizada com amigos e bots.
 - `training`: modo treinamento 3D, planejado, tutorial/pratica individual.
 

@@ -116,7 +116,7 @@ createRoomBtn?.addEventListener('click', async () => {
       const roomCode = await createRankedRoom(user, {
         matchmaking: {
           enabled: true,
-          targetPlayers: 8
+          targetPlayers: 6
         }
       });
       setStatus(t('lobby.rankedRoomCreated', {}, 'Sala ranqueada criada. Abrindo espera...'));

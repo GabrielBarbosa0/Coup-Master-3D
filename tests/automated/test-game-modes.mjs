@@ -37,6 +37,6 @@ assert.equal(isSandboxGameMode('ranked'), false);
 const rankedConfig = getGameModeConfig('ranked');
 assert.equal(rankedConfig.route, 'ranked-waiting.html');
 assert.equal(rankedConfig.stateKey, 'ranked3dState');
-assert.equal(rankedConfig.maxPlayers, 8);
+assert.equal(rankedConfig.maxPlayers, 6);
 
 console.log('game-modes: mode registry layer passed');

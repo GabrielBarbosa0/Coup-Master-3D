@@ -4,9 +4,9 @@ import {
   PLAYER_AVATAR_SIZE,
   PLAYER_BADGE_HEIGHT,
   PLAYER_BADGE_RADIAL_OFFSET,
-  PLAYER_COUNT,
   PLAYER_NAME_HEIGHT,
-  PLAYER_NAME_WIDTH
+  PLAYER_NAME_WIDTH,
+  getRuntimePlayerCount
 } from './config.js';
 
 const badgeState = {
@@ -223,9 +223,9 @@ function getPlayerBadgePosition(playerId) {
   );
 }
 
-// Calcula o angulo radial de um jogador no octogono.
+// Calcula o angulo radial de um jogador na mesa do modo atual.
 function getPlayerAngle(playerId) {
-  return -Math.PI / 2 + ((playerId - 1) / PLAYER_COUNT) * Math.PI * 2;
+  return -Math.PI / 2 + ((playerId - 1) / getRuntimePlayerCount()) * Math.PI * 2;
 }
 
 // Retorna a lista atual de jogadores mantida pelo app principal.

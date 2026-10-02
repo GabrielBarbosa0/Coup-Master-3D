@@ -16,7 +16,7 @@ function constantRandom(value) {
 }
 
 assert.equal(PHASES.TURN, 'turn');
-assert.equal(SETTINGS.maxPlayers, 8);
+assert.equal(SETTINGS.maxPlayers, 6);
 assert.equal(getRanked3dAction(ACTIONS.TAX).claim, ROLES.DUKE);
 assert.equal(getRanked3dAction(ACTIONS.STEAL).requiresTarget, true);
 assert.equal(getRanked3dAction('missing'), null);

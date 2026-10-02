@@ -1,7 +1,7 @@
 import { ROLE_DEFINITIONS, SETTINGS } from './ranked-3d-actions.js';
 import { getRanked3dPlayers } from './ranked-3d-engine.js';
 
-const TABLE_PLAYER_COUNT = 8;
+const TABLE_PLAYER_COUNT = SETTINGS.maxPlayers;
 const HAND_RADIUS = 3.08;
 const CARD_REST_Y = 0.068;
 const HAND_LADDER_SPACING = 0.36;

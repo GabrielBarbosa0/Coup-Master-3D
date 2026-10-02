@@ -4,10 +4,10 @@ import {
   FELT_RADIUS,
   HAND_RADIUS,
   PLAY_RADIUS,
-  PLAYER_COUNT,
   TABLE_PHYSICS_RADIUS,
   TABLE_RADIUS,
-  TABLE_TEXTURES
+  TABLE_TEXTURES,
+  getRuntimePlayerCount
 } from './config.js';
 
 // Cria a iluminacao global e os pontos de destaque da mesa.
@@ -32,7 +32,9 @@ function createLights(scene) {
 
 // Monta a mesa visual, o feltro, o chao do limbo e o collider do tampo.
 function createTable({ scene, world, loadTexture }) {
-  const tableGeo = new THREE.CylinderGeometry(TABLE_RADIUS, TABLE_RADIUS, 0.34, 8, 1, false, Math.PI / 8);
+  const sideCount = getTableSideCount();
+  const rotationOffset = Math.PI / sideCount;
+  const tableGeo = new THREE.CylinderGeometry(TABLE_RADIUS, TABLE_RADIUS, 0.34, sideCount, 1, false, rotationOffset);
   const tableMat = new THREE.MeshStandardMaterial({
     map: makeRepeatingTexture(loadTexture, TABLE_TEXTURES.wood, 4, 4),
     color: 0xffffff,
@@ -44,7 +46,7 @@ function createTable({ scene, world, loadTexture }) {
   table.receiveShadow = true;
   scene.add(table);
 
-  const feltGeo = new THREE.CylinderGeometry(FELT_RADIUS, FELT_RADIUS, 0.045, 8, 1, false, Math.PI / 8);
+  const feltGeo = new THREE.CylinderGeometry(FELT_RADIUS, FELT_RADIUS, 0.045, sideCount, 1, false, rotationOffset);
   const feltMat = new THREE.MeshStandardMaterial({
     color: 0x15202a,
     roughness: 0.92,
@@ -64,7 +66,7 @@ function createTable({ scene, world, loadTexture }) {
   scene.add(floor);
 
   const groundBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0, -0.005, 0));
-  const groundCollider = RAPIER.ColliderDesc.cylinder(0.05, TABLE_PHYSICS_RADIUS);
+  const groundCollider = RAPIER.ColliderDesc.cylinder(0.05, getTablePhysicsRadius());
   groundCollider.setFriction(1.25);
   groundCollider.setRestitution(0.12);
   world.createCollider(groundCollider, groundBody);
@@ -72,16 +74,17 @@ function createTable({ scene, world, loadTexture }) {
   return table;
 }
 
-// Adiciona paredes fisicas invisiveis ao redor da mesa octogonal.
+// Adiciona paredes fisicas invisiveis ao redor da mesa do modo atual.
 function createBoundaries(world) {
+  const sideCount = getTableSideCount();
   const wallHeight = 0.08;
   const wallY = -0.01;
   const wallThickness = 0.18;
-  const sideLength = 2 * TABLE_RADIUS * Math.sin(Math.PI / 8);
-  const apothem = TABLE_RADIUS * Math.cos(Math.PI / 8);
+  const sideLength = 2 * TABLE_RADIUS * Math.sin(Math.PI / sideCount);
+  const apothem = TABLE_RADIUS * Math.cos(Math.PI / sideCount);
 
-  for (let i = 0; i < PLAYER_COUNT; i++) {
-    const angle = Math.PI / 8 + (i * Math.PI * 2) / PLAYER_COUNT;
+  for (let i = 0; i < sideCount; i++) {
+    const angle = Math.PI / sideCount + (i * Math.PI * 2) / sideCount;
     const x = Math.cos(angle) * apothem;
     const z = Math.sin(angle) * apothem;
     const body = world.createRigidBody(
@@ -99,11 +102,12 @@ function createBoundaries(world) {
 // Cria as areas visuais onde cartas podem ser soltas.
 function createDropZones({ scene, viewPlayer }) {
   const dropZones = [];
+  const sideCount = getTableSideCount();
 
-  const tableZone = makeOctagonZone(scene, 'table', 0, 0, PLAY_RADIUS * 1.38 * 0.45, 0x1d5d8f, 0.08);
+  const tableZone = makePolygonZone(scene, 'table', 0, 0, PLAY_RADIUS * 1.38 * 0.45, sideCount, 0x1d5d8f, 0.08);
   dropZones.push(tableZone);
 
-  for (let i = 1; i <= PLAYER_COUNT; i++) {
+  for (let i = 1; i <= sideCount; i++) {
     const pos = getPlayerSeatPosition(i);
     const zone = makeZone(scene, `player-${i}`, pos.x, pos.z, 1.90, 1.25, i === viewPlayer ? 0x18f28a : 0x3da3ff, 0.16);
     zone.userData.playerId = i;
@@ -134,9 +138,9 @@ function getPlayerSeatPosition(playerId) {
   };
 }
 
-// Calcula o angulo radial de um jogador no octogono.
+// Calcula o angulo radial de um jogador na mesa do modo atual.
 function getPlayerAngle(playerId) {
-  return -Math.PI / 2 + ((playerId - 1) / PLAYER_COUNT) * Math.PI * 2;
+  return -Math.PI / 2 + ((playerId - 1) / getTableSideCount()) * Math.PI * 2;
 }
 
 // Carrega uma textura de mesa com repeticao para evitar esticamento visual.
@@ -168,9 +172,9 @@ function makeZone(scene, id, x, z, width, depth, color, opacity) {
   return zone;
 }
 
-// Cria a zona central octogonal de drop da mesa.
-function makeOctagonZone(scene, id, x, z, radius, color, opacity) {
-  const geo = new THREE.CircleGeometry(radius, 8);
+// Cria a zona central poligonal de drop da mesa.
+function makePolygonZone(scene, id, x, z, radius, sideCount, color, opacity) {
+  const geo = new THREE.CircleGeometry(radius, sideCount);
   const mat = new THREE.MeshBasicMaterial({
     color,
     transparent: true,
@@ -183,10 +187,20 @@ function makeOctagonZone(scene, id, x, z, radius, color, opacity) {
   zone.userData.dropZone = true;
   zone.userData.baseOpacity = opacity;
   zone.rotation.x = -Math.PI / 2;
-  zone.rotation.z = Math.PI / 8;
+  zone.rotation.z = Math.PI / sideCount;
   zone.position.set(x, 0.031, z);
   scene.add(zone);
   return zone;
+}
+
+function getTableSideCount() {
+  return getRuntimePlayerCount();
+}
+
+function getTablePhysicsRadius() {
+  const sideCount = getTableSideCount();
+  if (sideCount === 8) return TABLE_PHYSICS_RADIUS;
+  return TABLE_RADIUS * Math.cos(Math.PI / sideCount);
 }
 
 // Converte Euler para quaternion aceito pelo Rapier.

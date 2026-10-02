@@ -16,7 +16,7 @@ No ranqueado, o estado visual 3D deve ser consequencia do motor de regras, nao a
 
 - Exigir conta Google.
 - Usar uma espera/matchmaking proprio em `ranked-waiting.html`.
-- Suportar temporariamente ate 8 jogadores.
+- Suportar ate 6 jogadores em mesa hexagonal.
 - Usar bots de matchmaking simulado com estrategia portada do Coup Master original.
 
 ## Estado Planejado

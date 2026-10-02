@@ -4,7 +4,7 @@ import {
   DEFAULT_CAMERA_DISTANCE,
   DEFAULT_CAMERA_HEIGHT,
   DEFAULT_CAMERA_TARGET,
-  PLAYER_COUNT
+  getRuntimePlayerCount
 } from './config.js';
 import { cameraDebugEl } from './dom.js';
 
@@ -135,9 +135,9 @@ function getPlayerCameraPosition(playerId) {
   ));
 }
 
-// Calcula o angulo radial de um jogador no octogono.
+// Calcula o angulo radial de um jogador na mesa do modo atual.
 function getPlayerAngle(playerId) {
-  return -Math.PI / 2 + ((playerId - 1) / PLAYER_COUNT) * Math.PI * 2;
+  return -Math.PI / 2 + ((playerId - 1) / getRuntimePlayerCount()) * Math.PI * 2;
 }
 
 // Normaliza angulos para ficarem mais faceis de copiar e comparar.

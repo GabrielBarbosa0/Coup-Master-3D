@@ -9,6 +9,7 @@ export const FELT_RADIUS = 4.18;
 export const PLAY_RADIUS = 3.62;
 export const TABLE_PHYSICS_RADIUS = TABLE_RADIUS * Math.cos(Math.PI / 8);
 export const PLAYER_COUNT = 8;
+export const RANKED_PLAYER_COUNT = 6;
 export const HAND_RADIUS = 3.08;
 export const CARD_REST_Y = 0.068;
 export const DECK_BASE_HEIGHT = 0.38 * 0.4;
@@ -143,3 +144,9 @@ export const ALT_RULE_IMAGES = [
   'assets/img/guides/alternative-rules4.png',
   'assets/img/guides/alternative-rules5.png'
 ];
+
+// Usa 6 assentos no ranqueado e mantem 8 no casual/sandbox.
+export function getRuntimePlayerCount(mode = null) {
+  const currentMode = mode || globalThis.CoupMaster3DOnline?.mode || '';
+  return currentMode === 'ranked' ? RANKED_PLAYER_COUNT : PLAYER_COUNT;
+}

@@ -19,7 +19,7 @@ export const GAME_MODES = Object.freeze({
     id: GAME_MODE_IDS.RANKED_3D,
     status: 'enabled',
     requiresGoogleAccount: false,
-    maxPlayers: 8,
+    maxPlayers: 6,
     route: 'ranked-waiting.html',
     stateKey: 'ranked3dState',
     docs: 'docs/modos-de-jogo/modo-ranqueado-3d.md'

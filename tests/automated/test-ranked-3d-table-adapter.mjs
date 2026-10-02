@@ -46,7 +46,7 @@ const tableState = createRanked3dTableState(rankedState, { localUid: 'u1' });
 
 assert.equal(tableState.version, 1);
 assert.equal(tableState.mode, 'ranked');
-assert.equal(tableState.players.length, 8);
+assert.equal(tableState.players.length, 6);
 assert.equal(tableState.players[0].coinCount, 4);
 assert.equal(tableState.players[1].coinCount, 1);
 assert.equal(tableState.deck.length, 2);
