@@ -20,6 +20,10 @@ const RANKED_DECK_CONFIG = Object.freeze(
 export function createRanked3dTableState(rankedState, options = {}) {
   const players = getRanked3dPlayers(rankedState);
   const localUid = options.localUid || null;
+  const activeUid = rankedState?.status === 'active'
+    ? rankedState?.turnOrder?.[rankedState?.turnIndex] || null
+    : null;
+  const activePlayer = activeUid ? rankedState?.players?.[activeUid] : null;
   const cards = [];
   const deck = createRankedDeckCards(rankedState);
   const tablePlayers = createTablePlayers(players);
@@ -59,7 +63,8 @@ export function createRanked3dTableState(rankedState, options = {}) {
       phase: rankedState?.phase || null,
       turnNumber: Number(rankedState?.turnNumber) || 0,
       turnIndex: Number(rankedState?.turnIndex) || 0,
-      activeUid: rankedState?.turnOrder?.[rankedState?.turnIndex] || null,
+      activeUid,
+      activeSeat: Number(activePlayer?.seat) || null,
       winnerUid: rankedState?.winnerUid || null,
       updatedAt: Number(rankedState?.updatedAt) || null
     }

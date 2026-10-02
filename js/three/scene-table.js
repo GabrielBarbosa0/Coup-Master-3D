@@ -119,13 +119,18 @@ function createDropZones({ scene, viewPlayer }) {
   return dropZones;
 }
 
-// Atualiza destaque de zonas de mao conforme jogador observado.
-function syncDropZoneFocus(dropZones, playerId) {
+// Atualiza destaque de zonas de mao conforme jogador observado e turno ranqueado.
+function syncDropZoneFocus(dropZones, playerId, activePlayerId = null) {
   dropZones.forEach((zone) => {
     if (!zone.userData.playerId) return;
-    const active = zone.userData.playerId === playerId;
-    zone.material.color.set(active ? 0x18f28a : 0x3da3ff);
-    zone.material.opacity = active ? 0.24 : zone.userData.baseOpacity;
+    const isViewed = zone.userData.playerId === playerId;
+    const isTurnActive = activePlayerId && zone.userData.playerId === activePlayerId;
+    zone.material.color.set(isTurnActive ? 0x1e90ff : isViewed ? 0x18f28a : 0x3da3ff);
+    zone.material.opacity = isTurnActive ? 0.30 : isViewed ? 0.24 : zone.userData.baseOpacity;
+    if (zone.userData.outline) {
+      zone.userData.outline.visible = Boolean(isTurnActive);
+      zone.userData.outline.material.color.set(0x1e90ff);
+    }
   });
 }
 
@@ -166,10 +171,29 @@ function makeZone(scene, id, x, z, width, depth, color, opacity) {
   zone.name = id;
   zone.userData.dropZone = true;
   zone.userData.baseOpacity = opacity;
+  zone.userData.outline = makeZoneOutline(geo);
+  zone.add(zone.userData.outline);
   zone.rotation.x = -Math.PI / 2;
   zone.position.set(x, 0.03, z);
   scene.add(zone);
   return zone;
+}
+
+// Cria uma borda independente para destacar visualmente o jogador ativo.
+function makeZoneOutline(geo) {
+  const outline = new THREE.LineSegments(
+    new THREE.EdgesGeometry(geo),
+    new THREE.LineBasicMaterial({
+      color: 0x1e90ff,
+      transparent: true,
+      opacity: 0.95,
+      depthTest: false
+    })
+  );
+  outline.position.z = 0.006;
+  outline.renderOrder = 20;
+  outline.visible = false;
+  return outline;
 }
 
 // Cria a zona central poligonal de drop da mesa.

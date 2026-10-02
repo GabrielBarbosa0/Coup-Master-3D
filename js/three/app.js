@@ -248,6 +248,7 @@ function getPlayerFallbackName(playerId = '') {
 const state = {
   activePlayer: 1,
   viewPlayer: 1,
+  rankedActivePlayer: null,
   deckConfig: { ...DEFAULT_DECK_CONFIG },
   alternativeRuleDraw: null,
   deck: [],
@@ -1234,7 +1235,7 @@ function setActivePlayer(playerId) {
 // Atualiza destaque, badges e materiais para o assento atualmente observado.
 function syncPlayerView(playerId) {
   state.viewPlayer = playerId;
-  syncDropZoneFocus(app.dropZones, playerId);
+  syncDropZoneFocus(app.dropZones, playerId, state.rankedActivePlayer);
 
   state.players.forEach(player => refreshPlayerBadge(player.id));
   updatePlayerBadges();
@@ -1545,6 +1546,7 @@ function applyTableState(snapshot) {
 
   state.deckConfig = { ...DEFAULT_DECK_CONFIG, ...(snapshot.deckConfig || {}) };
   state.alternativeRuleDraw = snapshot.alternativeRuleDraw ? cloneTableState(snapshot.alternativeRuleDraw) : null;
+  state.rankedActivePlayer = Number(snapshot.ranked3d?.activeSeat) || null;
   state.deck = (snapshot.deck || []).map(cloneCardData).filter(Boolean);
   state.tableCards = [];
   state.players.forEach(player => {

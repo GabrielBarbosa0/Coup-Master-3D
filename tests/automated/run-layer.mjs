@@ -30,7 +30,7 @@ const layers = Object.freeze({
   ui: [
     'tests/automated/test-official-log-service.mjs',
     'tests/automated/test-ranked-3d-action-panel.mjs',
-    'tests/automated/test-ranked-3d-hud.mjs',
+    'tests/automated/test-ranked-3d-results-modal.mjs',
     'tests/automated/test-ranked-3d-table-adapter.mjs'
   ]
 });

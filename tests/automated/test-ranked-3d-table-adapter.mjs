@@ -53,6 +53,7 @@ assert.equal(tableState.deck.length, 2);
 assert.equal(tableState.deckConfig.inquisidor, 5);
 assert.equal(tableState.deckConfig.embaixador, 0);
 assert.equal(tableState.ranked3d.activeUid, 'u1');
+assert.equal(tableState.ranked3d.activeSeat, 1);
 
 const localHiddenCard = tableState.cards.find((entry) => entry.data.rankedCardId === 'alice-1');
 assert.equal(localHiddenCard.data.owner, 1);

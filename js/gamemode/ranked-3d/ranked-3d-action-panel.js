@@ -30,9 +30,31 @@ export function createRanked3dActionPanel(options = {}) {
   const panel = ensurePanel(root);
   let rankedState = null;
   let busy = false;
+  let selectedControl = null;
+  let countdownTimer = null;
 
   const getActions = options.getActions || (() => null);
   const getLocalUid = options.getLocalUid || (() => null);
+
+  function stopCountdown() {
+    if (!countdownTimer) return;
+    window.clearInterval(countdownTimer);
+    countdownTimer = null;
+  }
+
+  function updateCountdown(deadline) {
+    const countdownEl = panel.querySelector('[data-ranked-action-countdown]');
+    if (!countdownEl) return;
+    countdownEl.textContent = formatCountdown(deadline);
+    countdownEl.classList.toggle('is-urgent', getRemainingSeconds(deadline) <= 5);
+  }
+
+  function startCountdown(deadline) {
+    stopCountdown();
+    if (!deadline) return;
+    updateCountdown(deadline);
+    countdownTimer = window.setInterval(() => updateCountdown(deadline), 500);
+  }
 
   async function run(action) {
     if (busy) return;
@@ -42,6 +64,7 @@ export function createRanked3dActionPanel(options = {}) {
     panel.classList.add('is-busy');
     try {
       await action(actions);
+      selectedControl = null;
       renderError('');
     } catch (error) {
       renderError(error?.message || 'Nao foi possivel executar a acao.');
@@ -54,56 +77,78 @@ export function createRanked3dActionPanel(options = {}) {
   function update(nextRankedState) {
     rankedState = nextRankedState;
     const model = getRanked3dActionPanelModel(rankedState, getLocalUid());
-    renderPanel(panel, model, run);
+    if (!model.controls.some((control) => isSameControl(control, selectedControl))) {
+      selectedControl = null;
+    }
+    renderCurrentModel(model);
+    startCountdown(model.deadline);
+  }
+
+  function renderCurrentModel(model) {
+    renderPanel(panel, model, {
+      run,
+      getSelectedControl: () => selectedControl,
+      setSelectedControl: (control) => {
+        selectedControl = control;
+        renderCurrentModel(model);
+        startCountdown(model.deadline);
+      }
+    });
   }
 
   update(null);
-  return { update };
+  return {
+    update,
+    destroy: () => {
+      stopCountdown();
+      panel.remove();
+    }
+  };
 }
 
 // Gera um modelo puro da UI de turno/desafio a partir do estado do motor.
 export function getRanked3dActionPanelModel(rankedState, localUid) {
   if (!rankedState || rankedState.status !== 'active') {
-    return { visible: false, title: '', description: '', controls: [] };
+    return { visible: false, title: '', description: '', controls: [], deadline: null };
   }
 
   const localPlayer = rankedState.players?.[localUid];
   if (!localPlayer || localPlayer.eliminated) {
-    return createStatusModel('Modo ranqueado', 'Acompanhe a resolucao da partida.', rankedState);
+    return withDeadline(createStatusModel('Modo ranqueado', 'Acompanhe a resolucao da partida.', rankedState), rankedState);
   }
 
   if (rankedState.phase === PHASES.TURN) {
-    return createTurnModel(rankedState, localPlayer);
+    return withDeadline(createTurnModel(rankedState, localPlayer), rankedState);
   }
 
   if (rankedState.phase === PHASES.RESPONSE) {
-    return createResponseModel(rankedState, localPlayer);
+    return withDeadline(createResponseModel(rankedState, localPlayer), rankedState);
   }
 
   if (rankedState.phase === PHASES.BLOCK_CHALLENGE) {
-    return createBlockChallengeModel(rankedState, localPlayer);
+    return withDeadline(createBlockChallengeModel(rankedState, localPlayer), rankedState);
   }
 
   if (rankedState.phase === PHASES.CHALLENGE_REVEAL) {
-    return createChallengeRevealModel(rankedState, localPlayer);
+    return withDeadline(createChallengeRevealModel(rankedState, localPlayer), rankedState);
   }
 
   if (rankedState.phase === PHASES.INFLUENCE_LOSS) {
-    return createInfluenceLossModel(rankedState, localPlayer);
+    return withDeadline(createInfluenceLossModel(rankedState, localPlayer), rankedState);
   }
 
   if (rankedState.phase === PHASES.FINISHED) {
     const winner = rankedState.players?.[rankedState.winnerUid];
-    return {
+    return withDeadline({
       visible: true,
       tone: 'success',
       title: 'Partida finalizada',
       description: winner ? `${winner.name} venceu a partida.` : 'A partida foi finalizada.',
       controls: []
-    };
+    }, rankedState);
   }
 
-  return createStatusModel('Modo ranqueado', getPhaseLabel(rankedState.phase), rankedState);
+  return withDeadline(createStatusModel('Modo ranqueado', getPhaseLabel(rankedState.phase), rankedState), rankedState);
 }
 
 function createTurnModel(state, localPlayer) {
@@ -115,10 +160,11 @@ function createTurnModel(state, localPlayer) {
 
   return {
     visible: true,
-    title: 'Seu turno',
+    stage: 'turn',
+    title: 'Sua vez de jogar',
     description: localPlayer.coins >= 10
       ? 'Com 10 moedas ou mais, o Golpe de Estado e obrigatorio.'
-      : 'Escolha uma acao do motor ranqueado.',
+      : '',
     controls: ACTION_ORDER
       .filter((actionType) => ACTION_DEFINITIONS[actionType])
       .map((actionType) => createTurnActionControl(state, localPlayer.uid, actionType))
@@ -139,6 +185,7 @@ function createTurnActionControl(state, localUid, actionType) {
     actionType,
     label: action.label,
     detail: getActionDetail(action),
+    role: action.claim || null,
     targetOptions: targets.map((player) => ({ uid: player.uid, label: player.name }))
   };
 }
@@ -168,7 +215,8 @@ function createResponseModel(state, localPlayer) {
 
   return {
     visible: true,
-    title: 'Responder ação',
+    stage: 'response',
+    title: 'Responder',
     description: `${actor?.name || 'Jogador'} declarou ${action?.label || pending.type}.`,
     controls
   };
@@ -185,7 +233,8 @@ function createBlockChallengeModel(state, localPlayer) {
   const roleLabel = ROLE_DEFINITIONS[block.claim]?.label || block.claim;
   return {
     visible: true,
-    title: 'Responder bloqueio',
+    stage: 'response',
+    title: 'Responder',
     description: `${blocker?.name || 'Jogador'} bloqueou com ${roleLabel}.`,
     controls: [
       { type: 'challenge-block', label: 'Contestar bloqueio' },
@@ -202,6 +251,7 @@ function createChallengeRevealModel(state, localPlayer) {
 
   return {
     visible: true,
+    stage: 'response',
     tone: 'warning',
     title: 'Revelar influência',
     description: `Mostre ${ROLE_DEFINITIONS[challenge.claim]?.label || challenge.claim} ou ceda a contestação.`,
@@ -221,6 +271,7 @@ function createInfluenceLossModel(state, localPlayer) {
 
   return {
     visible: true,
+    stage: 'response',
     tone: 'danger',
     title: 'Perder influência',
     description: pendingLoss.reason || 'Escolha uma influência para revelar.',
@@ -235,10 +286,18 @@ function createInfluenceLossModel(state, localPlayer) {
 function createStatusModel(title, description, state) {
   return {
     visible: true,
+    stage: 'centered',
     title,
     description,
     controls: [],
     phase: state?.phase || null
+  };
+}
+
+function withDeadline(model, state) {
+  return {
+    ...model,
+    deadline: Number(state?.deadline || 0) || null
   };
 }
 
@@ -268,13 +327,13 @@ function ensurePanel(root) {
   if (panel) return panel;
   panel = document.createElement('section');
   panel.id = PANEL_ID;
-  panel.className = 'ranked-action-panel';
+  panel.className = 'ranked-action-panel rank-stage';
   panel.setAttribute('aria-live', 'polite');
   root.appendChild(panel);
   return panel;
 }
 
-function renderPanel(panel, model, run) {
+function renderPanel(panel, model, context) {
   if (!model.visible) {
     panel.hidden = true;
     panel.innerHTML = '';
@@ -282,57 +341,97 @@ function renderPanel(panel, model, run) {
   }
 
   panel.hidden = false;
+  syncPanelStageClass(panel, model, context.getSelectedControl());
   panel.dataset.tone = model.tone || 'default';
+  const selectedControl = context.getSelectedControl();
   panel.innerHTML = `
-    <div class="ranked-action-panel-header">
-      <strong>${escapeHtml(model.title)}</strong>
-      <span>${escapeHtml(model.description || '')}</span>
+    ${model.deadline ? `<div class="rank-timer" data-ranked-action-countdown>${formatCountdown(model.deadline)}</div>` : ''}
+    <div class="rank-turn-bar">
+      <h1>${escapeHtml(selectedControl ? 'Escolha o alvo' : model.title)}</h1>
     </div>
-    <div class="ranked-action-panel-controls">
-      ${model.controls.map(renderControl).join('')}
+    <p class="rank-phase-description"${selectedControl || !model.description ? ' hidden' : ''}>${escapeHtml(model.description || '')}</p>
+    <div class="rank-interaction">
+      ${selectedControl ? renderTargetList(selectedControl) : renderControls(model.controls)}
     </div>
     <p class="ranked-action-panel-error" aria-live="assertive"></p>
   `;
 
   panel.querySelectorAll('[data-ranked-control]').forEach((button) => {
-    button.addEventListener('click', () => runControl(button, run));
+    button.addEventListener('click', () => runControl(button, context));
+  });
+  panel.querySelectorAll('[data-ranked-target]').forEach((button) => {
+    button.addEventListener('click', () => runTarget(button, selectedControl, context.run));
+  });
+  panel.querySelector('[data-ranked-target-cancel]')?.addEventListener('click', () => {
+    context.setSelectedControl(null);
   });
 }
 
-function renderControl(control, index) {
-  const targetSelect = control.targetOptions?.length ? `
-    <select class="ranked-action-target" data-ranked-target="${index}" aria-label="Alvo">
-      ${control.targetOptions.map((target) => (
-        `<option value="${escapeAttribute(target.uid)}">${escapeHtml(target.label)}</option>`
-      )).join('')}
-    </select>
-  ` : '';
+function syncPanelStageClass(panel, model, selectedControl) {
+  panel.className = 'ranked-action-panel rank-stage';
+  if (selectedControl) {
+    panel.classList.add('is-centered-stage', 'is-target-stage');
+  } else if (model.stage === 'response') {
+    panel.classList.add('is-response-stage');
+  } else if (model.stage === 'centered') {
+    panel.classList.add('is-centered-stage');
+  }
+}
 
+function renderControls(controls) {
+  if (!controls.length) return '<div class="rank-waiting-interaction"></div>';
+  const isResponse = controls.some((control) => control.type !== 'action');
+  const className = isResponse
+    ? `rank-response-actions rank-response-actions--count-${controls.length}`
+    : 'rank-actions-grid';
+  return `<div class="${className}">${controls.map(renderControl).join('')}</div>`;
+}
+
+function renderControl(control, index) {
   return `
-    <div class="ranked-action-control">
-      ${targetSelect}
-      <button class="settings-action-btn ranked-action-btn" type="button"
+      <button class="rank-action-btn" type="button"
         data-ranked-control="${index}"
         data-type="${escapeAttribute(control.type)}"
-        data-action-type="${escapeAttribute(control.actionType || '')}"
+        data-action-type="${escapeAttribute(getVisualActionType(control))}"
         data-role="${escapeAttribute(control.role || '')}"
-        data-card-id="${escapeAttribute(control.cardId || '')}">
-        <span>${escapeHtml(control.label)}</span>
-        ${control.detail ? `<small>${escapeHtml(control.detail)}</small>` : ''}
+        data-card-id="${escapeAttribute(control.cardId || '')}"
+        data-target-options="${escapeAttribute(JSON.stringify(control.targetOptions || []))}">
+        <span class="rank-action-icon" aria-hidden="true"></span>
+        <span class="rank-action-label">${escapeHtml(getControlLabel(control))}</span>
       </button>
+  `;
+}
+
+function renderTargetList(control) {
+  const targets = control?.targetOptions || [];
+  const count = Math.min(targets.length, 5);
+  return `
+    <div class="rank-target-list rank-target-list--count-${count}">
+      ${targets.map((target) => `
+        <button class="rank-target-btn" type="button" data-ranked-target="${escapeAttribute(target.uid)}">
+          ${escapeHtml(target.label)}
+        </button>
+      `).join('')}
+      <button class="rank-secondary-btn rank-target-cancel" type="button" data-ranked-target-cancel>Cancelar</button>
     </div>
   `;
 }
 
-function runControl(button, run) {
+function runControl(button, context) {
   const type = button.dataset.type;
-  const target = button.parentElement?.querySelector('.ranked-action-target')?.value || null;
   const actionType = button.dataset.actionType || null;
   const role = button.dataset.role || null;
   const cardId = button.dataset.cardId || null;
+  const controlIndex = Number(button.dataset.rankedControl);
+  const control = getControlFromButton(button, controlIndex);
 
-  return run((actions) => {
-    if (type === 'action') return actions.performAction(actionType, target);
+  if (type === 'action' && control?.targetOptions?.length) {
+    context.setSelectedControl(control);
+    return Promise.resolve(null);
+  }
+
+  return context.run((actions) => {
+    if (type === 'action') return actions.performAction(actionType, null);
     if (type === 'pass-response') return actions.passResponse();
     if (type === 'challenge-action') return actions.challengeAction();
     if (type === 'declare-block') return actions.declareBlock(role);
@@ -341,6 +440,59 @@ function runControl(button, run) {
     if (type === 'lose-influence') return actions.loseInfluence(cardId);
     return Promise.resolve(null);
   });
+}
+
+function runTarget(button, control, run) {
+  const target = button.dataset.rankedTarget || null;
+  if (!control?.actionType || !target) return Promise.resolve(null);
+  return run((actions) => actions.performAction(control.actionType, target));
+}
+
+function getControlFromButton(button, index) {
+  const controls = Array.from(button.closest('.rank-interaction')?.querySelectorAll('[data-ranked-control]') || []);
+  const sourceButton = controls[index];
+  if (!sourceButton) return null;
+  const targetOptions = JSON.parse(sourceButton.dataset.targetOptions || '[]');
+  return {
+    type: sourceButton.dataset.type,
+    actionType: sourceButton.dataset.actionType || null,
+    role: sourceButton.dataset.role || null,
+    cardId: sourceButton.dataset.cardId || null,
+    targetOptions
+  };
+}
+
+function getControlLabel(control) {
+  if (control.type === 'action') {
+    const roleSuffix = control.role ? ` (${ROLE_DEFINITIONS[control.role]?.label || control.role})` : '';
+    if (control.actionType === 'assassinate') return control.label;
+    return control.label.endsWith(roleSuffix) ? control.label : `${control.label}${roleSuffix}`;
+  }
+  return control.label;
+}
+
+function getVisualActionType(control) {
+  if (control.type === 'action') return control.actionType || '';
+  if (control.type === 'pass-response') return 'pass';
+  if (control.type === 'declare-block') return 'block';
+  if (control.type === 'challenge-action' || control.type === 'challenge-block') return 'challenge';
+  return control.type || '';
+}
+
+function isSameControl(a, b) {
+  if (!a || !b) return false;
+  return a.type === b.type
+    && a.actionType === b.actionType
+    && a.role === b.role
+    && a.cardId === b.cardId;
+}
+
+function getRemainingSeconds(deadline) {
+  return Math.max(0, Math.ceil((Number(deadline || 0) - Date.now()) / 1000));
+}
+
+function formatCountdown(deadline) {
+  return String(getRemainingSeconds(deadline)).padStart(2, '0');
 }
 
 function renderError(message) {

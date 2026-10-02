@@ -50,7 +50,8 @@ function testResponseOffersChallengeBlockAndPass() {
   };
 
   const model = getRanked3dActionPanelModel(state, 'u2');
-  assert.equal(model.title, 'Responder ação');
+  assert.equal(model.title, 'Responder');
+  assert.equal(model.stage, 'response');
   assert.deepEqual(controlTypes(model), ['declare-block', 'pass-response']);
   assert.equal(model.controls[0].role, ROLES.DUKE);
 
@@ -75,7 +76,8 @@ function testBlockChallengeOffersContestOrAccept() {
   };
 
   const model = getRanked3dActionPanelModel(state, 'u3');
-  assert.equal(model.title, 'Responder bloqueio');
+  assert.equal(model.title, 'Responder');
+  assert.equal(model.stage, 'response');
   assert.deepEqual(controlTypes(model), ['challenge-block', 'pass-response']);
 }
 

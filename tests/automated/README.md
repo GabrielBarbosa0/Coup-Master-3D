@@ -25,7 +25,7 @@ Camadas atuais:
 | `rules` | regras puras ranqueadas e requisitos de conquistas |
 | `engine` | motor ranqueado, bots e persistencia de resultados |
 | `state` | helpers de estado da sala ranqueada antes do Firebase |
-| `ui` | modelos puros de painel, HUD e adaptador visual da mesa |
+| `ui` | modelos puros de painel, modal de resultados e adaptador visual da mesa |
 
 Arquivos individuais:
 
@@ -42,7 +42,7 @@ node tests\automated\test-ranked-3d-results.mjs
 node tests\automated\test-ranked-room-state.mjs
 node tests\automated\test-official-log-service.mjs
 node tests\automated\test-ranked-3d-action-panel.mjs
-node tests\automated\test-ranked-3d-hud.mjs
+node tests\automated\test-ranked-3d-results-modal.mjs
 node tests\automated\test-ranked-3d-table-adapter.mjs
 ```
 

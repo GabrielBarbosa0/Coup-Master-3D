@@ -49,7 +49,7 @@ import {
 import { GAME_MODE_IDS, getRoomGameMode } from '../gamemode/game-modes.js';
 import { PHASES, SETTINGS } from '../gamemode/ranked-3d/ranked-3d-actions.js';
 import { createRanked3dActionPanel } from '../gamemode/ranked-3d/ranked-3d-action-panel.js';
-import { createRanked3dHud } from '../gamemode/ranked-3d/ranked-3d-hud.js';
+import { createRanked3dResultsModal } from '../gamemode/ranked-3d/ranked-3d-results-modal.js';
 import {
   getRanked3dBotDecisionDelay,
   hasPendingRanked3dBotDecision
@@ -166,7 +166,7 @@ leaveRoomBtn?.addEventListener('click', async () => {
   window.clearTimeout(rankedBotDecisionTimer);
   window.clearTimeout(rankedDeadlineTimer);
   rankedStatsSubscription?.();
-  rankedHud?.destroy?.();
+  rankedResultsModal?.destroy?.();
   if (isRankedRoom) {
     await leaveRankedRoom(requestedRoom, user);
   } else {
@@ -185,10 +185,11 @@ const rankedActionPanel = isRankedRoom
     getLocalUid: () => user.uid
   })
   : null;
-const rankedHud = isRankedRoom
-  ? createRanked3dHud({
-    getLocalUid: () => user.uid,
-    getRoomCode: () => requestedRoom
+const rankedResultsModal = isRankedRoom
+  ? createRanked3dResultsModal({
+    getRoomCode: () => requestedRoom,
+    onBackToLobby: () => location.assign('lobby.html'),
+    onRestartMatch: () => location.assign('lobby.html?mode=ranked')
   })
   : null;
 
@@ -343,9 +344,6 @@ function subscribeVisibleRankedStats(uids, onStatsChanged) {
   rankedStatsSubscription = subscribeRankedStatsForPlayers(key.split('|'), (stats) => {
     rankedStatsByUid = stats || {};
     onStatsChanged?.();
-    if (isRankedRoom) {
-      rankedHud?.update(rankedState, { statsByUid: rankedStatsByUid });
-    }
   });
 }
 
@@ -401,8 +399,8 @@ function applyRankedStateToTable(nextRankedState) {
     localUid: user.uid
   }));
   window.CoupMaster3D?.setOfficialLogEntries?.(nextRankedState.log || []);
-  rankedHud?.update(nextRankedState, { statsByUid: rankedStatsByUid });
   rankedActionPanel?.update(nextRankedState);
+  rankedResultsModal?.update(nextRankedState);
 }
 
 // Mantem timers do motor ranqueado ativos enquanto a mesa 3D esta aberta.
