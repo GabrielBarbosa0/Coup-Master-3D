@@ -81,6 +81,7 @@ function testStealProofWaitsForChosenLoss() {
     assert.equal(state.publicReveals.length, 1);
     assert.equal(state.publicReveals[0].role, Rules.ROLES.CAPTAIN);
     assert.equal(state.publicReveals[0].playerName, 'Alice');
+    assert.equal(typeof state.publicReveals[0].replacementCardId, 'string');
     assert.equal(state.phase, Rules.PHASES.INFLUENCE_LOSS);
     assert.equal(state.pendingLoss.playerUid, 'u2');
     const chosen = state.players.u2.influences[1];

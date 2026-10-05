@@ -3,6 +3,7 @@ import {
   createRoomLaunchToken,
   getLobbyUrlForRoom,
   getSafeLoginNextPath,
+  isStoredRoomResume,
   isValidRoomLaunchToken,
   normalizeEntryRoomCode
 } from '../../js/navigation/entry-routing.js';
@@ -18,6 +19,9 @@ assert.equal(isValidRoomLaunchToken(launchToken, 'XJ94', now + 1000), true);
 assert.equal(isValidRoomLaunchToken(launchToken, 'ABCD', now + 1000), false);
 assert.equal(isValidRoomLaunchToken(launchToken, 'XJ94', now + 20_000), false);
 assert.equal(isValidRoomLaunchToken('invalid-json', 'XJ94', now + 1000), false);
+assert.equal(isStoredRoomResume('xj94', 'XJ94'), true);
+assert.equal(isStoredRoomResume('xj94', 'ABCD'), false);
+assert.equal(isStoredRoomResume('', 'XJ94'), false);
 
 assert.equal(
   getSafeLoginNextPath('index.html?room=xj94', 'https://coupmaster.com.br/login.html'),

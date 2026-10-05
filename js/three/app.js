@@ -165,6 +165,10 @@ import {
   syncDropZoneFocus
 } from './scene-table.js';
 import { createSceneRuntimeController } from './scene-runtime-controller.js';
+import { createRankedCoinAnimationController } from './ranked-coin-animation-controller.js';
+import { createRankedRevealAnimationController } from './ranked-reveal-animation-controller.js';
+import { createRankedCinematicEventLayer } from './ranked-cinematic-event-layer.js';
+import { createRankedTreasuryBag } from './ranked-treasury-bag.js';
 import {
   bumpObjectIdFrom,
   clearTableObjects,
@@ -183,6 +187,7 @@ import {
   spawnDie
 } from './object-system.js';
 import { createPointerInteractionController } from './pointer-interaction-controller.js';
+import { isSandboxTableInteractionAllowed } from './interaction-policy.js';
 import { setupRulesGuidesUi } from './rules-guides-ui.js';
 import { applyAlternativeDeckRules } from './alternative-rules-service.js';
 
@@ -249,6 +254,9 @@ const state = {
   activePlayer: 1,
   viewPlayer: 1,
   rankedActivePlayer: null,
+  rankedTableLayout: null,
+  rankedCoinBalances: null,
+  rankedPublicRevealSequence: null,
   deckConfig: { ...DEFAULT_DECK_CONFIG },
   alternativeRuleDraw: null,
   deck: [],
@@ -322,6 +330,10 @@ const app = {
   lastTime: performance.now(),
   pointerInteractions: null,
   sceneRuntime: null,
+  rankedCoinAnimations: null,
+  rankedRevealAnimations: null,
+  rankedCinematicEvents: null,
+  rankedTreasuryBag: null,
   textures: {}
 };
 
@@ -384,6 +396,7 @@ function init() {
     getStackHoverSummary,
     getTopStackCard,
     isCoinObject,
+    isSandboxInteractionAllowed: () => isSandboxTableInteractionAllowed(window.CoupMaster3DOnline?.mode),
     moveCardToPlayer,
     moveCardToTable,
     moveTableStack,
@@ -417,7 +430,8 @@ function init() {
     updateCameraDebug,
     updateCameraFocus,
     updateDeckCollider,
-    updatePlayerBadges
+    updatePlayerBadges,
+    updateRankedCoinAnimations: (deltaSeconds) => app.rankedCinematicEvents?.update(deltaSeconds)
   });
   setupTableStackController({
     app,
@@ -500,6 +514,41 @@ function init() {
       if (app.selectedObject?.id === id) app.selectedObject = null;
     }
   });
+  app.rankedCoinAnimations = createRankedCoinAnimationController({
+    createTransientCoin: (type, position, id) => spawnCoin(type, {
+      id: `ranked-coin-transfer-${id}`,
+      position,
+      locked: true,
+      silent: true
+    }),
+    getObjectById,
+    removeTableObject
+  });
+  app.rankedRevealAnimations = createRankedRevealAnimationController({
+    createTransientCard: createRankedRevealCard,
+    getCardById: (id) => app.cards.get(id) || null,
+    getCardPose: getCardPose,
+    getDeckPose: () => ({ position: getDeckReturnPosition(), rotationY: app.deckMesh?.rotation.y || 0 }),
+    placeCard,
+    refreshCardMaterial,
+    removeTransientCard: removeRankedRevealCard,
+    setCardVisible: (card, visible) => {
+      card.mesh.visible = visible;
+    },
+    startCardFlip,
+    tossTo: (card, target, rotationY, lift, onComplete, options) => tossTo(
+      card,
+      vectorFromSnapshot(target, new THREE.Vector3()),
+      rotationY,
+      lift,
+      onComplete,
+      options
+    )
+  });
+  app.rankedCinematicEvents = createRankedCinematicEventLayer({
+    coinAnimations: app.rankedCoinAnimations,
+    revealAnimations: app.rankedRevealAnimations
+  });
 
   createLights(app.scene);
   app.table = createTable({
@@ -507,6 +556,7 @@ function init() {
     world: app.world,
     loadTexture
   });
+  app.rankedTreasuryBag = createRankedTreasuryBag({ scene: app.scene });
   createBoundaries(app.world);
   app.dropZones = createDropZones({
     scene: app.scene,
@@ -548,6 +598,7 @@ function init() {
     applyTableState,
     receiveTableState,
     getTableState,
+    getRankedTableLayout,
     setAdminRole,
     setLocalPlayerSeat,
     setOnlinePlayerProfiles,
@@ -612,6 +663,7 @@ function init() {
       triggerResetFromButton,
       updateInspectOverlay: app.pointerInteractions.updateInspectOverlay
     }),
+    isSandboxInteractionAllowed: () => isSandboxTableInteractionAllowed(window.CoupMaster3DOnline?.mode),
     isAnyModalOpen
   });
   window.addEventListener('coup:languagechange', refreshLanguageAwareUi);
@@ -1153,6 +1205,37 @@ function createCardObject(data) {
   return card;
 }
 
+// Cria uma carta temporaria para apresentar uma prova que ja retornou ao baralho.
+function createRankedRevealCard(reveal) {
+  return createCardObject({
+    id: `ranked-reveal-${reveal.sequence}`,
+    type: reveal.role,
+    folder: 'base',
+    faceUp: false,
+    location: 'table',
+    owner: null,
+    rankedPresentation: true,
+    rankedRole: reveal.role
+  });
+}
+
+// Remove uma carta usada apenas durante a apresentacao visual de uma prova.
+function removeRankedRevealCard(card) {
+  if (!card) return;
+  app.scene.remove(card.mesh);
+  app.world.removeRigidBody(card.body);
+  app.cards.delete(card.id);
+}
+
+// Captura a pose final de uma carta antes de ela ser deslocada para a revelacao.
+function getCardPose(card) {
+  const rotationY = new THREE.Euler().setFromQuaternion(card.mesh.quaternion, 'YXZ').y;
+  return {
+    position: card.mesh.position.clone(),
+    rotationY
+  };
+}
+
 // Cria uma carta especial da DLC de religião diretamente na mesa.
 function spawnSpecialCard(type, options = {}) {
   const data = {
@@ -1473,7 +1556,7 @@ function flipTableStack(stack) {
 }
 
 // Inicia a animacao de flip de uma carta sem decidir sua origem.
-function startCardFlip(card, nextFaceUp, restoreDynamic) {
+function startCardFlip(card, nextFaceUp, restoreDynamic, onComplete = null, shouldSync = true) {
   const startPosition = card.mesh.position.clone();
   const startQuat = card.mesh.quaternion.clone();
   const liftPosition = startPosition.clone();
@@ -1494,7 +1577,9 @@ function startCardFlip(card, nextFaceUp, restoreDynamic) {
     liftQuat,
     nextFaceUp,
     swapped: false,
-    restoreDynamic
+    restoreDynamic,
+    onComplete,
+    shouldSync
   };
 }
 
@@ -1526,9 +1611,16 @@ function getTableState() {
   });
 }
 
+// Expoe os pontos fixos do ranqueado para as proximas animacoes de mesa.
+function getRankedTableLayout() {
+  return state.rankedTableLayout ? cloneTableState(state.rankedTableLayout) : null;
+}
+
 // Aplica o estado final publicado por outro jogador, sem reemitir eco.
 function applyTableState(snapshot) {
   if (!snapshot || snapshot.version !== 1) return;
+
+  const previousSnapshot = app.lastAppliedTableState;
 
   app.isApplyingRemoteState = true;
   app.pointerInteractions.clearPointerHover();
@@ -1541,12 +1633,27 @@ function applyTableState(snapshot) {
 
   app.stackShuffleTimers.forEach(timer => window.clearTimeout(timer));
   app.stackShuffleTimers.clear();
+  app.rankedCinematicEvents?.cancel();
   clearCardsForSnapshot();
   clearTableObjects(false);
 
   state.deckConfig = { ...DEFAULT_DECK_CONFIG, ...(snapshot.deckConfig || {}) };
   state.alternativeRuleDraw = snapshot.alternativeRuleDraw ? cloneTableState(snapshot.alternativeRuleDraw) : null;
   state.rankedActivePlayer = Number(snapshot.ranked3d?.activeSeat) || null;
+  state.rankedTableLayout = snapshot.ranked3d?.layout
+    ? cloneTableState(snapshot.ranked3d.layout)
+    : null;
+  app.rankedTreasuryBag?.update(snapshot.mode === 'ranked' ? state.rankedTableLayout?.treasury : null);
+  state.rankedCoinBalances = snapshot.mode === 'ranked' && Array.isArray(snapshot.ranked3d?.coinBalances)
+    ? snapshot.ranked3d.coinBalances.map(value => Math.max(0, Number(value) || 0))
+    : null;
+  const rankedPublicReveals = snapshot.mode === 'ranked' && Array.isArray(snapshot.ranked3d?.publicReveals)
+    ? snapshot.ranked3d.publicReveals
+    : [];
+  state.rankedPublicRevealSequence = rankedPublicReveals.reduce(
+    (highest, reveal) => Math.max(highest, Number(reveal?.sequence) || 0),
+    0
+  );
   state.deck = (snapshot.deck || []).map(cloneCardData).filter(Boolean);
   state.tableCards = [];
   state.players.forEach(player => {
@@ -1594,6 +1701,7 @@ function applyTableState(snapshot) {
         id: object.id,
         position: object.position,
         quaternion: object.quaternion,
+        locked: Boolean(object.rankedLocked),
         silent: true
       });
     } else if (object.kind === 'die') {
@@ -1607,6 +1715,9 @@ function applyTableState(snapshot) {
   });
 
   state.players.forEach(player => layoutPlayerHand(player.id, 0));
+  if (snapshot.mode === 'ranked') {
+    app.rankedCinematicEvents?.transition(previousSnapshot, snapshot);
+  }
   renderRoomPlayerList();
   setLocalPlayerSeat(getLocalPlayerSeat(), { focus: false, preserveView: true });
   updateHud();

@@ -5,6 +5,8 @@ export * from './ranked-3d-state.js';
 export * from './ranked-3d-engine.js';
 export * from './ranked-3d-room-state.js';
 export * from './ranked-3d-table-adapter.js';
+export * from './ranked-3d-table-layout.js';
+export * from './ranked-3d-coin-transfers.js';
 export * from './ranked-3d-achievements.js';
 export * from './ranked-3d-results.js';
 export * from './ranked-3d-results-modal.js';

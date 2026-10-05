@@ -867,10 +867,11 @@
         delete pending.challenge;
 
         if (card.role === claim) {
-            recordPublicReveal(state, actor, card, 'proof');
+            const publicReveal = recordPublicReveal(state, actor, card, 'proof');
             challengerStats.failedChallenges += 1;
             if (isBlock || !isExchangeAction(pending.type)) {
-                replaceProvenInfluence(state, actor.uid, card.id);
+                const replacement = replaceProvenInfluence(state, actor.uid, card.id);
+                publicReveal.replacementCardId = replacement?.id || null;
             }
             if (!isBlock) pending.claimConfirmed = true;
             if (!isBlock && pending.type === ACTIONS.ASSASSINATE) {
@@ -971,12 +972,13 @@
     function replaceProvenInfluence(state, uid, cardId) {
         const player = getPlayer(state, uid);
         const index = player.influences.findIndex((card) => card.id === cardId && !card.revealed);
-        if (index < 0 || state.deck.length === 0) return;
+        if (index < 0 || state.deck.length === 0) return null;
         const provenCard = player.influences[index];
         const replacement = state.deck.pop();
         player.influences[index] = { ...replacement, revealed: false };
         state.deck = Rules.shuffle([...state.deck, { id: provenCard.id, role: provenCard.role }]);
         state.hasPostDealCardDraw = true;
+        return replacement;
     }
 
     function scheduleLoss(state, playerUid, reason, continuation, now = Date.now(), count = 1, requireChoice = false) {
@@ -1028,10 +1030,12 @@
 
     function recordPublicReveal(state, player, card, kind) {
         state.revealSequence = (Number(state.revealSequence) || 0) + 1;
-        state.publicReveals = [...(state.publicReveals || []), {
+        const reveal = {
             sequence: state.revealSequence, playerUid: player.uid, playerName: player.name,
             role: card.role, cardId: card.id, kind
-        }].slice(-12);
+        };
+        state.publicReveals = [...(state.publicReveals || []), reveal].slice(-12);
+        return reveal;
     }
 
     function resolveAutomaticLossIfForced(state, now = Date.now()) {

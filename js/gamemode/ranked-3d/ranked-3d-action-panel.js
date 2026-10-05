@@ -32,6 +32,8 @@ export function createRanked3dActionPanel(options = {}) {
   let busy = false;
   let selectedControl = null;
   let countdownTimer = null;
+  let exchangeSelection = new Set();
+  let exchangeSelectionKey = '';
 
   const getActions = options.getActions || (() => null);
   const getLocalUid = options.getLocalUid || (() => null);
@@ -77,6 +79,11 @@ export function createRanked3dActionPanel(options = {}) {
   function update(nextRankedState) {
     rankedState = nextRankedState;
     const model = getRanked3dActionPanelModel(rankedState, getLocalUid());
+    const nextExchangeKey = model.exchange?.key || '';
+    if (nextExchangeKey !== exchangeSelectionKey) {
+      exchangeSelectionKey = nextExchangeKey;
+      exchangeSelection = new Set();
+    }
     if (!model.controls.some((control) => isSameControl(control, selectedControl))) {
       selectedControl = null;
     }
@@ -90,6 +97,20 @@ export function createRanked3dActionPanel(options = {}) {
       getSelectedControl: () => selectedControl,
       setSelectedControl: (control) => {
         selectedControl = control;
+        renderCurrentModel(model);
+        startCountdown(model.deadline);
+      },
+      getExchangeSelection: () => exchangeSelection,
+      toggleExchangeCard: (cardId) => {
+        const keepCount = Number(model.exchange?.keepCount) || 0;
+        if (!cardId || !keepCount) return;
+        const nextSelection = new Set(exchangeSelection);
+        if (nextSelection.has(cardId)) {
+          nextSelection.delete(cardId);
+        } else if (nextSelection.size < keepCount) {
+          nextSelection.add(cardId);
+        }
+        exchangeSelection = nextSelection;
         renderCurrentModel(model);
         startCountdown(model.deadline);
       }
@@ -135,6 +156,14 @@ export function getRanked3dActionPanelModel(rankedState, localUid) {
 
   if (rankedState.phase === PHASES.INFLUENCE_LOSS) {
     return withDeadline(createInfluenceLossModel(rankedState, localPlayer), rankedState);
+  }
+
+  if (rankedState.phase === PHASES.EXCHANGE) {
+    return withDeadline(createExchangeModel(rankedState, localPlayer), rankedState);
+  }
+
+  if (rankedState.phase === PHASES.EXAMINE) {
+    return withDeadline(createExamineModel(rankedState, localPlayer), rankedState);
   }
 
   if (rankedState.phase === PHASES.FINISHED) {
@@ -283,6 +312,57 @@ function createInfluenceLossModel(state, localPlayer) {
   };
 }
 
+// Mantem as escolhas de troca privadas e limita a selecao ao numero de influencias da mao.
+function createExchangeModel(state, localPlayer) {
+  const pending = state.pendingExchange;
+  const player = state.players?.[pending?.playerUid];
+  if (!pending || pending.playerUid !== localPlayer.uid) {
+    return createStatusModel('Troca em andamento', `${player?.name || 'Jogador'} está reorganizando as influências.`, state);
+  }
+
+  const options = (pending.options || []).map((card) => ({
+    id: card.id,
+    role: card.role,
+    label: ROLE_DEFINITIONS[card.role]?.label || card.role
+  }));
+  const keepCount = Number(pending.keepCount) || 0;
+
+  return {
+    visible: true,
+    stage: 'exchange',
+    title: 'Escolha as influências',
+    description: `Mantenha ${keepCount} influência${keepCount === 1 ? '' : 's'} e devolva as demais ao baralho.`,
+    controls: [{ type: 'complete-exchange', label: 'Confirmar troca' }],
+    exchange: {
+      key: `${pending.playerUid}:${keepCount}:${options.map((card) => card.id).join('|')}`,
+      keepCount,
+      options
+    }
+  };
+}
+
+// Mostra somente ao inquisidor a influencia examinada e a decisao de substitui-la.
+function createExamineModel(state, localPlayer) {
+  const pending = state.pendingExamine;
+  const actor = state.players?.[pending?.actorUid];
+  if (!pending || pending.actorUid !== localPlayer.uid) {
+    return createStatusModel('Investigação em andamento', `${actor?.name || 'Jogador'} está examinando uma influência.`, state);
+  }
+
+  const roleLabel = ROLE_DEFINITIONS[pending.role]?.label || pending.role;
+  return {
+    visible: true,
+    stage: 'examine',
+    title: 'Investigar',
+    description: `Você viu ${roleLabel}. Escolha se o alvo mantém ou troca esta influência.`,
+    controls: [
+      { type: 'complete-examine', replace: false, label: 'Manter influência' },
+      { type: 'complete-examine', replace: true, label: 'Trocar pelo baralho' }
+    ],
+    examine: { role: pending.role, cardId: pending.cardId }
+  };
+}
+
 function createStatusModel(title, description, state) {
   return {
     visible: true,
@@ -351,7 +431,7 @@ function renderPanel(panel, model, context) {
     </div>
     <p class="rank-phase-description"${selectedControl || !model.description ? ' hidden' : ''}>${escapeHtml(model.description || '')}</p>
     <div class="rank-interaction">
-      ${selectedControl ? renderTargetList(selectedControl) : renderControls(model.controls)}
+      ${selectedControl ? renderTargetList(selectedControl) : renderInteraction(model, context)}
     </div>
     <p class="ranked-action-panel-error" aria-live="assertive"></p>
   `;
@@ -365,6 +445,9 @@ function renderPanel(panel, model, context) {
   panel.querySelector('[data-ranked-target-cancel]')?.addEventListener('click', () => {
     context.setSelectedControl(null);
   });
+  panel.querySelectorAll('[data-ranked-exchange-card]').forEach((button) => {
+    button.addEventListener('click', () => context.toggleExchangeCard(button.dataset.rankedExchangeCard));
+  });
 }
 
 function syncPanelStageClass(panel, model, selectedControl) {
@@ -373,9 +456,49 @@ function syncPanelStageClass(panel, model, selectedControl) {
     panel.classList.add('is-centered-stage', 'is-target-stage');
   } else if (model.stage === 'response') {
     panel.classList.add('is-response-stage');
+  } else if (model.stage === 'exchange' || model.stage === 'examine') {
+    panel.classList.add('is-centered-stage', 'is-selection-stage');
   } else if (model.stage === 'centered') {
     panel.classList.add('is-centered-stage');
   }
+}
+
+function renderInteraction(model, context) {
+  if (model.exchange) return renderExchangeChoices(model.exchange, context.getExchangeSelection());
+  if (model.examine) return renderExamineChoices(model);
+  return renderControls(model.controls);
+}
+
+function renderExchangeChoices(exchange, selection) {
+  const selectedIds = selection || new Set();
+  const isComplete = selectedIds.size === exchange.keepCount;
+  return `
+    <div class="rank-exchange-choices">
+      <div class="rank-exchange-options">
+        ${exchange.options.map((card) => `
+          <button class="rank-target-btn rank-exchange-card${selectedIds.has(card.id) ? ' is-selected' : ''}" type="button"
+            data-ranked-exchange-card="${escapeAttribute(card.id)}" aria-pressed="${selectedIds.has(card.id)}">
+            ${escapeHtml(card.label)}
+          </button>
+        `).join('')}
+      </div>
+      <button class="rank-action-btn" type="button" data-ranked-control="0" data-type="complete-exchange"
+        data-action-type="exchange-ambassador" ${isComplete ? '' : ' disabled'}>
+        <span class="rank-action-icon" aria-hidden="true"></span>
+        <span class="rank-action-label">Confirmar troca (${selectedIds.size}/${exchange.keepCount})</span>
+      </button>
+    </div>
+  `;
+}
+
+function renderExamineChoices(model) {
+  const roleLabel = ROLE_DEFINITIONS[model.examine.role]?.label || model.examine.role;
+  return `
+    <div class="rank-examine-choices">
+      <div class="rank-examined-card">${escapeHtml(roleLabel)}</div>
+      ${renderControls(model.controls)}
+    </div>
+  `;
 }
 
 function renderControls(controls) {
@@ -395,6 +518,7 @@ function renderControl(control, index) {
         data-action-type="${escapeAttribute(getVisualActionType(control))}"
         data-role="${escapeAttribute(control.role || '')}"
         data-card-id="${escapeAttribute(control.cardId || '')}"
+        data-replace="${control.replace === true}"
         data-target-options="${escapeAttribute(JSON.stringify(control.targetOptions || []))}">
         <span class="rank-action-icon" aria-hidden="true"></span>
         <span class="rank-action-label">${escapeHtml(getControlLabel(control))}</span>
@@ -438,6 +562,11 @@ function runControl(button, context) {
     if (type === 'challenge-block') return actions.challengeBlock();
     if (type === 'reveal-challenge') return actions.revealChallenge(cardId);
     if (type === 'lose-influence') return actions.loseInfluence(cardId);
+    if (type === 'complete-exchange') {
+      const selectedCards = [...context.getExchangeSelection()];
+      return actions.completeExchange(selectedCards);
+    }
+    if (type === 'complete-examine') return actions.completeExamine(button.dataset.replace === 'true');
     return Promise.resolve(null);
   });
 }
@@ -458,6 +587,7 @@ function getControlFromButton(button, index) {
     actionType: sourceButton.dataset.actionType || null,
     role: sourceButton.dataset.role || null,
     cardId: sourceButton.dataset.cardId || null,
+    replace: sourceButton.dataset.replace === 'true',
     targetOptions
   };
 }
@@ -473,6 +603,8 @@ function getControlLabel(control) {
 
 function getVisualActionType(control) {
   if (control.type === 'action') return control.actionType || '';
+  if (control.type === 'complete-exchange') return 'exchange-ambassador';
+  if (control.type === 'complete-examine') return 'examine';
   if (control.type === 'pass-response') return 'pass';
   if (control.type === 'declare-block') return 'block';
   if (control.type === 'challenge-action' || control.type === 'challenge-block') return 'challenge';

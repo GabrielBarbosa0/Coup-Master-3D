@@ -2,6 +2,7 @@ import { requireAuth } from '../firebase/auth-service.js';
 import {
   ROOM_LAUNCH_STORAGE_KEY,
   getLobbyUrlForRoom,
+  isStoredRoomResume,
   isValidRoomLaunchToken
 } from '../navigation/entry-routing.js';
 import { preloadThreeAssets } from './asset-preloader.js';
@@ -61,7 +62,9 @@ const params = new URLSearchParams(location.search);
 const requestedRoom = normalizeRoomCode(params.get('room') || '');
 const launchToken = sessionStorage.getItem(ROOM_LAUNCH_STORAGE_KEY);
 sessionStorage.removeItem(ROOM_LAUNCH_STORAGE_KEY);
-const canOpenRequestedRoom = isValidRoomLaunchToken(launchToken, requestedRoom);
+const storedRoom = localStorage.getItem('coupMaster3dRoom');
+const canOpenRequestedRoom = isValidRoomLaunchToken(launchToken, requestedRoom)
+  || isStoredRoomResume(storedRoom, requestedRoom);
 const lobbyRedirectUrl = getLobbyUrlForRoom(requestedRoom);
 const user = await requireAuth('login.html', lobbyRedirectUrl);
 

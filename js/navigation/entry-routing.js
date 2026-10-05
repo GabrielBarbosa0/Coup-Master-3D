@@ -47,6 +47,13 @@ function isValidRoomLaunchToken(token, roomCode, now = Date.now()) {
   }
 }
 
+// Permite recarregar somente a sala que este navegador ja abriu pelo fluxo valido.
+function isStoredRoomResume(storedRoomCode, requestedRoomCode) {
+  const storedRoom = normalizeEntryRoomCode(storedRoomCode);
+  const requestedRoom = normalizeEntryRoomCode(requestedRoomCode);
+  return Boolean(storedRoom && requestedRoom && storedRoom === requestedRoom);
+}
+
 // Evita que o login redirecione direto para a mesa por links externos ou URLs antigas.
 function getSafeLoginNextPath(rawNext, currentHref = globalThis.location?.href || 'https://coupmaster.com.br/login.html') {
   if (!rawNext) return DEFAULT_LOBBY_PATH;
@@ -73,6 +80,7 @@ export {
   createRoomLaunchToken,
   getLobbyUrlForRoom,
   getSafeLoginNextPath,
+  isStoredRoomResume,
   isValidRoomLaunchToken,
   normalizeEntryRoomCode
 };

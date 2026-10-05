@@ -694,6 +694,45 @@ button:focus-visible {
   justify-items: center;
 }
 
+.ranked-action-panel .rank-exchange-choices,
+.ranked-action-panel .rank-examine-choices {
+  display: grid;
+  width: min(376px, 100%);
+  gap: 8px;
+}
+
+.ranked-action-panel .rank-exchange-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.ranked-action-panel .rank-exchange-card {
+  min-height: 34px;
+  border-color: rgba(70, 217, 147, 0.48);
+  color: #bff5d9;
+}
+
+.ranked-action-panel .rank-exchange-card.is-selected {
+  border-color: #46d993;
+  background: rgba(70, 217, 147, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(70, 217, 147, 0.22);
+}
+
+.ranked-action-panel .rank-examined-card {
+  display: grid;
+  min-height: 38px;
+  place-items: center;
+  border: 2px solid rgba(66, 165, 255, 0.56);
+  border-radius: 8px;
+  background: var(--rank-panel);
+  color: #a9d6ff;
+  font-family: "Cinzel", serif;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .ranked-action-panel .rank-actions-grid,
 .ranked-action-panel .rank-response-actions,
 .ranked-action-panel .rank-target-list {

@@ -62,6 +62,7 @@ function spawnCoin(type = 'gold', options = {}) {
   mesh.name = id;
   mesh.userData.objectId = id;
   mesh.userData.kind = isGold ? 'gold-coin' : 'silver-coin';
+  mesh.userData.locked = Boolean(options.locked);
 
   const spawnPlayer = options.playerId || objectState.getActivePlayer();
   const initialPosition = vectorFromSnapshot(options.position, getCoinSpawnPosition(spawnPlayer));
@@ -72,12 +73,15 @@ function spawnCoin(type = 'gold', options = {}) {
   mesh.position.copy(initialPosition);
   mesh.quaternion.copy(initialQuaternion);
 
+  const bodyDescriptor = options.locked
+    ? RAPIER.RigidBodyDesc.kinematicPositionBased()
+    : RAPIER.RigidBodyDesc.dynamic()
+      .setLinearDamping(1.65)
+      .setAngularDamping(1.95);
   const body = world.createRigidBody(
-    RAPIER.RigidBodyDesc.dynamic()
+    bodyDescriptor
       .setTranslation(initialPosition.x, initialPosition.y, initialPosition.z)
       .setRotation(initialQuaternion)
-      .setLinearDamping(1.65)
-      .setAngularDamping(1.95)
   );
   const collider = RAPIER.ColliderDesc.cylinder(COIN_HEIGHT / 2, radius);
   collider.setDensity(1.2);
@@ -86,7 +90,14 @@ function spawnCoin(type = 'gold', options = {}) {
   const bodyCollider = world.createCollider(collider, body);
 
   scene.add(mesh);
-  const object = { id, kind: mesh.userData.kind, mesh, body, collider: bodyCollider };
+  const object = {
+    id,
+    kind: mesh.userData.kind,
+    locked: Boolean(options.locked),
+    mesh,
+    body,
+    collider: bodyCollider
+  };
   objectState.objects.set(id, object);
   if (!options.silent) objectState.playVfx('falling-coin');
   objectState.updateHud();

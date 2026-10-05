@@ -51,6 +51,7 @@ function createPointerInteractionController(options) {
     getStackHoverSummary,
     getTopStackCard,
     isCoinObject,
+    isSandboxInteractionAllowed = () => true,
     moveCardToPlayer,
     moveCardToTable,
     moveTableStack,
@@ -73,6 +74,7 @@ function createPointerInteractionController(options) {
 
   // Resolve clique inicial em deck, carta, pilha ou objeto.
   function onPointerDown(event) {
+    if (!isSandboxInteractionAllowed()) return;
     setPointer(event);
 
     const hits = getIntersections([app.deckMesh, ...getCardMeshes(), ...getObjectMeshes()]);
@@ -132,6 +134,11 @@ function createPointerInteractionController(options) {
 
   // Atualiza gestos pendentes, arrastos e hover durante movimento do mouse.
   function onPointerMove(event) {
+    if (!isSandboxInteractionAllowed()) {
+      updatePointerHover(event);
+      return;
+    }
+
     if (app.pendingDeckDrag && !app.dragged) {
       if (!didPendingGestureMove(app.pendingDeckDrag, event)) return;
       if (performance.now() - app.pendingDeckDrag.startedAt >= DECK_DRAG_HOLD_MS) {
@@ -187,6 +194,8 @@ function createPointerInteractionController(options) {
 
   // Finaliza clique, arrasto de objeto, deck, pilha ou carta.
   function onPointerUp(event) {
+    if (!isSandboxInteractionAllowed()) return;
+
     if (app.pendingDeckDrag && !app.dragged) {
       endPendingDragGesture(event, {
         canvas,
@@ -263,6 +272,7 @@ function createPointerInteractionController(options) {
 
   // Fallback de duplo clique nativo para remover moedas ou devolver carta ao deck.
   function onDoubleClick(event) {
+    if (!isSandboxInteractionAllowed()) return;
     setPointer(event);
     if (isPointerOverDeck(event)) return;
 
@@ -436,6 +446,7 @@ function createPointerInteractionController(options) {
 
   // Prepara uma peca para arrasto cinematico sem empurrar outros objetos.
   function beginDrag(event, piece, mode) {
+    if (!isSandboxInteractionAllowed()) return false;
     beginKinematicPieceDrag(event, piece, mode, {
       canvas,
       controls: app.controls,

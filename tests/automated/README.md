@@ -43,6 +43,10 @@ node tests\automated\test-ranked-room-state.mjs
 node tests\automated\test-official-log-service.mjs
 node tests\automated\test-ranked-3d-action-panel.mjs
 node tests\automated\test-ranked-3d-results-modal.mjs
+node tests\automated\test-ranked-3d-coin-transfers.mjs
+node tests\automated\test-ranked-coin-animation-controller.mjs
+node tests\automated\test-ranked-reveal-animation-controller.mjs
+node tests\automated\test-ranked-cinematic-event-layer.mjs
 node tests\automated\test-ranked-3d-table-adapter.mjs
 ```
 

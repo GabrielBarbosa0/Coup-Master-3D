@@ -25,6 +25,7 @@ function createSceneRuntimeController(options) {
     updateCameraFocus,
     updateDeckCollider,
     updatePlayerBadges,
+    updateRankedCoinAnimations = () => {},
     windowTarget = window
   } = options;
 
@@ -45,10 +46,13 @@ function createSceneRuntimeController(options) {
     const dt = Math.min((now - app.lastTime) / 1000, 0.033);
     app.lastTime = now;
 
-    updateCardTweens(app.cards, dt, scheduleTableSync);
+    updateCardTweens(app.cards, dt, (_card, suppressSync) => {
+      if (!suppressSync) scheduleTableSync();
+    });
     updateFlipTweens(dt);
     updateCameraFocus(dt);
     updateDeckShuffle(dt);
+    updateRankedCoinAnimations(dt);
     rescueLimboPieces();
     app.world.step();
     syncPhysicsMeshes();
@@ -124,7 +128,8 @@ function createSceneRuntimeController(options) {
           card.body.setLinvel({ x: 0, y: -0.08, z: 0 }, true);
           card.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
         }
-        scheduleTableSync();
+        if (flip.shouldSync !== false) scheduleTableSync();
+        flip.onComplete?.();
       }
     });
   }

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 
 // Anima uma carta em arco ate uma posicao alvo.
-export function tossTo(card, target, rotationY, lift = 0.25, onComplete = null) {
+export function tossTo(card, target, rotationY, lift = 0.25, onComplete = null, options = {}) {
   const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rotationY, 0));
   const start = card.mesh.position.clone();
   const high = start.clone().lerp(target, 0.45);
@@ -11,7 +11,14 @@ export function tossTo(card, target, rotationY, lift = 0.25, onComplete = null) 
   card.body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true);
   card.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
   card.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-  card.target = { start, high, end: target.clone(), progress: 0, onComplete };
+  card.target = {
+    start,
+    high,
+    end: target.clone(),
+    progress: 0,
+    onComplete,
+    suppressSync: Boolean(options.suppressSync)
+  };
   card.targetQuat = quat;
 }
 
@@ -43,9 +50,10 @@ export function updateCardTweens(cards, dt, onTweenComplete = null) {
       card.body.setNextKinematicTranslation(card.target.end);
       card.body.setNextKinematicRotation(card.targetQuat);
       const onComplete = card.target.onComplete;
+      const suppressSync = card.target.suppressSync;
       card.target = null;
       onComplete?.();
-      onTweenComplete?.(card);
+      onTweenComplete?.(card, suppressSync);
     }
   });
 }

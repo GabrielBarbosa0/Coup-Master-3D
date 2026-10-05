@@ -28,9 +28,15 @@ const layers = Object.freeze({
     'tests/automated/test-ranked-room-state.mjs'
   ],
   ui: [
+    'tests/automated/test-interaction-policy.mjs',
     'tests/automated/test-official-log-service.mjs',
     'tests/automated/test-ranked-3d-action-panel.mjs',
     'tests/automated/test-ranked-3d-results-modal.mjs',
+    'tests/automated/test-ranked-3d-coin-transfers.mjs',
+    'tests/automated/test-ranked-coin-animation-controller.mjs',
+    'tests/automated/test-ranked-reveal-animation-controller.mjs',
+    'tests/automated/test-ranked-cinematic-event-layer.mjs',
+    'tests/automated/test-ranked-3d-table-layout.mjs',
     'tests/automated/test-ranked-3d-table-adapter.mjs'
   ]
 });

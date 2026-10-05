@@ -145,6 +145,8 @@ A lista de jogadores com assento reservado define os badges, a lista textual do 
 
 O lobby casual nao segura jogadores em uma sala de espera; criar ou entrar em sala abre `index.html?room=CODIGO`. A mesa casual sincroniza snapshots finais via `tableState` usando transacoes do Realtime Database. Compras simples usam `tableActions.draw-card` para animacao previsivel e publicam depois o snapshot final. Distribuicao inicial e devolucao animada ao deck tambem usam eventos discretos. Drag livre ainda nao transmite posicoes intermediarias.
 
+O primeiro acesso a mesa exige um token curto emitido pelo lobby. Depois disso, recarregar `index.html?room=CODIGO` reabre automaticamente a mesma sala quando o codigo tambem esta em `localStorage`; URLs externas sem token nem sala persistida continuam sendo redirecionadas ao lobby.
+
 Cada publicacao informa o snapshot-base conhecido pelo cliente. `room-service.js` executa `runTransaction()` e usa `table-state-merge.mjs` para fazer uma mesclagem de tres vias entre base, alteracao local e estado remoto atual. Cartas, objetos e pilhas sao mesclados por ID, e os contadores manuais de moedas sao combinados por diferenca. Assim, duas acoes simultaneas sobre entidades diferentes nao se apagam por uma gravacao de snapshot atrasada.
 
 O contador manual de moedas exibido na lista de jogadores fica em `tableState.players[].coinCount`. Ele e separado dos objetos fisicos de moeda em `tableState.objects`, pois serve como anotacao rapida de mesa para partidas casuais.
@@ -208,6 +210,7 @@ O pacote do ranqueado 3D fica em `js/gamemode/ranked-3d/` e agora porta diretame
 - `ranked-3d-room-state.js`: helpers puros para criar e alterar `ranked3dState` antes da persistencia.
 - `ranked-3d-results.js`: monta `rankedResults/{resultKey}` e acumula `rankedStats/{uid}` de forma idempotente.
 - `ranked-3d-table-adapter.js`: converte `ranked3dState` em snapshot visual de `tableState` para a mesa Three.js, sem misturar regras no renderer.
+- `ranked-cinematic-events.js` e `ranked-cinematic-event-layer.js`: comparam snapshots ranqueados, geram eventos cinematograficos e os executam em fila, delegando moedas e revelacoes aos controladores especializados sem alterar o estado do motor.
 - `ranked-3d-achievements.js`: avalia conquistas a partir de estatisticas acumuladas em `rankedStats/{uid}`.
 
 O Firebase do modo ranqueado fica em `js/firebase/ranked-room-service.js`. Ele cria salas com `mode: ranked`, salva o motor em `rooms/{roomCode}/ranked3dState` e aplica entrada, presenca, prontidao, acoes, respostas, bloqueios, desafios, perdas de influencia, trocas, investigacoes, decisoes de bot, resultados finais e avancos automaticos por `runTransaction()`.

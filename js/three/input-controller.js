@@ -4,24 +4,30 @@ export function setupInputController(options) {
     canvas,
     buttons,
     actions,
+    isSandboxInteractionAllowed = () => true,
     isAnyModalOpen,
     windowTarget = window
   } = options;
 
-  buttons.drawBtn?.addEventListener('click', actions.drawCardToActivePlayer);
-  buttons.goldCoinBtn?.addEventListener('click', actions.spawnGoldCoin);
-  buttons.silverCoinBtn?.addEventListener('click', actions.spawnSilverCoin);
-  buttons.asylumCardBtn?.addEventListener('click', actions.spawnAsylumCard);
-  buttons.religionCardBtn?.addEventListener('click', actions.spawnReligionCard);
-  buttons.diceBtn?.addEventListener('click', actions.spawnDie);
-  buttons.rollBtn?.addEventListener('click', actions.rollDice);
-  buttons.clearObjectsBtn?.addEventListener('click', actions.clearTableObjects);
-  buttons.shuffleBtn?.addEventListener('click', actions.shuffleDeck);
-  buttons.dealBtn?.addEventListener('click', actions.dealInitialHands);
-  buttons.flipSelectionBtn?.addEventListener('click', actions.flipSelectedCards);
-  buttons.rotateLeftBtn?.addEventListener('click', () => actions.rotateSelectedPiece(1));
-  buttons.rotateRightBtn?.addEventListener('click', () => actions.rotateSelectedPiece(-1));
-  buttons.deleteSelectionBtn?.addEventListener('click', actions.deleteSelectedPiece);
+  const runSandboxAction = (action) => (...args) => {
+    if (!isSandboxInteractionAllowed()) return false;
+    return action(...args);
+  };
+
+  buttons.drawBtn?.addEventListener('click', runSandboxAction(actions.drawCardToActivePlayer));
+  buttons.goldCoinBtn?.addEventListener('click', runSandboxAction(actions.spawnGoldCoin));
+  buttons.silverCoinBtn?.addEventListener('click', runSandboxAction(actions.spawnSilverCoin));
+  buttons.asylumCardBtn?.addEventListener('click', runSandboxAction(actions.spawnAsylumCard));
+  buttons.religionCardBtn?.addEventListener('click', runSandboxAction(actions.spawnReligionCard));
+  buttons.diceBtn?.addEventListener('click', runSandboxAction(actions.spawnDie));
+  buttons.rollBtn?.addEventListener('click', runSandboxAction(actions.rollDice));
+  buttons.clearObjectsBtn?.addEventListener('click', runSandboxAction(actions.clearTableObjects));
+  buttons.shuffleBtn?.addEventListener('click', runSandboxAction(actions.shuffleDeck));
+  buttons.dealBtn?.addEventListener('click', runSandboxAction(actions.dealInitialHands));
+  buttons.flipSelectionBtn?.addEventListener('click', runSandboxAction(actions.flipSelectedCards));
+  buttons.rotateLeftBtn?.addEventListener('click', runSandboxAction(() => actions.rotateSelectedPiece(1)));
+  buttons.rotateRightBtn?.addEventListener('click', runSandboxAction(() => actions.rotateSelectedPiece(-1)));
+  buttons.deleteSelectionBtn?.addEventListener('click', runSandboxAction(actions.deleteSelectedPiece));
   buttons.focusCameraBtn?.addEventListener('click', actions.focusCamera);
   buttons.resetBtn?.addEventListener('pointerdown', actions.playResetSoundFromButton);
   buttons.resetBtn?.addEventListener('click', actions.triggerResetFromButton);
@@ -31,14 +37,14 @@ export function setupInputController(options) {
   canvas.addEventListener('pointermove', actions.onPointerMove);
   windowTarget.addEventListener('pointerup', actions.onPointerUp);
   windowTarget.addEventListener('pointercancel', actions.onPointerUp);
-  windowTarget.addEventListener('keydown', event => handleKeyDown(event, actions, isAnyModalOpen));
+  windowTarget.addEventListener('keydown', event => handleKeyDown(event, actions, isSandboxInteractionAllowed, isAnyModalOpen));
   windowTarget.addEventListener('keyup', event => handleKeyUp(event, actions));
   windowTarget.addEventListener('blur', actions.hideInspectOverlay);
   canvas.addEventListener('dblclick', actions.onDoubleClick);
 }
 
 // Centraliza camera, remove objetos ou vira carta via teclado.
-function handleKeyDown(event, actions, isAnyModalOpen) {
+function handleKeyDown(event, actions, isSandboxInteractionAllowed, isAnyModalOpen) {
   if (event.key === 'Alt') {
     if (!isAnyModalOpen()) {
       event.preventDefault();
@@ -66,6 +72,15 @@ function handleKeyDown(event, actions, isAnyModalOpen) {
     actions.focusCamera();
     return;
   }
+
+  // No ranqueado, Backspace troca o atalho de exclusao por foco de camera.
+  if (!isSandboxInteractionAllowed() && event.key === 'Backspace') {
+    event.preventDefault();
+    actions.focusCamera();
+    return;
+  }
+
+  if (!isSandboxInteractionAllowed()) return;
 
   if (event.key === 'Delete' || event.key === 'Backspace') {
     if (!actions.deleteSelectedPiece()) return;

@@ -14,6 +14,9 @@ const rankedState = {
     { id: 'deck-1', role: ROLES.DUKE },
     { id: 'deck-2', role: ROLES.CAPTAIN }
   ],
+  publicReveals: [
+    { sequence: 4, playerUid: 'u2', playerName: 'Bruno', role: ROLES.CONTESSA, cardId: 'bruno-2', kind: 'challengeLoss' }
+  ],
   players: {
     u1: {
       uid: 'u1',
@@ -49,11 +52,26 @@ assert.equal(tableState.mode, 'ranked');
 assert.equal(tableState.players.length, 6);
 assert.equal(tableState.players[0].coinCount, 4);
 assert.equal(tableState.players[1].coinCount, 1);
+assert.equal(tableState.objects.length, 5);
+assert.equal(tableState.objects.filter((object) => object.rankedCoinSeat === 1).length, 4);
+assert.equal(tableState.objects.filter((object) => object.rankedCoinSeat === 2).length, 1);
+assert.ok(tableState.objects.every((object) => object.rankedLocked));
 assert.equal(tableState.deck.length, 2);
 assert.equal(tableState.deckConfig.inquisidor, 5);
 assert.equal(tableState.deckConfig.embaixador, 0);
 assert.equal(tableState.ranked3d.activeUid, 'u1');
 assert.equal(tableState.ranked3d.activeSeat, 1);
+assert.deepEqual(tableState.ranked3d.coinBalances, [4, 1, 0, 0, 0, 0]);
+assert.deepEqual(tableState.ranked3d.publicReveals, [{
+  sequence: 4,
+  playerUid: 'u2',
+  playerName: 'Bruno',
+  seat: 2,
+  role: ROLES.CONTESSA,
+  cardId: 'bruno-2',
+  replacementCardId: null,
+  kind: 'challengeLoss'
+}]);
 
 const localHiddenCard = tableState.cards.find((entry) => entry.data.rankedCardId === 'alice-1');
 assert.equal(localHiddenCard.data.owner, 1);
@@ -70,5 +88,51 @@ assert.equal(revealedOpponentCard.data.owner, null);
 assert.equal(revealedOpponentCard.data.faceUp, true);
 assert.equal(revealedOpponentCard.data.location, 'table');
 assert.equal(tableState.tableCards.length, 1);
+assert.equal(tableState.stacks.length, 1);
+assert.equal(tableState.stacks[0].id, 'ranked-cemetery');
+assert.equal(tableState.stacks[0].cards[0], revealedOpponentCard.data.id);
+assert.equal(tableState.ranked3d.layout.usesSharedCenter, true);
+assert.ok(tableState.deckTransform.position.x > 0);
+assert.ok(tableState.ranked3d.layout.cemetery.x < 0);
+
+const exchangeState = structuredClone(rankedState);
+exchangeState.phase = 'exchange';
+exchangeState.players.u1.influences = [];
+exchangeState.pendingExchange = {
+  playerUid: 'u1',
+  keepCount: 2,
+  options: [
+    { id: 'alice-1', role: ROLES.DUKE },
+    { id: 'alice-2', role: ROLES.ASSASSIN },
+    { id: 'deck-1', role: ROLES.CAPTAIN },
+    { id: 'deck-2', role: ROLES.CONTESSA }
+  ]
+};
+const ownerExchangeTable = createRanked3dTableState(exchangeState, { localUid: 'u1' });
+assert.equal(ownerExchangeTable.ranked3d.exchange.seat, 1);
+assert.equal(ownerExchangeTable.ranked3d.exchange.options.length, 4);
+assert.equal(ownerExchangeTable.cards.filter((entry) => entry.data.rankedExchange).length, 4);
+assert.ok(ownerExchangeTable.cards.filter((entry) => entry.data.rankedExchange).every((entry) => entry.data.faceUp));
+
+const observerExchangeTable = createRanked3dTableState(exchangeState, { localUid: 'u2' });
+assert.equal(observerExchangeTable.ranked3d.exchange, null);
+assert.equal(observerExchangeTable.cards.filter((entry) => entry.data.rankedExchange).length, 0);
+
+const examineState = structuredClone(rankedState);
+examineState.phase = 'examine';
+examineState.pendingExamine = {
+  actorUid: 'u1',
+  targetUid: 'u2',
+  cardId: 'bruno-1',
+  role: ROLES.CAPTAIN
+};
+const ownerExamineTable = createRanked3dTableState(examineState, { localUid: 'u1' });
+assert.equal(ownerExamineTable.ranked3d.examine.targetSeat, 2);
+assert.equal(ownerExamineTable.cards.filter((entry) => entry.data.rankedExamine).length, 1);
+assert.equal(ownerExamineTable.cards.find((entry) => entry.data.rankedExamine).data.faceUp, true);
+
+const observerExamineTable = createRanked3dTableState(examineState, { localUid: 'u2' });
+assert.equal(observerExamineTable.ranked3d.examine, null);
+assert.equal(observerExamineTable.cards.filter((entry) => entry.data.rankedExamine).length, 0);
 
 console.log('ranked-3d-table-adapter: ranked state projection passed');

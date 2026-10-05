@@ -117,9 +117,58 @@ function testInfluenceLossChoosesHiddenInfluence() {
   assert.equal(model.controls[1].cardId, 'u2-2');
 }
 
+function testExchangeKeepsChoicesPrivateAndExact() {
+  const state = createBaseState();
+  state.phase = PHASES.EXCHANGE;
+  state.pendingExchange = {
+    playerUid: 'u1',
+    keepCount: 2,
+    options: [
+      { id: 'u1-1', role: ROLES.DUKE },
+      { id: 'u1-2', role: ROLES.ASSASSIN },
+      { id: 'deck-1', role: ROLES.CAPTAIN },
+      { id: 'deck-2', role: ROLES.CONTESSA }
+    ]
+  };
+
+  const ownerModel = getRanked3dActionPanelModel(state, 'u1');
+  assert.equal(ownerModel.title, 'Escolha as influências');
+  assert.equal(ownerModel.stage, 'exchange');
+  assert.equal(ownerModel.exchange.keepCount, 2);
+  assert.deepEqual(ownerModel.exchange.options.map((card) => card.id), ['u1-1', 'u1-2', 'deck-1', 'deck-2']);
+  assert.deepEqual(controlTypes(ownerModel), ['complete-exchange']);
+
+  const observerModel = getRanked3dActionPanelModel(state, 'u2');
+  assert.equal(observerModel.title, 'Troca em andamento');
+  assert.equal(observerModel.exchange, undefined);
+}
+
+function testExamineOnlyShowsCardToInquisitor() {
+  const state = createBaseState();
+  state.phase = PHASES.EXAMINE;
+  state.pendingExamine = {
+    actorUid: 'u1',
+    targetUid: 'u2',
+    cardId: 'u2-1',
+    role: ROLES.CAPTAIN
+  };
+
+  const ownerModel = getRanked3dActionPanelModel(state, 'u1');
+  assert.equal(ownerModel.title, 'Investigar');
+  assert.equal(ownerModel.examine.role, ROLES.CAPTAIN);
+  assert.deepEqual(controlTypes(ownerModel), ['complete-examine', 'complete-examine']);
+  assert.equal(ownerModel.controls[1].replace, true);
+
+  const observerModel = getRanked3dActionPanelModel(state, 'u2');
+  assert.equal(observerModel.title, 'Investigação em andamento');
+  assert.equal(observerModel.examine, undefined);
+}
+
 testResponseOffersChallengeBlockAndPass();
 testBlockChallengeOffersContestOrAccept();
 testChallengeRevealChoosesHiddenInfluence();
 testInfluenceLossChoosesHiddenInfluence();
+testExchangeKeepsChoicesPrivateAndExact();
+testExamineOnlyShowsCardToInquisitor();
 
 console.log('ranked-3d-action-panel: challenge/block/reveal flow passed');

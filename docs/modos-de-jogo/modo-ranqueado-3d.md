@@ -51,6 +51,26 @@ O lobby 3D ja pode criar ou entrar em salas ranqueadas e abrir a espera `ranked-
 
 A mesa ranqueada 3D agora le `ranked3dState` diretamente e usa uma projecao visual local para desenhar moedas, deck e influencias na mesa. A HUD ranqueada mostra fase, prazo, jogadores, resultado e conquistas recentes, enquanto o painel ranqueado chama o motor para acoes de turno, passar, bloquear, contestar, revelar a carta contestada e escolher a influencia perdida.
 
+## Layout Da Mesa Ranqueada
+
+O adaptador visual define pontos fixos, serializaveis e relativos aos seis assentos para a evolucao das animacoes em mesa:
+
+- cada assento possui uma area de moedas com posicoes estaveis e levemente variadas;
+- cada assento possui uma area de revelacao voltada ao centro;
+- o tesouro central possui um ponto proprio, preparado para futuros efeitos de moeda;
+- influencias eliminadas formam uma pilha publica no cemiterio;
+- sem cartas eliminadas, o deck permanece centralizado; ao existir cemiterio, deck e pilha dividem o centro com espaco simetrico.
+
+Esses pontos vivem em `ranked3d.layout`, criado por `js/gamemode/ranked-3d/ranked-3d-table-layout.js`. O saldo anterior e o novo saldo sao comparados a cada snapshot ranqueado: moedas entram do tesouro, saem para o tesouro ou transitam entre assentos em arcos curtos, sem alterar o estado autoritativo do motor.
+
+O ponto do tesouro tambem recebe uma sacolinha 3D fixa em `js/three/ranked-treasury-bag.js`. Ela e apenas uma referencia visual do estoque central: nao aceita raycast, fisica ou interacao sandbox, e as moedas animadas continuam sendo a representacao de cada transferencia.
+
+O saldo atual de cada jogador e projetado como moedas 3D travadas na sua area de moedas. Cada moeda representa uma unidade, sem interacao sandbox e sem gravidade. A primeira carga apenas monta o saldo; transferencias so animam quando o motor confirma uma alteracao posterior.
+
+O motor tambem publica `publicReveals` com sequencia, assento, carta e resultado. Revelacoes novas saem da mao para a area de revelacao, viram publicamente e seguem em fila: influencias perdidas vao ao cemiterio, enquanto provas retornam ao destino final definido pelo motor. Quando a prova exige substituicao, o evento tambem informa a nova carta: ela fica oculta durante a prova e sai do baralho para a mao apenas depois que a carta provada retorna ao deck.
+
+`js/three/ranked-cinematic-events.js` compara snapshots visuais consecutivos e gera eventos de moedas, revelacoes, trocas privadas e investigacoes privadas. `ranked-cinematic-event-layer.js` executa os efeitos em fila e delega moedas e revelacoes aos controladores especializados. Assim, o motor e o Firebase continuam sendo autoritativos, enquanto novos efeitos da mesa podem ser adicionados a uma timeline sem acoplar regras a Three.js.
+
 Enquanto a mesa ranqueada esta aberta, `js/three/boot.js` agenda deadlines do motor e decisoes de bot. Cada decisao passa por `advanceRankedBotDecision()` em `js/firebase/ranked-room-service.js`, mantendo a IA dentro de transacoes do Realtime Database.
 
 Quando o estado chega em `finished`, a mesa chama `persistRankedMatchResult()`. O resultado completo e salvo uma unica vez em `rankedResults/{resultKey}` e o jogador autenticado acumula seu proprio `rankedStats/{uid}` com protecao por `countedRooms`.
