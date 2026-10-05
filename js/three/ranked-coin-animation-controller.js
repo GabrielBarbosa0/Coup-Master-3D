@@ -10,7 +10,9 @@ export function createRankedCoinAnimationController(options) {
   const {
     createTransientCoin,
     getObjectById,
-    removeTableObject
+    removeTableObject,
+    setCoinKinematic = () => {},
+    releaseCoinPhysics = () => {}
   } = options;
   let animations = [];
   let transientId = 0;
@@ -33,19 +35,19 @@ export function createRankedCoinAnimationController(options) {
       if (!source || !target) return;
 
       const coinIndex = transfer.toSeat ? target.index : source.index;
-      const object = createTransferObject({
+      const transferObject = createTransferObject({
         source,
         target,
         coinIndex,
         transfer
       });
-      if (!object) return;
+      if (!transferObject) return;
 
       animations.push({
-        object,
-        transient: !transfer.toSeat,
+        object: transferObject.object,
+        transient: transferObject.transient,
         source: toVector3(source.point),
-        target: toVector3(target.point),
+        target: toVector3(transferObject.target),
         elapsed: -index * COIN_STAGGER_SECONDS
       });
     });
@@ -67,6 +69,7 @@ export function createRankedCoinAnimationController(options) {
       animation.object.body.setTranslation(animation.target, true);
       animation.object.collider?.setSensor?.(false);
       if (animation.transient) removeTableObject(animation.object, { update: false });
+      else releaseCoinPhysics(animation.object);
       return false;
     });
   }
@@ -84,13 +87,21 @@ export function createRankedCoinAnimationController(options) {
     const targetObject = transfer.toSeat
       ? getObjectById(getRankedCoinId(transfer.toSeat, target.index))
       : null;
+    const finalTarget = targetObject ? getObjectPosition(targetObject, target.point) : target.point;
     const object = targetObject || createTransientCoin(getRankedCoinType(coinIndex), source.point, transientId++);
     if (!object) return null;
 
+    setCoinKinematic(object);
     object.collider?.setSensor?.(true);
     object.body.setTranslation(toVector3(source.point), true);
-    return object;
-  }
+    return { object, transient: !targetObject, target: finalTarget };
+}
+
+// Captura a posicao de nascimento da moeda antes de ela ser movida para a animacao.
+function getObjectPosition(object, fallback) {
+  const position = object?.body?.translation?.();
+  return position ? toVector3(position) : fallback;
+}
 
   return { cancel, transition, update, isActive: () => animations.length > 0 };
 }

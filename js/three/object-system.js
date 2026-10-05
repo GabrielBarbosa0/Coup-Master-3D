@@ -73,7 +73,8 @@ function spawnCoin(type = 'gold', options = {}) {
   mesh.position.copy(initialPosition);
   mesh.quaternion.copy(initialQuaternion);
 
-  const bodyDescriptor = options.locked
+  const physicsLocked = options.physicsLocked ?? options.locked;
+  const bodyDescriptor = physicsLocked
     ? RAPIER.RigidBodyDesc.kinematicPositionBased()
     : RAPIER.RigidBodyDesc.dynamic()
       .setLinearDamping(1.65)
@@ -94,6 +95,7 @@ function spawnCoin(type = 'gold', options = {}) {
     id,
     kind: mesh.userData.kind,
     locked: Boolean(options.locked),
+    physicsLocked: Boolean(physicsLocked),
     mesh,
     body,
     collider: bodyCollider

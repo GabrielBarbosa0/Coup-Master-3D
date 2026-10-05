@@ -208,7 +208,7 @@ function createRankedCoinObjects(players, layout) {
       kind: `${getRankedCoinType(index)}-coin`,
       position: { x: slot.x, y: slot.y, z: slot.z },
       quaternion: quaternionFromRotationY(index * 0.43),
-      rankedLocked: true,
+      rankedLocked: false,
       rankedCoinSeat: player.seat
     }));
   });

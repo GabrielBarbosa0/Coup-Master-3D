@@ -522,7 +522,15 @@ function init() {
       silent: true
     }),
     getObjectById,
-    removeTableObject
+    removeTableObject,
+    setCoinKinematic: (coin) => {
+      coin.body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true);
+    },
+    releaseCoinPhysics: (coin) => {
+      coin.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true);
+      coin.body.setLinvel({ x: 0, y: -0.08, z: 0 }, true);
+      coin.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    }
   });
   app.rankedRevealAnimations = createRankedRevealAnimationController({
     createTransientCard: createRankedRevealCard,
@@ -1621,6 +1629,9 @@ function applyTableState(snapshot) {
   if (!snapshot || snapshot.version !== 1) return;
 
   const previousSnapshot = app.lastAppliedTableState;
+  const previousRankedCoinPoses = snapshot.mode === 'ranked'
+    ? captureRankedCoinPoses()
+    : new Map();
 
   app.isApplyingRemoteState = true;
   app.pointerInteractions.clearPointerHover();
@@ -1697,11 +1708,13 @@ function applyTableState(snapshot) {
 
   (snapshot.objects || []).forEach((object) => {
     if (object.kind === 'gold-coin' || object.kind === 'silver-coin') {
+      const preservedPose = previousRankedCoinPoses.get(object.id);
       spawnCoin(object.kind === 'gold-coin' ? 'gold' : 'silver', {
         id: object.id,
-        position: object.position,
-        quaternion: object.quaternion,
-        locked: Boolean(object.rankedLocked),
+        position: preservedPose?.position || object.position,
+        quaternion: preservedPose?.quaternion || object.quaternion,
+        locked: snapshot.mode === 'ranked' || Boolean(object.rankedLocked),
+        physicsLocked: Boolean(object.rankedLocked),
         silent: true
       });
     } else if (object.kind === 'die') {
@@ -1724,6 +1737,21 @@ function applyTableState(snapshot) {
   app.lastAppliedTableState = cloneTableState(snapshot);
   setLastAppliedTableState(snapshot);
   app.isApplyingRemoteState = false;
+}
+
+// Preserva moedas fisicas ranqueadas que ja se acomodaram entre atualizacoes do motor.
+function captureRankedCoinPoses() {
+  return getTableObjects().reduce((poses, object) => {
+    if (!object?.id?.startsWith('ranked-coin-') || object.id.startsWith('ranked-coin-transfer-')) return poses;
+    const position = object.body?.translation?.();
+    const quaternion = object.body?.rotation?.();
+    if (!position || !quaternion) return poses;
+    poses.set(object.id, {
+      position: { x: position.x, y: position.y, z: position.z },
+      quaternion: { x: quaternion.x, y: quaternion.y, z: quaternion.z, w: quaternion.w }
+    });
+    return poses;
+  }, new Map());
 }
 
 // Remove cartas atuais antes de aplicar um snapshot remoto.

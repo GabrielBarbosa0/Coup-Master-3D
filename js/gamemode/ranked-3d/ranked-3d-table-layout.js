@@ -1,13 +1,16 @@
 const TABLE_PLAYER_COUNT = 6;
 const HAND_RADIUS = 3.08;
 const CARD_REST_Y = 0.068;
-const COIN_AREA_RADIUS = 2.36;
+const COIN_AREA_RADIUS = 2.3;
 const REVEAL_AREA_RADIUS = 1.7;
 const EXCHANGE_AREA_RADIUS = 1.92;
 const HAND_AREA_RADIUS = 3.14;
 const SHARED_CENTER_OFFSET = 0.58;
 const TREASURY_OFFSET_X = 1.46;
 const COIN_AREA_SLOT_COUNT = 12;
+const COIN_SPAWN_RADIAL_JITTER = 0.06;
+const COIN_SPAWN_TANGENT_JITTER = 0.24;
+const COIN_SPAWN_HEIGHT = 1.2;
 
 // Cria os pontos fixos da mesa usados pela representacao visual do ranqueado.
 export function createRanked3dTableLayout(options = {}) {
@@ -68,21 +71,26 @@ function createSeatLayout(seat) {
   };
 }
 
-// Distribui posicoes estaveis, com pequena variacao, para moedas de um assento.
+// Replica a faixa frontal do spawn casual para moedas cairem uma vez sem invadir as cartas.
 function createCoinSlots(anchor, radial, tangent) {
   return Array.from({ length: COIN_AREA_SLOT_COUNT }, (_, index) => {
-    const angle = index * 2.399963229728653;
-    const ring = 0.055 + Math.floor(index / 3) * 0.045;
-    const radialOffset = Math.cos(angle) * ring;
-    const tangentOffset = Math.sin(angle) * ring;
+    const radialOffset = (seededUnit(index * 2 + 1) * 2 - 1) * COIN_SPAWN_RADIAL_JITTER;
+    const tangentOffset = (seededUnit(index * 2 + 2) * 2 - 1) * COIN_SPAWN_TANGENT_JITTER;
+    const spawnHeight = COIN_SPAWN_HEIGHT;
 
     return createPoint(
       anchor.x + radial.x * radialOffset + tangent.x * tangentOffset,
-      anchor.y,
+      spawnHeight,
       anchor.z + radial.z * radialOffset + tangent.z * tangentOffset,
       anchor.rotationY
     );
   });
+}
+
+// Produz uma variacao deterministica para todos os clientes receberem a mesma area de nascimento.
+function seededUnit(seed) {
+  const value = Math.sin((seed + 1) * 12.9898) * 43758.5453;
+  return value - Math.floor(value);
 }
 
 // Mantem o formato serializavel do snapshot independente de Three.js.

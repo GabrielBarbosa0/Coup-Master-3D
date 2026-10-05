@@ -11,7 +11,9 @@ const controller = createRankedCoinAnimationController({
     return coin;
   },
   getObjectById: (id) => coins.get(id) || null,
-  removeTableObject: (coin, options) => calls.push({ id: coin.id, options })
+  removeTableObject: (coin, options) => calls.push({ id: coin.id, options }),
+  setCoinKinematic: (coin) => coin.body.bodyTypeCalls.push('kinematic'),
+  releaseCoinPhysics: (coin) => coin.body.bodyTypeCalls.push('dynamic')
 });
 
 controller.transition({
@@ -22,23 +24,29 @@ controller.transition({
 
 assert.deepEqual(targetCoin.body.translationCalls[0], { x: 1, y: 0.068, z: 0 });
 controller.update(1);
-assert.deepEqual(targetCoin.body.translationCalls.at(-1), { x: 3, y: 0.068, z: 0 });
+assert.deepEqual(targetCoin.body.translationCalls.at(-1), { x: 3, y: 0.31, z: 0 });
 assert.deepEqual(targetCoin.collider.sensorCalls, [true, false]);
+assert.deepEqual(targetCoin.body.bodyTypeCalls, ['kinematic', 'dynamic']);
 assert.deepEqual(calls, []);
 
 console.log('ranked-coin-animation-controller: ranked coin arc passed');
 
-function createCoin(id) {
+function createCoin(id, position = { x: 3, y: 0.31, z: 0 }) {
   return {
     id,
     body: {
       translationCalls: [],
       nextTranslationCalls: [],
+      bodyTypeCalls: [],
+      position,
       setTranslation(position) {
         this.translationCalls.push({ x: position.x, y: position.y, z: position.z });
       },
       setNextKinematicTranslation(position) {
         this.nextTranslationCalls.push({ x: position.x, y: position.y, z: position.z });
+      },
+      translation() {
+        return this.position;
       }
     },
     collider: {
