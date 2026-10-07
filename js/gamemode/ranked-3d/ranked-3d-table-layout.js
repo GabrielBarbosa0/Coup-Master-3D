@@ -5,12 +5,12 @@ const COIN_AREA_RADIUS = 2.3;
 const REVEAL_AREA_RADIUS = 1.7;
 const EXCHANGE_AREA_RADIUS = 1.92;
 const HAND_AREA_RADIUS = 3.14;
-const SHARED_CENTER_OFFSET = 0.58;
+const SHARED_CENTER_OFFSET = 0.464;
 const TREASURY_OFFSET_X = 1.46;
 const COIN_AREA_SLOT_COUNT = 12;
 const COIN_SPAWN_RADIAL_JITTER = 0.06;
 const COIN_SPAWN_TANGENT_JITTER = 0.24;
-const COIN_SPAWN_HEIGHT = 1.2;
+const COIN_SPAWN_HEIGHT = CARD_REST_Y;
 
 // Cria os pontos fixos da mesa usados pela representacao visual do ranqueado.
 export function createRanked3dTableLayout(options = {}) {
@@ -71,7 +71,7 @@ function createSeatLayout(seat) {
   };
 }
 
-// Replica a faixa frontal do spawn casual para moedas cairem uma vez sem invadir as cartas.
+// Replica a faixa frontal do spawn casual com moedas ja assentadas no carregamento do estado.
 function createCoinSlots(anchor, radial, tangent) {
   return Array.from({ length: COIN_AREA_SLOT_COUNT }, (_, index) => {
     const radialOffset = (seededUnit(index * 2 + 1) * 2 - 1) * COIN_SPAWN_RADIAL_JITTER;
@@ -113,7 +113,18 @@ export function getRankedCoinId(seat, index) {
   return `ranked-coin-${seat}-${index + 1}`;
 }
 
-// Alterna a aparencia para evitar uma pilha visualmente uniforme de moedas.
-export function getRankedCoinType(index) {
-  return (index + 1) % 5 === 0 ? 'gold' : 'silver';
+// Converte o saldo em fichas fisicas: ouro vale cinco pratas.
+export function createRankedCoinRepresentation(balance) {
+  const value = Math.max(0, Number(balance) || 0);
+  const goldCount = Math.floor(value / 5);
+  const silverCount = value % 5;
+  return [
+    ...Array.from({ length: goldCount }, () => 'gold'),
+    ...Array.from({ length: silverCount }, () => 'silver')
+  ];
+}
+
+// Mantem a moeda temporaria prata quando nao ha uma ficha final para reutilizar.
+export function getRankedCoinType() {
+  return 'silver';
 }

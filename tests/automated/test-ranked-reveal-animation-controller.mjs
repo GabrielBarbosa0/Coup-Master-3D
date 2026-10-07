@@ -15,15 +15,19 @@ function testEliminatedInfluenceMovesToCemetery() {
   controller.transition({
     previousSequence: 2,
     reveals: [createReveal(3, 'card-1', 'challengeLoss')],
-    layout: createLayout()
+    layout: createLayout(),
+    previousLayout: createPreviousLayout()
   });
 
   assert.deepEqual(calls.tosses.map((entry) => entry.target), [
     { x: 0, y: 0.068, z: -1.7 },
-    { x: -0.5, y: 0.068, z: 0 }
+    { x: -0.464, y: 0.068, z: 0 }
   ]);
   assert.equal(calls.removed.length, 0);
   assert.equal(finalCard.data.faceUp, true);
+  assert.deepEqual(calls.tosses.map((entry) => entry.lift), [0.32, 0.42]);
+  assert.deepEqual(calls.deckAnchors, [{ x: 0, y: 0.068, z: 0, rotationY: 0 }]);
+  assert.deepEqual(calls.deckShifts, [{ x: 0.464, y: 0.068, z: 0, rotationY: 0 }]);
 }
 
 function testProvenInfluenceReturnsToDeck() {
@@ -41,6 +45,7 @@ function testProvenInfluenceReturnsToDeck() {
     { x: 0, y: 0.1, z: 0 }
   ]);
   assert.deepEqual(calls.removed, ['ranked-reveal-5']);
+  assert.deepEqual(calls.tosses.map((entry) => entry.lift), [0.32, 0.42]);
 }
 
 function testReplacementLeavesDeckAfterProof() {
@@ -64,6 +69,7 @@ function testReplacementLeavesDeckAfterProof() {
     { id: 'ranked-replacement', visible: true }
   ]);
   assert.deepEqual(calls.removed, ['ranked-reveal-6']);
+  assert.deepEqual(calls.tosses.map((entry) => entry.lift), [0.32, 0.42, 0.34]);
 }
 
 function createController(calls, finalCard, replacementCard = null) {
@@ -81,6 +87,8 @@ function createController(calls, finalCard, replacementCard = null) {
       card.data.faceUp = faceUp;
       onComplete();
     },
+    setDeckAnchor: (anchor) => calls.deckAnchors.push(anchor),
+    animateDeckTo: (anchor) => calls.deckShifts.push(anchor),
     tossTo: (card, target, rotationY, lift, onComplete) => {
       calls.tosses.push({ id: card.id, target: { x: target.x, y: target.y, z: target.z }, rotationY, lift });
       onComplete();
@@ -89,7 +97,9 @@ function createController(calls, finalCard, replacementCard = null) {
 }
 
 function createCallLog() {
-  return { flips: [], placements: [], refreshes: [], removed: [], tosses: [], visibility: [] };
+  return {
+    flips: [], placements: [], refreshes: [], removed: [], tosses: [], visibility: [], deckAnchors: [], deckShifts: []
+  };
 }
 
 function createCard(id, data) {
@@ -102,10 +112,19 @@ function createReveal(sequence, cardId, kind, replacementCardId = null) {
 
 function createLayout() {
   return {
-    cemetery: { x: -0.5, y: 0.068, z: 0, rotationY: 0 },
+    usesSharedCenter: true,
+    deck: { x: 0.464, y: 0.068, z: 0, rotationY: 0 },
+    cemetery: { x: -0.464, y: 0.068, z: 0, rotationY: 0 },
     seats: [{
       hand: { x: 0, y: 0.068, z: -3, rotationY: 0 },
       reveal: { x: 0, y: 0.068, z: -1.7, rotationY: 0 }
     }]
+  };
+}
+
+function createPreviousLayout() {
+  return {
+    usesSharedCenter: false,
+    deck: { x: 0, y: 0.068, z: 0, rotationY: 0 }
   };
 }

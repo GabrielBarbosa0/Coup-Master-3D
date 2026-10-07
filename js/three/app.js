@@ -89,6 +89,7 @@ import {
   setupCardActionsService
 } from './card-actions-service.js';
 import {
+  easeInOutCubic,
   placeCard,
   random,
   tossTo
@@ -167,6 +168,7 @@ import {
 import { createSceneRuntimeController } from './scene-runtime-controller.js';
 import { createRankedCoinAnimationController } from './ranked-coin-animation-controller.js';
 import { createRankedRevealAnimationController } from './ranked-reveal-animation-controller.js';
+import { createRankedInitialDealAnimationController } from './ranked-initial-deal-animation-controller.js';
 import { createRankedCinematicEventLayer } from './ranked-cinematic-event-layer.js';
 import { createRankedTreasuryBag } from './ranked-treasury-bag.js';
 import {
@@ -316,6 +318,7 @@ const app = {
   hoveredPiece: null,
   hoverOutline: null,
   deckShuffle: null,
+  rankedDeckShift: null,
   deckVisualCount: -1,
   deckHitHeight: 0,
   stackShuffleTimers: new Map(),
@@ -332,6 +335,7 @@ const app = {
   sceneRuntime: null,
   rankedCoinAnimations: null,
   rankedRevealAnimations: null,
+  rankedInitialDealAnimations: null,
   rankedCinematicEvents: null,
   rankedTreasuryBag: null,
   textures: {}
@@ -431,6 +435,7 @@ function init() {
     updateCameraFocus,
     updateDeckCollider,
     updatePlayerBadges,
+    updateRankedDeckShift,
     updateRankedCoinAnimations: (deltaSeconds) => app.rankedCinematicEvents?.update(deltaSeconds)
   });
   setupTableStackController({
@@ -543,7 +548,26 @@ function init() {
     setCardVisible: (card, visible) => {
       card.mesh.visible = visible;
     },
+    setDeckAnchor: setRankedDeckAnchor,
+    animateDeckTo: animateRankedDeckTo,
     startCardFlip,
+    tossTo: (card, target, rotationY, lift, onComplete, options) => tossTo(
+      card,
+      vectorFromSnapshot(target, new THREE.Vector3()),
+      rotationY,
+      lift,
+      onComplete,
+      options
+    )
+  });
+  app.rankedInitialDealAnimations = createRankedInitialDealAnimationController({
+    getCardById: (id) => app.cards.get(id) || null,
+    getCardPose,
+    getDeckPose: () => ({ position: getDeckDrawPosition(1.0), rotationY: app.deckMesh?.rotation.y || 0 }),
+    placeCard,
+    setCardVisible: (card, visible) => {
+      card.mesh.visible = visible;
+    },
     tossTo: (card, target, rotationY, lift, onComplete, options) => tossTo(
       card,
       vectorFromSnapshot(target, new THREE.Vector3()),
@@ -555,7 +579,8 @@ function init() {
   });
   app.rankedCinematicEvents = createRankedCinematicEventLayer({
     coinAnimations: app.rankedCoinAnimations,
-    revealAnimations: app.rankedRevealAnimations
+    revealAnimations: app.rankedRevealAnimations,
+    initialDealAnimations: app.rankedInitialDealAnimations
   });
 
   createLights(app.scene);
@@ -930,6 +955,41 @@ function setupSettingsModal() {
   setupModalOverlayDismiss({
     ignoredModals: [spectatorRequestModal]
   });
+}
+
+// Reposiciona o baralho ranqueado no ponto anterior antes de abrir espaco ao cemiterio.
+function setRankedDeckAnchor(anchor) {
+  if (!app.deckMesh || !anchor) return;
+  app.rankedDeckShift = null;
+  app.deckMesh.position.set(anchor.x, CARD_REST_Y + getDeckHeight() / 2, anchor.z);
+  app.deckMesh.rotation.y = Number(anchor.rotationY) || 0;
+  syncDeckRim();
+  updateDeckCollider();
+}
+
+// Desloca o baralho suavemente para compartilhar o centro com o novo cemiterio.
+function animateRankedDeckTo(anchor) {
+  if (!app.deckMesh || !anchor) return;
+  app.rankedDeckShift = {
+    start: app.deckMesh.position.clone(),
+    end: new THREE.Vector3(anchor.x, CARD_REST_Y + getDeckHeight() / 2, anchor.z),
+    startRotationY: app.deckMesh.rotation.y,
+    endRotationY: Number(anchor.rotationY) || 0,
+    progress: 0
+  };
+}
+
+// Atualiza a transicao do baralho sem publicar uma alteracao local da mesa.
+function updateRankedDeckShift(deltaSeconds) {
+  const shift = app.rankedDeckShift;
+  if (!shift || !app.deckMesh) return;
+  shift.progress = Math.min(1, shift.progress + deltaSeconds / 0.42);
+  const progress = easeInOutCubic(shift.progress);
+  app.deckMesh.position.lerpVectors(shift.start, shift.end, progress);
+  app.deckMesh.rotation.y = THREE.MathUtils.lerp(shift.startRotationY, shift.endRotationY, progress);
+  syncDeckRim();
+  updateDeckCollider();
+  if (shift.progress >= 1) app.rankedDeckShift = null;
 }
 
 // Atualiza a permissao local de administrador e os controles exclusivos.

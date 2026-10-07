@@ -3,6 +3,7 @@ import { createRankedCinematicEvents } from '../../js/three/ranked-cinematic-eve
 import { createRankedCinematicEventLayer } from '../../js/three/ranked-cinematic-event-layer.js';
 
 testEventProjection();
+testInitialDealProjection();
 testSerializedPlayback();
 
 console.log('ranked-cinematic-event-layer: ranked event queue passed');
@@ -27,6 +28,22 @@ function testEventProjection() {
   assert.equal(events[1].reveals[0].sequence, 2);
   assert.equal(events[2].state, 'opened');
   assert.equal(events[3].state, 'opened');
+}
+
+function testInitialDealProjection() {
+  const previous = createSnapshot({ phase: 'starter-draw', coinBalances: [2], publicReveals: [] });
+  const next = createSnapshot({
+    phase: 'dealing',
+    coinBalances: [2],
+    publicReveals: [],
+    initialDeal: { key: 'match-1', deals: [{ seat: 1, cardId: 'card-1', order: 0 }] }
+  });
+
+  const events = createRankedCinematicEvents(previous, next);
+  assert.equal(events.length, 1);
+  assert.equal(events[0].type, 'initial-deal');
+  assert.equal(events[0].deals[0].cardId, 'card-1');
+  assert.deepEqual(createRankedCinematicEvents(next, next), []);
 }
 
 function testSerializedPlayback() {
@@ -81,7 +98,14 @@ function createMockController() {
   };
 }
 
-function createSnapshot({ coinBalances, publicReveals, exchange = null, examine = null }) {
+function createSnapshot({
+  phase = 'turn',
+  coinBalances,
+  publicReveals,
+  initialDeal = null,
+  exchange = null,
+  examine = null
+}) {
   return {
     version: 1,
     mode: 'ranked',
@@ -89,9 +113,11 @@ function createSnapshot({ coinBalances, publicReveals, exchange = null, examine 
       updatedAt: 100,
       turnNumber: 1,
       turnIndex: 0,
+      phase,
       layout: { deck: { x: 0, y: 0, z: 0 } },
       coinBalances,
       publicReveals,
+      initialDeal,
       exchange,
       examine
     }

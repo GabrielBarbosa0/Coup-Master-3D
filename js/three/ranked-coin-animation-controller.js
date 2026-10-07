@@ -1,8 +1,12 @@
 import { createRankedCoinTransferPlan } from '../gamemode/ranked-3d/ranked-3d-coin-transfers.js';
-import { getRankedCoinId, getRankedCoinType } from '../gamemode/ranked-3d/ranked-3d-table-layout.js';
+import {
+  createRankedCoinRepresentation,
+  getRankedCoinId,
+  getRankedCoinType
+} from '../gamemode/ranked-3d/ranked-3d-table-layout.js';
 
-const COIN_TRAVEL_SECONDS = 0.52;
-const COIN_STAGGER_SECONDS = 0.075;
+const COIN_TRAVEL_SECONDS = 0.87;
+const COIN_STAGGER_SECONDS = 0.125;
 const COIN_ARC_HEIGHT = 0.32;
 
 // Reproduz transferencias de saldo como moedas em movimento na mesa ranqueada.
@@ -22,7 +26,16 @@ export function createRankedCoinAnimationController(options) {
     cancel();
     if (!Array.isArray(previousBalances) || !Array.isArray(nextBalances) || !layout) return;
 
-    const transfers = createRankedCoinTransferPlan(previousBalances, nextBalances);
+    const plannedTransfers = createRankedCoinTransferPlan(previousBalances, nextBalances);
+    const consolidations = findFiveCoinConsolidations(previousBalances, nextBalances);
+    const goldBreaks = findGoldBreakTransfers(previousBalances, nextBalances, plannedTransfers);
+    const consolidationSeats = new Set(consolidations.map((conversion) => conversion.seat));
+    const goldBreakSeats = new Set(goldBreaks.map((conversion) => conversion.seat));
+    const transfers = plannedTransfers.filter((transfer) => (
+      !consolidationSeats.has(transfer.fromSeat)
+      && !consolidationSeats.has(transfer.toSeat)
+      && !goldBreakSeats.has(transfer.fromSeat)
+    ));
     const incomingCounts = countTransfersBySeat(transfers, 'toSeat');
     const sourceIndexes = previousBalances.map((value) => Math.max(0, Number(value) || 0));
     const targetIndexes = nextBalances.map((value, index) => (
@@ -51,6 +64,9 @@ export function createRankedCoinAnimationController(options) {
         elapsed: -index * COIN_STAGGER_SECONDS
       });
     });
+
+    consolidations.forEach((conversion) => appendFiveCoinConsolidation(conversion, layout));
+    goldBreaks.forEach((conversion) => appendGoldBreakTransfer(conversion, layout));
   }
 
   // Atualiza os arcos das moedas antes do passo fisico do Rapier.
@@ -95,6 +111,107 @@ export function createRankedCoinAnimationController(options) {
     object.collider?.setSensor?.(true);
     object.body.setTranslation(toVector3(source.point), true);
     return { object, transient: !targetObject, target: finalTarget };
+}
+
+// Consolida cinco pratas em ouro quando a renda leva um jogador de quatro para cinco moedas.
+function appendFiveCoinConsolidation(conversion, layout) {
+  const slots = layout.seats?.[conversion.seat - 1]?.coinArea?.slots || [];
+  if (slots.length === 0) return;
+
+  for (let index = 0; index < 5; index += 1) {
+    addTransientAnimation('silver', slots[index] || slots[0], layout.treasury, index * COIN_STAGGER_SECONDS);
+  }
+  addFinalCoinAnimation(conversion.seat, 0, layout.treasury, 0.16);
+}
+
+// Quebra uma moeda de ouro ao perder moedas, entregando prata ao alvo e o troco ao antigo dono.
+function appendGoldBreakTransfer(conversion, layout) {
+  const slots = layout.seats?.[conversion.seat - 1]?.coinArea?.slots || [];
+  if (slots.length === 0) return;
+
+  createRankedCoinRepresentation(conversion.previousBalance).forEach((type, index) => {
+    addTransientAnimation(type, slots[index] || slots[0], layout.treasury, index * COIN_STAGGER_SECONDS);
+  });
+  const remainingTokens = createRankedCoinRepresentation(conversion.nextBalance);
+  remainingTokens.forEach((_type, index) => {
+    addFinalCoinAnimation(conversion.seat, index, layout.treasury, (index + 2) * COIN_STAGGER_SECONDS);
+  });
+
+  const incomingBySeat = countTransfersBySeat(conversion.transfers, 'toSeat');
+  incomingBySeat.forEach((count, seat) => {
+    const recipientBalance = Math.max(0, Number(conversion.nextBalances[seat - 1]) || 0);
+    const previousBalance = Math.max(0, Number(conversion.previousBalances[seat - 1]) || 0);
+    const finalTokens = createRankedCoinRepresentation(recipientBalance);
+    const crossedGoldBoundary = previousBalance < 5 && recipientBalance >= 5;
+    const firstIncomingIndex = crossedGoldBoundary
+      ? 0
+      : Math.max(0, finalTokens.length - Math.min(count, finalTokens.length));
+    finalTokens.slice(firstIncomingIndex).forEach((_type, index) => {
+      addFinalCoinAnimation(seat, firstIncomingIndex + index, layout.treasury, (index + 1) * COIN_STAGGER_SECONDS);
+    });
+  });
+}
+// Gera uma ficha temporaria para movimentos cuja origem deixou de existir no novo snapshot.
+function addTransientAnimation(type, source, target, delay) {
+  const object = createTransientCoin(type, source, transientId++);
+  if (!object) return;
+  setCoinKinematic(object);
+  object.collider?.setSensor?.(true);
+  object.body.setTranslation(toVector3(source), true);
+  animations.push({
+    object,
+    transient: true,
+    source: toVector3(source),
+    target: toVector3(target),
+    elapsed: -delay
+  });
+}
+
+// Move uma ficha final do tesouro, mantendo a representacao do novo saldo no assento.
+function addFinalCoinAnimation(seat, index, source, delay) {
+  const object = getObjectById(getRankedCoinId(seat, index));
+  if (!object) return;
+  const target = getObjectPosition(object, source);
+  setCoinKinematic(object);
+  object.collider?.setSensor?.(true);
+  object.body.setTranslation(toVector3(source), true);
+  animations.push({
+    object,
+    transient: false,
+    source: toVector3(source),
+    target,
+    elapsed: -delay
+  });
+}
+
+// Detecta a troca exata de quatro pratas por uma moeda de ouro.
+function findFiveCoinConsolidations(previousBalances, nextBalances) {
+  const count = Math.max(previousBalances.length, nextBalances.length);
+  return Array.from({ length: count }, (_, index) => {
+    const previous = Math.max(0, Number(previousBalances[index]) || 0);
+    const next = Math.max(0, Number(nextBalances[index]) || 0);
+    if (previous === 4 && next === 5) return { seat: index + 1 };
+    return null;
+  }).filter(Boolean);
+}
+
+// Identifica saidas de saldo que exigem destrocar ouro para as fichas finais de prata.
+function findGoldBreakTransfers(previousBalances, nextBalances, transfers) {
+  return previousBalances.flatMap((value, index) => {
+    const seat = index + 1;
+    const previousBalance = Math.max(0, Number(value) || 0);
+    const nextBalance = Math.max(0, Number(nextBalances[index]) || 0);
+    const outgoingTransfers = transfers.filter((transfer) => transfer.fromSeat === seat);
+    if (previousBalance < 5 || nextBalance >= 5 || outgoingTransfers.length === 0) return [];
+    return [{
+      seat,
+      previousBalance,
+      nextBalance,
+      previousBalances,
+      nextBalances,
+      transfers: outgoingTransfers
+    }];
+  });
 }
 
 // Captura a posicao de nascimento da moeda antes de ela ser movida para a animacao.

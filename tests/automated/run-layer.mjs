@@ -35,6 +35,7 @@ const layers = Object.freeze({
     'tests/automated/test-ranked-3d-coin-transfers.mjs',
     'tests/automated/test-ranked-coin-animation-controller.mjs',
     'tests/automated/test-ranked-reveal-animation-controller.mjs',
+    'tests/automated/test-ranked-initial-deal-animation-controller.mjs',
     'tests/automated/test-ranked-cinematic-event-layer.mjs',
     'tests/automated/test-ranked-3d-table-layout.mjs',
     'tests/automated/test-ranked-3d-table-adapter.mjs'

@@ -1,9 +1,9 @@
-import { ROLE_DEFINITIONS, SETTINGS } from './ranked-3d-actions.js';
+import { PHASES, ROLE_DEFINITIONS, SETTINGS } from './ranked-3d-actions.js';
 import { getRanked3dPlayers } from './ranked-3d-engine.js';
 import {
   createRanked3dTableLayout,
+  createRankedCoinRepresentation,
   getRankedCoinId,
-  getRankedCoinType,
   getRankedCardRotation as getRankedSeatCardRotation,
   getRankedPlayerAngle
 } from './ranked-3d-table-layout.js';
@@ -86,11 +86,44 @@ export function createRanked3dTableState(rankedState, options = {}) {
       updatedAt: Number(rankedState?.updatedAt) || null,
       coinBalances: tablePlayers.map((player) => player.coinCount),
       publicReveals: createRankedPublicReveals(rankedState, players),
+      initialDeal: createRankedInitialDealPresentation(rankedState, players),
       exchange: createRankedExchangePresentation(rankedState, localUid, players),
       examine: createRankedExaminePresentation(rankedState, localUid, players),
       layout
     }
   };
+}
+
+// Expõe a ordem publica da distribuicao inicial sem revelar o papel das influencias.
+function createRankedInitialDealPresentation(rankedState, players) {
+  if (rankedState?.phase !== PHASES.DEALING) return null;
+
+  const orderedPlayers = [...players]
+    .filter((player) => player?.seat)
+    .sort((left, right) => left.seat - right.seat);
+  const rounds = Math.max(0, ...orderedPlayers.map((player) => player.influences?.length || 0));
+  const deals = [];
+
+  for (let round = 0; round < rounds; round += 1) {
+    orderedPlayers.forEach((player) => {
+      const influence = player.influences?.[round];
+      if (!influence?.id || influence.revealed) return;
+      deals.push({
+        seat: player.seat,
+        cardId: influence.id,
+        order: round,
+        openingPose: round === 0 ? {
+          position: getRankedCardPosition(player.seat, 0, 1),
+          rotationY: getRankedHandCardRotation(player.seat, 0, 1)
+        } : null
+      });
+    });
+  }
+
+  return deals.length > 0 ? {
+    key: `${Number(rankedState?.updatedAt) || 0}:${deals.map((deal) => deal.cardId).join('|')}`,
+    deals
+  } : null;
 }
 
 // Projeta somente para o dono as opcoes privadas de uma troca ativa.
@@ -197,16 +230,16 @@ function createRankedPublicReveals(rankedState, players) {
     .sort((left, right) => left.sequence - right.sequence);
 }
 
-// Cria uma moeda visivel por unidade do saldo, posicionada perto do dono.
+// Cria fichas de prata e ouro equivalentes ao saldo, posicionadas perto do dono.
 function createRankedCoinObjects(players, layout) {
   return players.flatMap((player) => {
     const coinSlots = layout.seats[player.seat - 1]?.coinArea?.slots || [];
-    const coinCount = Math.min(Math.max(0, Number(player.coins) || 0), coinSlots.length);
+    const coins = createRankedCoinRepresentation(player.coins).slice(0, coinSlots.length);
 
-    return coinSlots.slice(0, coinCount).map((slot, index) => ({
+    return coins.map((type, index) => ({
       id: getRankedCoinId(player.seat, index),
-      kind: `${getRankedCoinType(index)}-coin`,
-      position: { x: slot.x, y: slot.y, z: slot.z },
+      kind: `${type}-coin`,
+      position: { x: coinSlots[index].x, y: coinSlots[index].y, z: coinSlots[index].z },
       quaternion: quaternionFromRotationY(index * 0.43),
       rankedLocked: false,
       rankedCoinSeat: player.seat
@@ -304,6 +337,7 @@ function createRankedInfluenceCard(player, influence, index, localUid, layout, c
     rankedOwnerSeat: player.seat,
     rankedOwnerUid: player.uid,
     rankedCardId: influence.id,
+    rankedInfluenceIndex: index,
     rankedRole: influence.role,
     rankedRevealed: isRevealed
   };

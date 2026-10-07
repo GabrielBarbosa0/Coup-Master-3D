@@ -9,6 +9,15 @@ export function createRankedCinematicEvents(previousSnapshot, nextSnapshot) {
 
   const previousBalances = normalizeBalances(previousRanked.coinBalances);
   const nextBalances = normalizeBalances(nextRanked.coinBalances);
+  if (previousRanked.phase !== 'dealing' && nextRanked.phase === 'dealing' && nextRanked.initialDeal) {
+    events.push({
+      id: `initial-deal:${nextRanked.initialDeal.key}`,
+      type: 'initial-deal',
+      layout,
+      ...nextRanked.initialDeal
+    });
+  }
+
   if (hasBalanceChange(previousBalances, nextBalances)) {
     events.push({
       id: `coins:${getSnapshotKey(nextSnapshot)}`,
@@ -28,6 +37,7 @@ export function createRankedCinematicEvents(previousSnapshot, nextSnapshot) {
       id: `reveals:${reveals.map((reveal) => reveal.sequence).join(',')}`,
       type: 'reveals',
       layout,
+      previousLayout: previousRanked.layout || null,
       previousSequence: previousRevealSequence,
       reveals
     });

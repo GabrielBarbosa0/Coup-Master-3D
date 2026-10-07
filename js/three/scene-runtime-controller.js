@@ -25,6 +25,7 @@ function createSceneRuntimeController(options) {
     updateCameraFocus,
     updateDeckCollider,
     updatePlayerBadges,
+    updateRankedDeckShift = () => {},
     updateRankedCoinAnimations = () => {},
     windowTarget = window
   } = options;
@@ -52,6 +53,7 @@ function createSceneRuntimeController(options) {
     updateFlipTweens(dt);
     updateCameraFocus(dt);
     updateDeckShuffle(dt);
+    updateRankedDeckShift(dt);
     updateRankedCoinAnimations(dt);
     rescueLimboPieces();
     app.world.step();

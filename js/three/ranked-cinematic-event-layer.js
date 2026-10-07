@@ -4,6 +4,7 @@ import { createRankedCinematicEvents } from './ranked-cinematic-events.js';
 export function createRankedCinematicEventLayer(options = {}) {
   const coinAnimations = options.coinAnimations || null;
   const revealAnimations = options.revealAnimations || null;
+  const initialDealAnimations = options.initialDealAnimations || null;
   const onEvent = options.onEvent || (() => {});
   let queue = [];
   let activeEvent = null;
@@ -30,6 +31,7 @@ export function createRankedCinematicEventLayer(options = {}) {
   function cancel() {
     coinAnimations?.cancel?.();
     revealAnimations?.cancel?.();
+    initialDealAnimations?.cancel?.();
     queue = [];
     activeEvent = null;
   }
@@ -41,7 +43,9 @@ export function createRankedCinematicEventLayer(options = {}) {
     activeEvent = event;
     onEvent({ phase: 'started', event });
 
-    if (event.type === 'coins') {
+    if (event.type === 'initial-deal') {
+      initialDealAnimations?.transition?.(event);
+    } else if (event.type === 'coins') {
       coinAnimations?.transition?.(event);
     } else if (event.type === 'reveals') {
       revealAnimations?.transition?.(event);
@@ -59,6 +63,7 @@ export function createRankedCinematicEventLayer(options = {}) {
   }
 
   function isEventActive(event) {
+    if (event.type === 'initial-deal') return Boolean(initialDealAnimations?.isActive?.());
     if (event.type === 'coins') return Boolean(coinAnimations?.isActive?.());
     if (event.type === 'reveals') return Boolean(revealAnimations?.isActive?.());
     return false;

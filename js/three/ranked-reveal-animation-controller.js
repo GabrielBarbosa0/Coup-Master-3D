@@ -1,4 +1,7 @@
 // Apresenta revelacoes publicas em fila, sem alterar o estado autoritativo ranqueado.
+const CASUAL_DRAW_LIFT = 0.34;
+const CASUAL_RETURN_LIFT = 0.42;
+
 export function createRankedRevealAnimationController(options) {
   const {
     createTransientCard,
@@ -10,22 +13,29 @@ export function createRankedRevealAnimationController(options) {
     removeTransientCard,
     setCardVisible,
     startCardFlip,
-    tossTo
+    tossTo,
+    setDeckAnchor = () => {},
+    animateDeckTo = () => {}
   } = options;
   let queue = [];
   let activeTransientCard = null;
   const hiddenReplacementCards = new Set();
   let runId = 0;
   let isPlaying = false;
+  let shouldOpenSharedCenter = false;
 
   // Enfileira somente eventos posteriores ao ultimo snapshot conhecido.
-  function transition({ previousSequence, reveals, layout }) {
+  function transition({ previousSequence, reveals, layout, previousLayout = null }) {
     cancel();
     if (!Number.isFinite(previousSequence) || !layout || !Array.isArray(reveals)) return;
 
     queue = reveals
       .filter((reveal) => Number(reveal?.sequence) > previousSequence)
       .sort((left, right) => Number(left.sequence) - Number(right.sequence));
+    shouldOpenSharedCenter = Boolean(
+      previousLayout && !previousLayout.usesSharedCenter && layout.usesSharedCenter
+    );
+    if (shouldOpenSharedCenter && previousLayout.deck) setDeckAnchor(previousLayout.deck);
     isPlaying = queue.length > 0;
     playNext(layout, runId);
   }
@@ -39,6 +49,7 @@ export function createRankedRevealAnimationController(options) {
     hiddenReplacementCards.forEach((card) => setCardVisible(card, true));
     hiddenReplacementCards.clear();
     isPlaying = false;
+    shouldOpenSharedCenter = false;
   }
 
   // Mostra uma revelacao por vez para manter a mesa legivel em perdas consecutivas.
@@ -111,18 +122,22 @@ export function createRankedRevealAnimationController(options) {
     currentRunId
   }) {
     if (isEliminated) {
-      tossTo(card, layout.cemetery, layout.cemetery.rotationY, 0.2, () => playNext(layout, currentRunId), { suppressSync: true });
+      if (shouldOpenSharedCenter) {
+        animateDeckTo(layout.deck);
+        shouldOpenSharedCenter = false;
+      }
+      tossTo(card, layout.cemetery, layout.cemetery.rotationY, CASUAL_RETURN_LIFT, () => playNext(layout, currentRunId), { suppressSync: true });
       return;
     }
 
     if (finalData && finalPose) {
       restoreFinalCard(card, finalData, refreshCardMaterial);
-      tossTo(card, finalPose.position, finalPose.rotationY, 0.2, () => playNext(layout, currentRunId), { suppressSync: true });
+      tossTo(card, finalPose.position, finalPose.rotationY, CASUAL_DRAW_LIFT, () => playNext(layout, currentRunId), { suppressSync: true });
       return;
     }
 
     const deckPose = getDeckPose();
-    tossTo(card, deckPose.position, deckPose.rotationY, 0.28, () => {
+    tossTo(card, deckPose.position, deckPose.rotationY, CASUAL_RETURN_LIFT, () => {
       if (currentRunId !== runId) return;
       removeTransientCard(card);
       if (activeTransientCard?.id === card.id) activeTransientCard = null;
@@ -144,7 +159,7 @@ export function createRankedRevealAnimationController(options) {
       replacementCard,
       replacementPose.position,
       replacementPose.rotationY,
-      0.3,
+      CASUAL_DRAW_LIFT,
       () => playNext(layout, currentRunId),
       { suppressSync: true }
     );

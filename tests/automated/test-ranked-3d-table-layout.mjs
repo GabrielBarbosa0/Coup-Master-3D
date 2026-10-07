@@ -7,7 +7,7 @@ assert.equal(emptyLayout.deck.x, 0);
 assert.equal(emptyLayout.seats.length, 6);
 assert.equal(emptyLayout.seats[0].coinArea.slots.length, 12);
 assert.notEqual(emptyLayout.seats[0].coinArea.z, emptyLayout.seats[0].reveal.z);
-assert.ok(emptyLayout.seats[0].coinArea.slots.every((slot) => slot.y > 0.2));
+assert.ok(emptyLayout.seats[0].coinArea.slots.every((slot) => slot.y === 0.068));
 assert.ok(emptyLayout.seats[0].coinArea.slots.every((slot) => (
   Math.hypot(slot.x - emptyLayout.seats[0].coinArea.x, slot.z - emptyLayout.seats[0].coinArea.z) <= 0.25
 )));

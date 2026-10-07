@@ -56,7 +56,7 @@ assert.equal(tableState.objects.length, 5);
 assert.equal(tableState.objects.filter((object) => object.rankedCoinSeat === 1).length, 4);
 assert.equal(tableState.objects.filter((object) => object.rankedCoinSeat === 2).length, 1);
 assert.ok(tableState.objects.every((object) => !object.rankedLocked));
-assert.ok(tableState.objects.every((object) => object.position.y > 0.2));
+assert.ok(tableState.objects.every((object) => object.position.y === 0.068));
 assert.equal(tableState.deck.length, 2);
 assert.equal(tableState.deckConfig.inquisidor, 5);
 assert.equal(tableState.deckConfig.embaixador, 0);
@@ -95,6 +95,28 @@ assert.equal(tableState.stacks[0].cards[0], revealedOpponentCard.data.id);
 assert.equal(tableState.ranked3d.layout.usesSharedCenter, true);
 assert.ok(tableState.deckTransform.position.x > 0);
 assert.ok(tableState.ranked3d.layout.cemetery.x < 0);
+
+const fiveCoinState = structuredClone(rankedState);
+fiveCoinState.players.u1.coins = 5;
+const fiveCoinTable = createRanked3dTableState(fiveCoinState, { localUid: 'u1' });
+const aliceCoins = fiveCoinTable.objects.filter((object) => object.rankedCoinSeat === 1);
+assert.equal(aliceCoins.length, 1);
+assert.equal(aliceCoins[0].kind, 'gold-coin');
+
+const dealingState = structuredClone(rankedState);
+dealingState.phase = 'dealing';
+const dealingTable = createRanked3dTableState(dealingState, { localUid: 'u1' });
+assert.deepEqual(
+  dealingTable.ranked3d.initialDeal.deals.map(({ seat, cardId, order }) => ({ seat, cardId, order })),
+  [
+    { seat: 1, cardId: 'alice-1', order: 0 },
+    { seat: 2, cardId: 'bruno-1', order: 0 },
+    { seat: 1, cardId: 'alice-2', order: 1 }
+  ]
+);
+assert.ok(dealingTable.ranked3d.initialDeal.deals[0].openingPose);
+assert.equal(dealingTable.ranked3d.initialDeal.deals[2].openingPose, null);
+assert.equal(dealingTable.cards.find((entry) => entry.data.rankedCardId === 'alice-2').data.rankedInfluenceIndex, 1);
 
 const exchangeState = structuredClone(rankedState);
 exchangeState.phase = 'exchange';
