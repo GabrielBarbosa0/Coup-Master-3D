@@ -1,4 +1,4 @@
-﻿import * as THREE from 'three';
+import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import * as config from './config.js';
 import * as dom from './dom.js';
@@ -1508,9 +1508,14 @@ function getTableState() {
 
 // Aplica o estado final publicado por outro jogador, sem reemitir eco.
 function applyTableState(snapshot) {
-  if (!snapshot || snapshot.version !== 1) return;
-
   app.isApplyingRemoteState = true;
+try {
+
+  } finally {
+  app.isApplyingRemoteState = false;
+}
+}
+
   app.pointerInteractions.clearPointerHover();
   app.pointerInteractions.clearDropHover();
   app.dragged = null;
